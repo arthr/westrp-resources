@@ -5,6 +5,10 @@ local keepInputThreadActive = false
 local isPanelOpen = false
 local currentActivePanel = nil
 
+local isDialogOpen = false
+local currentActiveDialog = nil
+
+
 -- ============================================================================
 -- 1. CONTROLE DE FOCO E TECLAS (KEEP INPUT)
 -- ============================================================================
@@ -223,7 +227,67 @@ function ShowToast(title, message, type, duration)
 end
 
 -- ============================================================================
--- 5. NUI CALLBACKS RECEBIDOS DO JAVASCRIPT
+-- 5. SISTEMA DE DIALOG MODAL / FORMULÁRIO TIPADO
+-- ============================================================================
+
+---Abre um modal de diálogo tipado (prompt / formulário)
+---@param options table { id: string, title: string, subtitle?: string, fields: table[], onSubmit: fun(values: table), onCancel?: fun() }
+function OpenDialog(options)
+    if not options then return end
+
+    currentActiveDialog = {
+        id = options.id or 'default_dialog',
+        onSubmit = options.onSubmit,
+        onCancel = options.onCancel
+    }
+
+    isDialogOpen = true
+    SetNuiFocus(true, true)
+    SetNuiFocusKeepInput(false)
+
+    SendNUIMessage({
+        action = 'westrp_ui:openDialog',
+        options = {
+            id = options.id,
+            tag = options.tag,
+            title = options.title,
+            subtitle = options.subtitle,
+            fields = options.fields,
+            submitLabel = options.submitLabel,
+            cancelLabel = options.cancelLabel
+        }
+    })
+end
+
+---Fecha o modal de diálogo tipado
+function CloseDialog()
+    if not isDialogOpen then return end
+    isDialogOpen = false
+
+    -- Se o Panel não estiver aberto por trás, remove o foco do NUI
+    if not isPanelOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    SendNUIMessage({
+        action = 'westrp_ui:closeDialog'
+    })
+
+    if currentActiveDialog and currentActiveDialog.onCancel then
+        currentActiveDialog.onCancel()
+    end
+    currentActiveDialog = nil
+end
+
+---Retorna se o diálogo modal está aberto
+---@return boolean
+function IsDialogOpen()
+    return isDialogOpen
+end
+
+-- ============================================================================
+-- 6. NUI CALLBACKS RECEBIDOS DO JAVASCRIPT
 -- ============================================================================
 
 -- Callbacks do Dock
@@ -278,10 +342,39 @@ RegisterNUICallback('westrp_ui:panelClosed', function(data, cb)
     cb({ ok = true })
 end)
 
+-- Callbacks do Dialog
+RegisterNUICallback('westrp_ui:dialogSubmit', function(data, cb)
+    isDialogOpen = false
+    if not isPanelOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    if currentActiveDialog and currentActiveDialog.onSubmit then
+        currentActiveDialog.onSubmit(data.values or {})
+    end
+    currentActiveDialog = nil
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('westrp_ui:dialogCancel', function(data, cb)
+    isDialogOpen = false
+    if not isPanelOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    if currentActiveDialog and currentActiveDialog.onCancel then
+        currentActiveDialog.onCancel()
+    end
+    currentActiveDialog = nil
+    cb({ ok = true })
+end)
+
 -- Limpeza ao parar o recurso
 AddEventHandler('onResourceStop', function(resName)
     if resName == GetCurrentResourceName() then
-        if isDockOpen or isPanelOpen then
+        if isDockOpen or isPanelOpen or isDialogOpen then
             SetNuiFocus(false, false)
             SetNuiFocusKeepInput(false)
             ClearScreenBlur()
@@ -299,3 +392,8 @@ exports('ShowToast', ShowToast)
 exports('OpenPanel', OpenPanel)
 exports('ClosePanel', ClosePanel)
 exports('IsPanelOpen', IsPanelOpen)
+
+exports('OpenDialog', OpenDialog)
+exports('CloseDialog', CloseDialog)
+exports('IsDialogOpen', IsDialogOpen)
+

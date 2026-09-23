@@ -22,10 +22,13 @@ O **WestRP UI Engine** (`westrp_ui`) é o ecossistema padronizado de interfaces 
    - [Visão 4: `table` (Livro-Razão & Gestão Contábil)](#visão-4-table-livro-razão--gestão)
    - [Callbacks & Ações do Panel](#callbacks--ações-do-panel)
    - [Casos de Uso Práticos](#casos-de-uso-do-panel)
-5. [Módulo C: Sistema de Notificações Toast](#5-módulo-c-sistema-de-notificações-toast)
-6. [Módulo D: Resolução Automática de Ícones](#6-módulo-d-resolução-automática-de-ícones)
-7. [Boas Práticas & Performance](#7-boas-práticas--performance)
-8. [Snippets Prontos Copia-e-Cola](#8-snippets-prontos-copia-e-cola)
+5. [Módulo C: Modal de Diálogos Tipados (OpenDialog)](#5-módulo-c-modal-de-diálogos-tipados-opendialog)
+   - [Campos Suportados & Validações](#campos-suportados--validações)
+   - [Exemplo de Uso Prático](#exemplo-de-uso-do-dialog)
+6. [Módulo D: Sistema de Notificações Toast](#6-módulo-d-sistema-de-notificações-toast)
+7. [Módulo E: Resolução Automática de Ícones](#7-módulo-e-resolução-automática-de-ícones)
+8. [Boas Práticas & Performance](#8-boas-práticas--performance)
+9. [Snippets Prontos Copia-e-Cola](#9-snippets-prontos-copia-e-cola)
 
 ---
 
@@ -49,6 +52,7 @@ Se o seu script importa `@westrp_core/init.lua` no `fxmanifest.lua`:
 ```lua
 WestRP.Client.UI.OpenDock({ ... })
 WestRP.Client.UI.OpenPanel({ ... })
+WestRP.Client.UI.OpenDialog({ ... })
 WestRP.Client.UI.ShowToast("TÍTULO", "Mensagem", "success")
 ```
 
@@ -57,6 +61,7 @@ Funciona em qualquer resource sem dependência direta do SDK:
 ```lua
 exports['westrp_ui']:OpenDock({ ... })
 exports['westrp_ui']:OpenPanel({ ... })
+exports['westrp_ui']:OpenDialog({ ... })
 exports['westrp_ui']:ShowToast("TÍTULO", "Mensagem", "info")
 ```
 
@@ -514,7 +519,108 @@ end
 
 ---
 
-## 5. Módulo C: Sistema de Notificações Toast
+## 5. Módulo C: Modal de Diálogos Tipados (OpenDialog)
+
+O **Modal de Diálogos Tipados** (`OpenDialog`) é a solução canônica para formulários modais dinâmicos no RedM. Ele exibe uma caixa de diálogo estilizada no centro da tela com suporte a formulários multifield, validação em tempo real no cliente e no servidor, foco de mouse e áudio procedural de confirmação ou recusa.
+
+### Propriedades do Diálogo (`DialogOptions`)
+
+| Campo | Tipo | Obrigatório | Descrição |
+| :--- | :--- | :---: | :--- |
+| `id` | `string` | Sim | Identificador único do diálogo. |
+| `title` | `string` | Sim | Título em destaque dourado no topo. |
+| `tag` | `string` | Não | Tag temática superior (ex: `'GESTÃO FINANCEIRA'`). |
+| `description` | `string` | Não | Texto explicativo ou de aviso abaixo do título. |
+| `confirmLabel` | `string` | Não | Rótulo do botão de submissão (padrão: `'CONFIRMAR'`). |
+| `cancelLabel` | `string` | Não | Rótulo do botão de cancelamento (padrão: `'CANCELAR'`). |
+| `fields` | `DialogField[]`| Sim | Array de definições de campos do formulário. |
+| `onSubmit` | `function(values)` | Não | Disparado quando o usuário preenche os campos válidos e submete. |
+| `onCancel` | `function()` | Não | Disparado quando o usuário cancela ou pressiona `[ESC]`. |
+
+---
+
+### Campos Suportados & Validações
+
+Cada campo (`DialogField`) possui a seguinte estrutura:
+
+```lua
+{
+    id = 'motivo',                  -- Identificador do campo no objeto values retornado
+    type = 'text',                  -- 'text' | 'number' | 'select' | 'textarea'
+    label = 'Motivo Obrigatório',   -- Rótulo em caixa alta acima do input
+    required = true,                -- Se obrigatório, barra submissão se vazio
+    placeholder = 'Digite aqui...', -- Texto fantasma informativo
+    value = '',                     -- Valor inicial padrão
+    min = 1,                        -- Para 'number': valor mínimo aceito
+    max = 50000,                    -- Para 'number': valor máximo aceito
+    step = 0.01,                    -- Para 'number': incremento de casas decimais
+    options = {                     -- Apenas para type = 'select'
+        { value = 'opt_1', label = 'Opção 1' },
+        { value = 'opt_2', label = 'Opção 2' }
+    }
+}
+```
+
+* **Validações Integradas no DOM**:
+  * Campos `required` não preenchidos acionam borda vermelha (`field-error`) e som de recusa sonora.
+  * Campos `number` validam `min`, `max` e parse float seguro.
+  * O fechamento via tecla `[ESC]` dispara o callback `onCancel`.
+
+---
+
+### Exemplo de Uso do Dialog
+
+```lua
+WestRP.Client.UI.OpenDialog({
+    id = 'dialog_multa_sheriff',
+    title = 'APLICAR MULTA OFICIAL',
+    tag = 'DEPARTAMENTO DO XERIFE',
+    description = 'Aplique uma sanção financeira ao infrator com motivo registrado em ata.',
+    confirmLabel = 'APLICAR MULTA',
+    cancelLabel = 'CANCELAR',
+    fields = {
+        {
+            id = 'infracao',
+            type = 'select',
+            label = 'Infração Comentida',
+            required = true,
+            options = {
+                { value = 'desordem', label = 'Desordem em Estabelecimento ($ 15.00)' },
+                { value = 'porte_ilegal', label = 'Porte Ilegal de Dinamite ($ 50.00)' },
+                { value = 'desacato', label = 'Desacato à Autoridade da Lei ($ 30.00)' }
+            }
+        },
+        {
+            id = 'valor',
+            type = 'number',
+            label = 'Valor da Multa ($)',
+            value = 15.0,
+            min = 1.0,
+            max = 500.0,
+            step = 0.5,
+            required = true
+        },
+        {
+            id = 'relatorio',
+            type = 'textarea',
+            label = 'Relatório Circunstanciado',
+            placeholder = 'Descreva os fatos e testemunhas...',
+            required = true
+        }
+    },
+    onSubmit = function(values)
+        print("Multa aplicada:", values.infracao, values.valor, values.relatorio)
+        WestRP.Client.UI.ShowToast("XERIFE", "Multa aplicada com sucesso!", "success")
+    end,
+    onCancel = function()
+        print("Operação cancelada pelo oficial.")
+    end
+})
+```
+
+---
+
+## 6. Módulo D: Sistema de Notificações Toast
 
 O motor fornece toasts elegantes de canto superior direito, sem poluir o centro da tela:
 
@@ -531,7 +637,7 @@ WestRP.Client.UI.ShowToast(title, message, type, duration)
 
 ---
 
-## 6. Módulo D: Resolução Automática de Ícones
+## 7. Módulo E: Resolução Automática de Ícones
 
 Graças à centralização em `westrp_assets`, você **nunca precisa saber em qual pasta o arquivo PNG está**.
 
@@ -543,7 +649,7 @@ Graças à centralização em `westrp_assets`, você **nunca precisa saber em qu
 
 ---
 
-## 7. Boas Práticas & Performance
+## 8. Boas Práticas & Performance
 
 1. **Sempre use Sono Dinâmico (Tick Manager):** Se o seu script tem POIs espaciais no mapa, nunca use `Citizen.Wait(0)` solto. Use o `WestRP.Client.TickManager` para dormir 1.5s longe de marcadores (0.00ms idle resmon).
 2. **Autoridade no Servidor:** A UI é apenas a camada de apresentação. Ao disparar uma compra ou produção no `onAction`, envie o evento para o servidor validar inventário, dinheiro e coordenadas (`WestRP.Server.Security`).
@@ -551,7 +657,7 @@ Graças à centralização em `westrp_assets`, você **nunca precisa saber em qu
 
 ---
 
-## 8. Snippets Prontos Copia-e-Cola
+## 9. Snippets Prontos Copia-e-Cola
 
 ### Template Mínimo: Dock Lateral
 ```lua
@@ -596,6 +702,39 @@ WestRP.Client.UI.OpenPanel({
     },
     onAction = function(action, item, tabId, qty)
         WestRP.Client.UI.ShowToast("LOJA", "Comprado x" .. qty .. " de " .. item.title, "success")
+    end
+})
+```
+
+### Template Mínimo: Diálogo Modal Tipado
+```lua
+WestRP.Client.UI.OpenDialog({
+    id = 'dialog_simples',
+    title = 'TRANSFERIR QUANTIA',
+    tag = 'BANCO DE VALENTINE',
+    description = 'Informe a quantia e a descrição para formalizar a remessa.',
+    confirmLabel = 'TRANSFERIR',
+    cancelLabel = 'CANCELAR',
+    fields = {
+        {
+            id = 'valor',
+            type = 'number',
+            label = 'Quantia em Dólares ($)',
+            value = 10.0,
+            min = 1.0,
+            max = 1000.0,
+            required = true
+        },
+        {
+            id = 'descricao',
+            type = 'text',
+            label = 'Descrição da Remessa',
+            placeholder = 'Ex: Pagamento de gado',
+            required = true
+        }
+    },
+    onSubmit = function(values)
+        WestRP.Client.UI.ShowToast("BANCO", "Enviado $" .. values.valor .. " (" .. values.descricao .. ")", "success")
     end
 })
 ```

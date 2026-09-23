@@ -174,31 +174,139 @@ function WestRP.Server.Admin.Items.GiveWeapon(source, targetId, weaponName)
     end
 end
 
----Concede moedas/dinheiro ao personagem do jogador
+---Gerencia e altera o saldo de moeda do personagem (Adicionar, Remover ou Definir)
+---@param source number Operador
+---@param targetId number Alvo
+---@param currencyType 0|1|2|"cash"|"gold"|"rol"
+---@param operation "add"|"remove"|"set"
+---@param amount number
+---@param reason? string
+function WestRP.Server.Admin.Items.ModifyCurrency(source, targetId, currencyType, operation, amount, reason)
+    local val = tonumber(amount) or 0
+    if val <= 0 then
+        return WestRP.Shared.Bridge.Player.Notify(source, "O valor informado deve ser maior que zero!", 4000)
+    end
+
+    local op = operation or "add"
+    local cType = currencyType or "cash"
+    local label = "Dinheiro"
+    if cType == 1 or cType == "gold" then
+        label = "Ouro"
+    elseif cType == 2 or cType == "rol" then
+        label = "Rol"
+    end
+
+    local targetName = GetPlayerName(targetId) or ("ID " .. targetId)
+    local justification = (reason and reason ~= "") and reason or "Ação Administrativa"
+
+    if op == "add" then
+        local success = WestRP.Shared.Bridge.Player.AddMoney(targetId, cType, val)
+        if success then
+            WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Você recebeu $ %.2f em %s (Motivo: %s)", val, label, justification), 5000)
+            WestRP.Shared.Bridge.Player.Notify(source, string.format("Adicionado $ %.2f em %s para %s", val, label, targetName), 4000)
+            WestRP.Server.Admin.Logger.Log("Spawner", "Adição de Moeda", string.format("Tipo: %s\nValor: $ %.2f\nMotivo: %s", label, val, justification), source, targetId)
+        else
+            WestRP.Shared.Bridge.Player.Notify(source, "Falha ao adicionar moeda ao personagem alvo", 4000)
+        end
+    elseif op == "remove" then
+        local success = WestRP.Shared.Bridge.Player.RemoveMoney(targetId, cType, val)
+        if success then
+            WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Foram debitados $ %.2f em %s da sua conta (Motivo: %s)", val, label, justification), 5000)
+            WestRP.Shared.Bridge.Player.Notify(source, string.format("Removido $ %.2f em %s de %s", val, label, targetName), 4000)
+            WestRP.Server.Admin.Logger.Log("Spawner", "Remoção de Moeda", string.format("Tipo: %s\nValor: $ %.2f\nMotivo: %s", label, val, justification), source, targetId)
+        else
+            WestRP.Shared.Bridge.Player.Notify(source, string.format("Saldo insuficiente para debitar $ %.2f em %s de %s!", val, label, targetName), 5000)
+        end
+    elseif op == "set" then
+        local success = WestRP.Shared.Bridge.Player.SetMoney(targetId, cType, val)
+        if success then
+            WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Seu saldo de %s foi definido para $ %.2f (Motivo: %s)", label, val, justification), 5000)
+            WestRP.Shared.Bridge.Player.Notify(source, string.format("Saldo de %s de %s definido para $ %.2f", label, targetName, val), 4000)
+            WestRP.Server.Admin.Logger.Log("Spawner", "Definição de Saldo", string.format("Tipo: %s\nNovo Saldo: $ %.2f\nMotivo: %s", label, val, justification), source, targetId)
+        else
+            WestRP.Shared.Bridge.Player.Notify(source, "Falha ao definir saldo do personagem alvo", 4000)
+        end
+    end
+end
+
+---Concede moedas/dinheiro ao personagem do jogador (atalho legado)
 ---@param source number
 ---@param targetId number
 ---@param currencyType 0|1|2|"cash"|"gold"|"rol"
 ---@param amount number
 function WestRP.Server.Admin.Items.GiveCurrency(source, targetId, currencyType, amount)
-    local val = tonumber(amount) or 0
-    if val <= 0 then return end
+    WestRP.Server.Admin.Items.ModifyCurrency(source, targetId, currencyType, "add", amount, "Concessão Rápida")
+end
 
-    local label = "Dinheiro"
-    if currencyType == 1 or currencyType == "gold" then
-        label = "Ouro"
-    elseif currencyType == 2 or currencyType == "rol" then
-        label = "Rol"
+---Retorna o inventário completo (itens e armas) de um jogador para inspeção em tempo real
+---@param source number
+---@param targetId number
+---@return table
+function WestRP.Server.Admin.Items.GetPlayerInventory(source, targetId)
+    local char = WestRP.Shared.Bridge.Player.GetCharacter(targetId)
+    if not char then
+        return { ok = false, message = "Jogador offline ou sem personagem carregado" }
     end
 
-    local success = WestRP.Shared.Bridge.Player.AddMoney(targetId, currencyType, val)
-    local targetName = GetPlayerName(targetId) or "Jogador"
+    local items = WestRP.Shared.Bridge.Inventory.GetUserInventory(targetId)
+    local weapons = WestRP.Shared.Bridge.Inventory.GetUserWeapons(targetId)
+
+    return {
+        ok = true,
+        character = {
+            charName = char.firstname .. " " .. char.lastname,
+            money = char.money or 0.0,
+            gold = char.gold or 0.0,
+            rol = char.rol or 0.0,
+            job = char.job or "unemployed",
+            jobGrade = char.jobGrade or 0,
+            group = char.group or "user"
+        },
+        items = items or {},
+        weapons = weapons or {}
+    }
+end
+
+---Confisca uma quantidade de item da bolsa do jogador
+---@param source number
+---@param targetId number
+---@param itemName string
+---@param qty number
+---@param reason? string
+function WestRP.Server.Admin.Items.ConfiscateItem(source, targetId, itemName, qty, reason)
+    local count = tonumber(qty) or 1
+    local success = WestRP.Shared.Bridge.Inventory.RemoveItem(targetId, itemName, count)
+    local targetName = GetPlayerName(targetId) or ("ID " .. targetId)
+    local justification = (reason and reason ~= "") and reason or "Inspeção e Confisco Staff"
 
     if success then
-        WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Você recebeu $ %.2f em %s da administração", val, label), 5000)
-        WestRP.Shared.Bridge.Player.Notify(source, string.format("Adicionado $ %.2f em %s para %s", val, label, targetName), 4000)
-        WestRP.Server.Admin.Logger.Log("Spawner", "Concessão de Moeda", string.format("Tipo: %s\nValor: $ %.2f", label, val), source, targetId)
+        WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Item confiscado pela moderação: %sx %s (Motivo: %s)", count, itemName, justification), 5000)
+        WestRP.Shared.Bridge.Player.Notify(source, string.format("Confiscado com sucesso %sx '%s' de %s", count, itemName, targetName), 4000)
+        WestRP.Server.Admin.Logger.Log("Spawner", "Confisco de Item", string.format("Item: %s\nQuantidade: %s\nMotivo: %s", itemName, count, justification), source, targetId)
     else
-        WestRP.Shared.Bridge.Player.Notify(source, "Falha ao adicionar moeda ao personagem alvo", 4000)
+        WestRP.Shared.Bridge.Player.Notify(source, string.format("Falha ao confiscar item: '%s' não encontrado em quantidade suficiente!", itemName), 4000)
+    end
+end
+
+---Confisca uma arma específica do jogador
+---@param source number
+---@param targetId number
+---@param weaponId number
+---@param weaponName? string
+---@param reason? string
+function WestRP.Server.Admin.Items.ConfiscateWeapon(source, targetId, weaponId, weaponName, reason)
+    local wId = tonumber(weaponId)
+    local success = WestRP.Shared.Bridge.Inventory.ConfiscateWeapon(targetId, wId)
+    local targetName = GetPlayerName(targetId) or ("ID " .. targetId)
+    local wName = weaponName or ("Arma #" .. tostring(wId))
+    local justification = (reason and reason ~= "") and reason or "Inspeção e Desarme Staff"
+
+    if success then
+        WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Arma confiscada pela moderação: %s (Motivo: %s)", wName, justification), 5000)
+        WestRP.Shared.Bridge.Player.Notify(source, string.format("Arma '%s' confiscada com sucesso de %s", wName, targetName), 4000)
+        WestRP.Server.Admin.Logger.Log("Spawner", "Confisco de Arma", string.format("Arma: %s\nID do Registro: %s\nMotivo: %s", wName, wId, justification), source, targetId)
+    else
+        WestRP.Shared.Bridge.Player.Notify(source, string.format("Falha ao confiscar arma: registro #%s não encontrado!", wId), 4000)
     end
 end
 
@@ -233,3 +341,4 @@ function WestRP.Server.Admin.Items.ClearCurrency(source, targetId)
     WestRP.Shared.Bridge.Player.Notify(source, "Moedas de " .. targetName .. " foram zeradas com sucesso", 4000)
     WestRP.Server.Admin.Logger.Log("Spawner", "Limpeza de Saldo", "Dinheiro e ouro zerados", source, targetId)
 end
+

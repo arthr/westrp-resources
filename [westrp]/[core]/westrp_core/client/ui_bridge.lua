@@ -70,3 +70,27 @@ function WestRP.Client.UI.IsPanelOpen()
     return exports['westrp_ui']:IsPanelOpen()
 end
 
+---Abre um Diálogo Modal com campos de formulário tipados
+---@param options table
+function WestRP.Client.UI.OpenDialog(options)
+    if GetResourceState('westrp_ui') ~= 'started' then
+        WestRP.Shared.Logger.Error("UI", "O recurso 'westrp_ui' não está iniciado!")
+        return
+    end
+    exports['westrp_ui']:OpenDialog(options)
+end
+
+---Fecha o Diálogo Modal
+function WestRP.Client.UI.CloseDialog()
+    if GetResourceState('westrp_ui') ~= 'started' then return end
+    exports['westrp_ui']:CloseDialog()
+end
+
+---Retorna se o Diálogo Modal está aberto
+---@return boolean
+function WestRP.Client.UI.IsDialogOpen()
+    if GetResourceState('westrp_ui') ~= 'started' then return false end
+    return exports['westrp_ui']:IsDialogOpen()
+end
+
+

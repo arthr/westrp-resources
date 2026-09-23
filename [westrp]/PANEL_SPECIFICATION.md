@@ -159,6 +159,35 @@ O Panel suporta 4 modos de visualização intercambiáveis via schema Lua:
 ---@field public pageSize? number Atalho para paginação simples (ex: 12)
 ---@field public pagination? PanelPagination Configuração avançada de paginação
 
+---@class DialogFieldOption
+---@field public value string|number Valor do option
+---@field public label string Rótulo exibido
+---@field public selected? boolean Se selecionado inicialmente
+
+---@class DialogField
+---@field public id string Identificador do campo no payload retornado
+---@field public label string Título do campo
+---@field public type "text"|"number"|"select"|"textarea" Tipo do input
+---@field public required? boolean Se o preenchimento é obrigatório
+---@field public placeholder? string Texto de dica no input
+---@field public default? any Valor padrão inicial
+---@field public min? number (Para type number) Valor mínimo
+---@field public max? number (Para type number) Valor máximo
+---@field public step? number|string (Para type number) Incremento
+---@field public rows? number (Para type textarea) Altura em linhas
+---@field public options? DialogFieldOption[] (Para type select) Lista de opções
+
+---@class DialogOptions
+---@field public id? string Identificador único do diálogo
+---@field public tag? string Categoria superior (ex: "ADMINISTRAÇÃO")
+---@field public title string Título principal do diálogo
+---@field public subtitle? string Informações contextuais (ex: Saldo atual)
+---@field public submitLabel? string Texto do botão de confirmação (default: "CONFIRMAR")
+---@field public cancelLabel? string Texto do botão de cancelamento (default: "CANCELAR")
+---@field public fields DialogField[] Lista de campos dinâmicos
+---@field public onSubmit? fun(values: table<string, any>) Callback invocado com os valores válidos
+---@field public onCancel? fun() Callback invocado caso o operador cancele
+
 ---@class PanelOptions
 ---@field public id string Identificador único do painel
 ---@field public title string Título no cabeçalho
@@ -183,8 +212,15 @@ WestRP.Client.UI.ClosePanel()
 ---@return boolean
 WestRP.Client.UI.IsPanelOpen()
 
--- Atualiza dados de uma aba ou linha sem reabrir o painel
-WestRP.Client.UI.UpdatePanelTab(tabId, data)
+-- Abre Diálogo Modal Tipado (Prompt/Formulário)
+WestRP.Client.UI.OpenDialog(options)
+
+-- Fecha Diálogo Modal Tipado
+WestRP.Client.UI.CloseDialog()
+
+-- Checa se o diálogo está aberto
+---@return boolean
+WestRP.Client.UI.IsDialogOpen()
 ```
 
 ---

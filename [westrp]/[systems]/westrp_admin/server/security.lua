@@ -47,7 +47,7 @@ function WestRP.Server.Admin.Security.CanExecute(source, action, targetSource)
     -- Validação de hierarquia sobre o alvo
     if targetSource and targetSource > 0 and targetSource ~= source then
         local targetRole = WestRP.Server.Admin.Security.GetPlayerRole(targetSource)
-        local isPunitive = (action == "kick" or action == "ban" or action == "ban_offline" or action == "freeze" or action == "troll" or action == "clear_inventory" or action == "set_group")
+        local isPunitive = (action == "kick" or action == "ban" or action == "ban_offline" or action == "freeze" or action == "troll" or action == "clear_inventory" or action == "set_group" or action == "confiscate_item" or action == "confiscate_weapon")
 
         if isPunitive then
             if not WestRP.Admin.Permissions.CanTargetPlayer(operatorRole, targetRole) then

@@ -28,5 +28,9 @@ exports {
     'ShowToast',
     'OpenPanel',
     'ClosePanel',
-    'IsPanelOpen'
+    'IsPanelOpen',
+    'OpenDialog',
+    'CloseDialog',
+    'IsDialogOpen'
 }
+

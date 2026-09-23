@@ -1515,6 +1515,225 @@
     else if (data.action === 'westrp_ui:toast') {
       showToast(data.title, data.message, data.type, data.duration);
     }
+
+    // --- DIALOG MODAL / FORMULÁRIO TIPADO ---
+    else if (data.action === 'westrp_ui:openDialog') {
+      openDialog(data.options);
+    } else if (data.action === 'westrp_ui:closeDialog') {
+      closeDialog('client_request');
+    }
+  });
+
+
+  // ==========================================================================
+  // 7. SISTEMA DE DIALOG MODAL / FORMULÁRIO TIPADO (ROCKSTAR STYLE)
+  // ==========================================================================
+  const dialogEl = {
+    container: document.getElementById('dialog-container'),
+    backdrop: document.getElementById('dialog-backdrop'),
+    tag: document.getElementById('dialog-tag'),
+    title: document.getElementById('dialog-title'),
+    subtitle: document.getElementById('dialog-subtitle'),
+    form: document.getElementById('dialog-form'),
+    fieldsList: document.getElementById('dialog-form-fields'),
+    closeBtn: document.getElementById('dialog-close-btn'),
+    cancelBtn: document.getElementById('dialog-btn-cancel'),
+    submitBtn: document.getElementById('dialog-btn-submit'),
+  };
+
+  const dialogState = {
+    isOpen: false,
+    dialogId: 'default_dialog',
+    fields: []
+  };
+
+  function openDialog(options = {}) {
+    dialogState.isOpen = true;
+    dialogState.dialogId = options.id || 'default_dialog';
+    dialogState.fields = options.fields || [];
+
+    if (dialogEl.tag) dialogEl.tag.textContent = options.tag || 'ADMINISTRAÇÃO';
+    if (dialogEl.title) dialogEl.title.textContent = options.title || 'FORMULÁRIO';
+    if (dialogEl.subtitle) {
+      if (options.subtitle) {
+        dialogEl.subtitle.textContent = options.subtitle;
+        dialogEl.subtitle.style.display = 'block';
+      } else {
+        dialogEl.subtitle.style.display = 'none';
+      }
+    }
+    if (dialogEl.submitBtn) {
+      dialogEl.submitBtn.textContent = options.submitLabel || 'CONFIRMAR';
+    }
+    if (dialogEl.cancelBtn) {
+      dialogEl.cancelBtn.textContent = options.cancelLabel || 'CANCELAR';
+    }
+
+    renderDialogFields();
+
+    if (dialogEl.container) dialogEl.container.style.display = 'flex';
+    playUiTick('confirm');
+
+    // Foca no primeiro input editável
+    setTimeout(() => {
+      if (dialogEl.fieldsList) {
+        const firstInput = dialogEl.fieldsList.querySelector('input, select, textarea');
+        if (firstInput) firstInput.focus();
+      }
+    }, 50);
+  }
+
+  function renderDialogFields() {
+    if (!dialogEl.fieldsList) return;
+    dialogEl.fieldsList.innerHTML = '';
+
+    dialogState.fields.forEach(field => {
+      const wrap = document.createElement('div');
+      wrap.className = 'dialog-field';
+
+      const label = document.createElement('label');
+      label.className = 'dialog-label';
+      label.textContent = field.label || field.id;
+      if (field.required) {
+        const star = document.createElement('span');
+        star.className = 'req-star';
+        star.textContent = ' *';
+        label.appendChild(star);
+      }
+      wrap.appendChild(label);
+
+      let inputEl;
+      if (field.type === 'select') {
+        inputEl = document.createElement('select');
+        inputEl.className = 'dialog-select';
+        (field.options || []).forEach(opt => {
+          const optEl = document.createElement('option');
+          optEl.value = opt.value;
+          optEl.textContent = opt.label;
+          if (opt.selected || opt.value === field.default) {
+            optEl.selected = true;
+          }
+          inputEl.appendChild(optEl);
+        });
+      } else if (field.type === 'textarea') {
+        inputEl = document.createElement('textarea');
+        inputEl.className = 'dialog-textarea';
+        inputEl.placeholder = field.placeholder || '';
+        inputEl.rows = field.rows || 3;
+        if (field.default !== undefined) inputEl.value = field.default;
+      } else if (field.type === 'number') {
+        inputEl = document.createElement('input');
+        inputEl.type = 'number';
+        inputEl.className = 'dialog-input';
+        if (field.min !== undefined) inputEl.min = field.min;
+        if (field.max !== undefined) inputEl.max = field.max;
+        inputEl.step = field.step || 'any';
+        inputEl.placeholder = field.placeholder || '';
+        if (field.default !== undefined) inputEl.value = field.default;
+      } else {
+        inputEl = document.createElement('input');
+        inputEl.type = 'text';
+        inputEl.className = 'dialog-input';
+        inputEl.placeholder = field.placeholder || '';
+        if (field.default !== undefined) inputEl.value = field.default;
+      }
+
+      inputEl.dataset.fieldId = field.id;
+      inputEl.addEventListener('input', () => {
+        inputEl.classList.remove('field-error');
+      });
+
+      wrap.appendChild(inputEl);
+      dialogEl.fieldsList.appendChild(wrap);
+    });
+  }
+
+  function closeDialog(reason = 'cancel') {
+    if (!dialogState.isOpen) return;
+    dialogState.isOpen = false;
+    if (dialogEl.container) dialogEl.container.style.display = 'none';
+    if (dialogEl.fieldsList) dialogEl.fieldsList.innerHTML = '';
+
+    if (reason !== 'submit') {
+      playUiTick('back');
+      postData('westrp_ui:dialogCancel', { dialogId: dialogState.dialogId });
+    }
+  }
+
+  function submitDialog() {
+    if (!dialogState.isOpen) return;
+
+    const values = {};
+    let hasError = false;
+    let firstErrorEl = null;
+
+    dialogState.fields.forEach(field => {
+      const el = dialogEl.fieldsList.querySelector(`[data-field-id="${field.id}"]`);
+      if (!el) return;
+
+      let val = el.value ? el.value.trim() : '';
+
+      if (field.required && val === '') {
+        el.classList.add('field-error');
+        hasError = true;
+        if (!firstErrorEl) firstErrorEl = el;
+        return;
+      }
+
+      if (field.type === 'number') {
+        const numVal = parseFloat(val);
+        if (isNaN(numVal) && field.required) {
+          el.classList.add('field-error');
+          hasError = true;
+          if (!firstErrorEl) firstErrorEl = el;
+          return;
+        }
+        values[field.id] = isNaN(numVal) ? null : numVal;
+      } else {
+        values[field.id] = val;
+      }
+    });
+
+    if (hasError) {
+      playUiTick('error');
+      if (firstErrorEl) firstErrorEl.focus();
+      return;
+    }
+
+    dialogState.isOpen = false;
+    if (dialogEl.container) dialogEl.container.style.display = 'none';
+    playUiTick('confirm');
+
+    postData('westrp_ui:dialogSubmit', {
+      dialogId: dialogState.dialogId,
+      values: values
+    });
+  }
+
+  if (dialogEl.closeBtn) {
+    dialogEl.closeBtn.addEventListener('click', () => closeDialog('close'));
+  }
+  if (dialogEl.cancelBtn) {
+    dialogEl.cancelBtn.addEventListener('click', () => closeDialog('cancel'));
+  }
+  if (dialogEl.submitBtn) {
+    dialogEl.submitBtn.addEventListener('click', () => submitDialog());
+  }
+  if (dialogEl.backdrop) {
+    dialogEl.backdrop.addEventListener('click', () => closeDialog('backdrop'));
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (dialogState.isOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeDialog('esc');
+      } else if (e.key === 'Enter' && e.target && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        submitDialog();
+      }
+    }
   });
 
 })();
+

@@ -173,6 +173,34 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       3. CONTAINER HUD DIALOG (MODAL DE ENTRADA / FORMULÁRIO RDR2)
+       ============================================================ -->
+  <div id="dialog-container" class="dialog-container" style="display: none;">
+    <div class="dialog-backdrop" id="dialog-backdrop"></div>
+    <div class="dialog-modal">
+      <header class="dialog-header">
+        <span class="dialog-tag" id="dialog-tag">ADMINISTRAÇÃO</span>
+        <h2 class="dialog-title" id="dialog-title">FORMULÁRIO</h2>
+        <p class="dialog-subtitle" id="dialog-subtitle"></p>
+        <button class="dialog-close-btn" id="dialog-close-btn" title="Cancelar (ESC)">✕</button>
+      </header>
+
+      <div class="dialog-body">
+        <form id="dialog-form" class="dialog-form" autocomplete="off" onsubmit="return false;">
+          <div id="dialog-form-fields" class="dialog-fields-list">
+            <!-- Campos gerados dinamicamente via JS -->
+          </div>
+        </form>
+      </div>
+
+      <footer class="dialog-footer">
+        <button type="button" class="dialog-btn-secondary" id="dialog-btn-cancel">CANCELAR</button>
+        <button type="button" class="dialog-btn-primary" id="dialog-btn-submit">CONFIRMAR</button>
+      </footer>
+    </div>
+  </div>
+
   <!-- Container Global de Notificações Toasts -->
   <div id="toast-container"></div>
 

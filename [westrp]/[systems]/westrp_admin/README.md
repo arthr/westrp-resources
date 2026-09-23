@@ -69,8 +69,8 @@ As permissões são definidas no `config.lua` e resolvidas via `shared/permissio
 | Cargo | Nível Hierárquico | Permissões Principais |
 | :--- | :---: | :--- |
 | **`root`** | `100` | Acesso irrestrito (`all = true`). Imune a ações de outros administradores. |
-| **`admin`** | `80` | Gestão completa de jogadores, teleporte, spawner de itens/armas, banimentos e devtools. |
-| **`moderator`** | `50` | Ações operacionais: curar, reviver, spectate, tp básico, freeze, kick e bans de até 3 dias. |
+| **`admin`** | `80` | Gestão completa de jogadores, teleporte, spawner de itens/armas, gestão financeira, inspeção e confisco de inventário, banimentos e devtools. |
+| **`moderator`** | `50` | Ações operacionais: curar, reviver, spectate, tp básico, freeze, kick, inspeção de inventário e bans de até 3 dias. |
 | **`support`** | `20` | Ações de auxílio: spectate, auto-cura, teleporte assistido e anúncios. |
 
 ---
@@ -121,6 +121,12 @@ Ativa o cursor livre do mouse e aplica o desfoque cinematográfico nativo `OJDom
    - Ao selecionar um jogador e confirmar, abre o **Menu Contextual de Ações no Jogador**:
      - *Deslocamento*: Ir Até Ele (GoTo), Puxar Para Mim (Bring), Modo Espectador.
      - *Saúde & Controle*: Curar, Reviver, Forçar Respawn Limpo, Congelar/Descongelar.
+     - *Economia & Finanças*:
+       - `Gestão Financeira`: Abre o modal canônico de diálogo (`WestRP.Client.UI.OpenDialog`) para Adicionar (`add`), Remover (`remove`) ou Definir (`set`) saldos de Dinheiro (`cash`), Ouro (`gold`) ou Rol (`rol`). Requer justificativa textual obrigatória para auditoria no Discord e previne saldo negativo.
+     - *Inventário & Itens*:
+       - `Inspecionar Inventário`: Abre a mesa de auditoria em tempo real listando as bolsas de itens (`items`) e armas equipadas (`weapons`) com chips de categoria e busca. Cada item possui botão `CONFISCAR` que solicita a quantidade desejada via diálogo modal e remove o objeto instantaneamente do jogador via Bridge.
+       - `Definir como Alvo do Spawner`: Define o jogador como destinatário ativo das abas de vitrine de armamentos e itens.
+       - `Limpar Todo Inventário (Wipe)`: Remove todos os itens e armas do jogador.
      - *Punições*: Expulsar (Kick), Banir por 3 Dias, Banir Permanentemente.
      - *Trolagens*: Raio dos Céus, Colocar em Chamas, Enviar para o Céu, Derrubar no Chão (Ragdoll), Algemar e Efeito Embriaguez/Pântano.
 2. **ARMAMENTO & MUNIÇÕES (`viewType = 'grid'`)**:
@@ -150,6 +156,10 @@ Ativa o cursor livre do mouse e aplica o desfoque cinematográfico nativo `OJDom
    - Comandos com alta demanda de processamento contam com cooldown de segurança no servidor para mitigar ataques de flood via NUI ou NetEvents injetados.
 3. **Sanitização de Coordenadas & Entidades**:
    - Toda solicitação de teleporte valida limites máximos de coordenadas do mapa para prevenir quedas no vazio.
+4. **Proteção de Confisco & Hierarquia Punitiva**:
+   - As ações de confisco de armas e itens (`confiscate_item`, `confiscate_weapon`) são classificadas como ações punitivas (`isPunitive`), impedindo operadores subalternos de subtrair pertences de membros superiores do staff.
+5. **Validação Estrita de Operações Financeiras**:
+   - Alterações econômicas exigem quantia numérica estritamente positiva (`amount > 0`), tipo de moeda válido (`cash`, `gold`, `rol`), operação suportada (`add`, `remove`, `set`), justificativa textual obrigatória e verificação de piso (o saldo nunca pode se tornar negativo). Toda operação gera rich embed no Discord para auditoria contábil.
 
 ---
 

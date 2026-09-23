@@ -127,6 +127,44 @@ if isServer then
         return true
     end
 
+    ---Define o saldo exato de moeda do personagem
+    ---@param source number
+    ---@param currencyType "cash"|"gold"|"rol"|number
+    ---@param targetAmount number
+    ---@return boolean
+    function WestRP.Shared.Bridge.Player.SetMoney(source, currencyType, targetAmount)
+        local core = GetVorpCore()
+        local targetVal = tonumber(targetAmount)
+        if not core or not targetVal or targetVal < 0 then return false end
+
+        local user = core.getUser(source)
+        if not user then return false end
+
+        local char = user.getUsedCharacter
+        if not char then return false end
+
+        local cType = 0
+        local currentBalance = char.money or 0.0
+        if currencyType == "gold" or currencyType == 1 then
+            cType = 1
+            currentBalance = char.gold or 0.0
+        elseif currencyType == "rol" or currencyType == 2 then
+            cType = 2
+            currentBalance = char.rol or 0.0
+        end
+
+        local delta = targetVal - currentBalance
+        if delta > 0 then
+            char.addCurrency(cType, delta)
+        elseif delta < 0 then
+            char.removeCurrency(cType, math.abs(delta))
+        end
+
+        WestRP.Shared.Logger.Debug("BRIDGE", "Definido saldo de moeda (%s) para %s em source %s", currencyType, targetVal, source)
+        return true
+    end
+
+
     ---Envia notificação nativa ao jogador a partir do servidor
     ---@param source number
     ---@param text string

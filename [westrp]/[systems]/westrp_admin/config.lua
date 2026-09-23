@@ -111,6 +111,9 @@ Config.Roles = {
             whitelist_player = true,
             give_item = true,
             give_weapon = true,
+            inspect_inventory = true,
+            confiscate_item = true,
+            confiscate_weapon = true,
             announce = true
         }
     },
@@ -132,10 +135,12 @@ Config.Roles = {
             heal_player = true,
             revive_player = true,
             freeze_player = true,
+            inspect_inventory = true,
             announce = true
         }
     }
 }
+
 
 --------------------------------------------------------------------------------
 -- AUDITORIA & DISCORD WEBHOOKS

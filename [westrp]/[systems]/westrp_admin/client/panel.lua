@@ -243,11 +243,26 @@ function WestRP.Admin.Panel.OpenPlayerActionModal(playerRow)
     local targetId = playerRow.serverId
     local targetName = playerRow.charName or playerRow.steam or ("ID " .. targetId)
     local myServerId = GetPlayerServerId(PlayerId())
+    local preventPanelReopen = false
 
     WestRP.Admin.Panel.Close()
     Wait(200)
 
     local targetOptions = {
+        {
+            id = "inspect_inventory",
+            label = "Inspecionar Inventário em Tempo Real",
+            badge = "INSPEÇÃO",
+            badgeType = "gold",
+            description = "Visualiza todos os pertences, itens, ferramentas e armas do jogador com opção de confisco."
+        },
+        {
+            id = "manage_currency",
+            label = "Gestão Financeira & Moedas",
+            badge = "FINANÇAS",
+            badgeType = "gold",
+            description = "Injeta, remove ou define saldos de Dinheiro, Ouro ou Rol com justificativa para auditoria."
+        },
         {
             id = "set_as_spawner_target",
             label = "Definir como Alvo do Spawner",
@@ -330,13 +345,23 @@ function WestRP.Admin.Panel.OpenPlayerActionModal(playerRow)
             }
         },
         onSelect = function(item, tabId)
-            if item.id == "set_as_spawner_target" then
+            if item.id == "inspect_inventory" then
+                preventPanelReopen = true
+                WestRP.Admin.Panel.OpenInventoryInspector(targetId, targetName)
+                return
+            elseif item.id == "manage_currency" then
+                preventPanelReopen = true
+                WestRP.Admin.Panel.OpenCurrencyDialog(targetId, targetName, playerRow)
+                return
+            elseif item.id == "set_as_spawner_target" then
+                preventPanelReopen = true
                 WestRP.Client.UI.CloseDock()
                 Wait(150)
                 WestRP.Admin.Panel.Open({ serverId = targetId, name = targetName })
                 WestRP.Client.UI.ShowToast("SPAWNER", "Alvo selecionado: " .. targetName, "info")
                 return
             elseif item.id == "reset_spawner_target" then
+                preventPanelReopen = true
                 local myName = GetPlayerName(PlayerId())
                 WestRP.Client.UI.CloseDock()
                 Wait(150)
@@ -375,8 +400,223 @@ function WestRP.Admin.Panel.OpenPlayerActionModal(playerRow)
         end,
         onClose = function()
             -- Ao fechar o menu de ações do player, reabre a mesa de trabalho central
-            Wait(150)
+            if not preventPanelReopen then
+                Wait(150)
+                WestRP.Admin.Panel.Open()
+            end
+        end
+    })
+end
+
+---Abre modal de diálogo tipado para injeção ou remoção de moedas
+---@param targetId number
+---@param targetName string
+---@param playerRow table
+function WestRP.Admin.Panel.OpenCurrencyDialog(targetId, targetName, playerRow)
+    local curMoney = playerRow and playerRow.money or 0.0
+    local curGold = playerRow and playerRow.gold or 0.0
+
+    WestRP.Client.UI.CloseDock()
+    Wait(100)
+
+    WestRP.Client.UI.OpenDialog({
+        id = "currency_modal_" .. targetId,
+        tag = "GESTOR FINANCEIRO & ECONÔMICO",
+        title = "INJETAR / RETIRAR MOEDA",
+        subtitle = string.format("Alvo: %s [ID %s] • Saldo Atual: $ %.2f | Ouro: %.2f", targetName, targetId, curMoney, curGold),
+        submitLabel = "CONFIRMAR TRANSAÇÃO",
+        cancelLabel = "CANCELAR",
+        fields = {
+            {
+                id = "currencyType",
+                label = "Tipo de Moeda",
+                type = "select",
+                options = {
+                    { value = "cash", label = "Dinheiro Comum ($ Cash)", selected = true },
+                    { value = "gold", label = "Barras de Ouro (Gold)" },
+                    { value = "rol", label = "Fichas de Rol (Roleplay)" }
+                },
+                required = true
+            },
+            {
+                id = "operation",
+                label = "Operação Pretendida",
+                type = "select",
+                options = {
+                    { value = "add", label = "Adicionar (+) ao Saldo", selected = true },
+                    { value = "remove", label = "Remover (-) do Saldo" },
+                    { value = "set", label = "Definir Saldo Exato (=)" }
+                },
+                required = true
+            },
+            {
+                id = "amount",
+                label = "Quantia / Valor Numérico",
+                type = "number",
+                min = 0.01,
+                step = 0.01,
+                placeholder = "Ex: 100.00",
+                required = true
+            },
+            {
+                id = "reason",
+                label = "Justificativa / Motivo da Transação",
+                type = "text",
+                placeholder = "Ex: Reembolso de bug, premiação ou moderação",
+                required = true
+            }
+        },
+        onSubmit = function(values)
+            local amount = tonumber(values.amount)
+            if not amount or amount <= 0 then
+                WestRP.Client.UI.ShowToast("FINANÇAS", "Valor numérico inválido!", "alert")
+                return
+            end
+            if not values.reason or string.len(values.reason) < 3 then
+                WestRP.Client.UI.ShowToast("FINANÇAS", "Justificativa obrigatória (mínimo 3 caracteres)!", "alert")
+                return
+            end
+
+            TriggerServerEvent("westrp_admin:server:executeAction", {
+                action = "modify_currency",
+                targetId = targetId,
+                payload = {
+                    currencyType = values.currencyType or "cash",
+                    operation = values.operation or "add",
+                    amount = amount,
+                    reason = values.reason
+                }
+            })
+            Wait(250)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
             WestRP.Admin.Panel.Open()
         end
     })
 end
+
+---Abre o Inspetor de Inventário em Tempo Real para o jogador selecionado
+---@param targetId number
+---@param targetName string
+function WestRP.Admin.Panel.OpenInventoryInspector(targetId, targetName)
+    WestRP.Client.UI.CloseDock()
+    WestRP.Client.UI.ShowToast("INSPEÇÃO", "Carregando inventário de " .. targetName .. "...", "info", 2000)
+
+    WestRP.Client.Callback.Trigger("westrp_admin:server:getPlayerInventory", function(data)
+        if not data or not data.ok then
+            WestRP.Client.UI.ShowToast("INSPEÇÃO", data and data.message or "Falha ao consultar inventário do jogador!", "error")
+            Wait(200)
+            WestRP.Admin.Panel.Open()
+            return
+        end
+
+        local char = data.character or {}
+        local rawItems = data.items or {}
+        local rawWeapons = data.weapons or {}
+
+        -- Formata Itens para Grid Cards
+        local formattedItems = {}
+        for _, it in ipairs(rawItems) do
+            local iconUrl = "nui://vorp_inventory/html/img/items/" .. (it.id or it.name) .. ".png"
+            formattedItems[#formattedItems + 1] = {
+                id = it.id or it.name,
+                title = it.label or it.name,
+                subtitle = string.format("Peso: %.2f kg", (it.weight or 0.1) * (it.count or 1)),
+                category = it.type or "Geral",
+                icon = iconUrl,
+                badge = "x" .. tostring(it.count or 1),
+                badgeType = "gold",
+                stock = it.count or 1,
+                rawItem = it
+            }
+        end
+
+        -- Formata Armas para Grid Cards
+        local formattedWeapons = {}
+        for _, wp in ipairs(rawWeapons) do
+            local iconUrl = "nui://vorp_inventory/html/img/items/" .. string.lower(wp.name or "") .. ".png"
+            formattedWeapons[#formattedWeapons + 1] = {
+                id = wp.name,
+                weaponId = wp.weaponId,
+                title = wp.label or wp.name,
+                subtitle = string.format("Munição: %d cartuchos • Peso: %.2f kg", wp.ammo or 0, wp.weight or 1.0),
+                category = "Armas Equipadas",
+                icon = iconUrl,
+                badge = "SERIAL: " .. (wp.serialNumber or tostring(wp.weaponId)),
+                badgeType = "danger",
+                rawWeapon = wp
+            }
+        end
+
+        local inspectorSchema = {
+            id = "inventory_inspector_" .. targetId,
+            tag = "INSPEÇÃO EM TEMPO REAL",
+            title = "PERTENCES DE " .. string.upper(targetName),
+            subtitle = string.format("Dinheiro: $ %.2f • Ouro: %.2f • Rol: %.2f | Itens: %d • Armas: %d", char.money or 0, char.gold or 0, char.rol or 0, #formattedItems, #formattedWeapons),
+            showSearch = true,
+            tabs = {
+                {
+                    id = "inspector_items_tab",
+                    label = "Bolsa de Itens (" .. #formattedItems .. ")",
+                    icon = "fa-briefcase",
+                    viewType = "grid",
+                    filterCategory = true,
+                    pageSize = 18,
+                    ctaLabel = "CONFISCAR ITEM",
+                    items = formattedItems
+                },
+                {
+                    id = "inspector_weapons_tab",
+                    label = "Armas Equipadas (" .. #formattedWeapons .. ")",
+                    icon = "fa-gun",
+                    viewType = "grid",
+                    filterCategory = true,
+                    pageSize = 18,
+                    ctaLabel = "CONFISCAR ARMA",
+                    items = formattedWeapons
+                }
+            },
+            onAction = function(action, item, tabId, qty)
+                if action == "confirm" and item then
+                    local count = tonumber(qty) or 1
+                    if tabId == "inspector_items_tab" then
+                        TriggerServerEvent("westrp_admin:server:executeAction", {
+                            action = "confiscate_item",
+                            targetId = targetId,
+                            payload = {
+                                item = item.id,
+                                qty = count,
+                                reason = "Confisco via Inspetor de Inventário"
+                            }
+                        })
+                        Wait(400)
+                        -- Recarrega o inspetor atualizado em tempo real
+                        WestRP.Admin.Panel.OpenInventoryInspector(targetId, targetName)
+                    elseif tabId == "inspector_weapons_tab" then
+                        TriggerServerEvent("westrp_admin:server:executeAction", {
+                            action = "confiscate_weapon",
+                            targetId = targetId,
+                            payload = {
+                                weaponId = item.weaponId,
+                                weaponName = item.title or item.id,
+                                reason = "Confisco via Inspetor de Inventário"
+                            }
+                        })
+                        Wait(400)
+                        -- Recarrega o inspetor atualizado em tempo real
+                        WestRP.Admin.Panel.OpenInventoryInspector(targetId, targetName)
+                    end
+                end
+            end,
+            onClose = function()
+                Wait(150)
+                WestRP.Admin.Panel.Open()
+            end
+        }
+
+        WestRP.Client.UI.OpenPanel(inspectorSchema)
+    end, targetId)
+end
+

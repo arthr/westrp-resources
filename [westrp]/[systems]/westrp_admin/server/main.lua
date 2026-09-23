@@ -48,6 +48,15 @@ WestRP.Server.Callback.Register("westrp_admin:server:getBansList", function(sour
     cb(bans)
 end)
 
+-- Obtenção do inventário em tempo real para o Inspetor
+WestRP.Server.Callback.Register("westrp_admin:server:getPlayerInventory", function(source, cb, targetId)
+    if not WestRP.Server.Admin.Security.CanExecute(source, "inspect_inventory", targetId) then
+        return cb({ ok = false, message = "Permissão negada para inspecionar inventário!" })
+    end
+    local data = WestRP.Server.Admin.Items.GetPlayerInventory(source, targetId)
+    cb(data)
+end)
+
 --------------------------------------------------------------------------------
 -- ROTEADOR PRINCIPAL DE AÇÕES ADMINISTRATIVAS (Zero-Trust)
 --------------------------------------------------------------------------------
@@ -99,6 +108,12 @@ RegisterNetEvent("westrp_admin:server:executeAction", function(data)
         WestRP.Server.Admin.Items.GiveWeapon(_source, targetId, payload.weapon)
     elseif action == "give_currency" and targetId then
         WestRP.Server.Admin.Items.GiveCurrency(_source, targetId, payload.currencyType or 0, payload.amount or 0)
+    elseif action == "modify_currency" and targetId then
+        WestRP.Server.Admin.Items.ModifyCurrency(_source, targetId, payload.currencyType, payload.operation, payload.amount, payload.reason)
+    elseif action == "confiscate_item" and targetId then
+        WestRP.Server.Admin.Items.ConfiscateItem(_source, targetId, payload.item, payload.qty, payload.reason)
+    elseif action == "confiscate_weapon" and targetId then
+        WestRP.Server.Admin.Items.ConfiscateWeapon(_source, targetId, payload.weaponId, payload.weaponName, payload.reason)
     elseif action == "clear_inventory" and targetId then
         WestRP.Server.Admin.Items.ClearInventory(_source, targetId)
     elseif action == "clear_currency" and targetId then
@@ -109,6 +124,7 @@ RegisterNetEvent("westrp_admin:server:executeAction", function(data)
         WestRP.Server.Admin.World.Announce(_source, payload.message)
     end
 end)
+
 
 --------------------------------------------------------------------------------
 -- EVENTOS AUXILIARES DE LOGS & AUTO-CURA
