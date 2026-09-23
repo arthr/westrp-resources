@@ -11,6 +11,7 @@ Antes de desenvolver ou modificar qualquer recurso, consulte as documentações 
 * 📜 **[SPECIFICATION.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/SPECIFICATION.md)** — Arquitetura Mestra, Contratos e Regras Inegociáveis.
 * 🎨 **[Manual do Motor de UI (`westrp_ui`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/README.md)** — Guia Completo do Desenvolvedor para Dock, Panel, Toasts e Web Audio.
 * 🖼️ **[Manual da Central de Assets (`westrp_assets`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[assets]/westrp_assets/README.md)** — Guia do Acervo de 2.100+ Ícones e Resolução Automática.
+* 🛡️ **[Manual do Sistema Administrativo (`westrp_admin`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[systems]/westrp_admin/README.md)** — Guia Operacional e Técnico da Central Administrativa Zero-Trust.
 
 ---
 
@@ -29,6 +30,7 @@ Antes de desenvolver ou modificar qualquer recurso, consulte as documentações 
 │   └── westrp_ui/            # Motor NUI Central (Dock Lateral, Panel Central, Toasts)
 │
 └── [systems]/                # 🎮 Módulos e Funcionalidades de Gameplay
+    ├── westrp_admin/         # 🛡️ Sistema Administrativo, Auditoria, NoClip e Spawner
     ├── westrp_template/      # 📋 Boilerplate oficial para clonagem de novos resources
     └── westrp_interaction/   # 🎯 Interações Espaciais, Prompts e Comandos de Demonstração
 ```
