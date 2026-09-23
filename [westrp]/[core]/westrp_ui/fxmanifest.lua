@@ -25,5 +25,8 @@ exports {
     'CloseDock',
     'IsDockOpen',
     'UpdateItem',
-    'ShowToast'
+    'ShowToast',
+    'OpenPanel',
+    'ClosePanel',
+    'IsPanelOpen'
 }

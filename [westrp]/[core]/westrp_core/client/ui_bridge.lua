@@ -46,3 +46,27 @@ function WestRP.Client.UI.ShowToast(title, message, type, duration)
     end
     exports['westrp_ui']:ShowToast(title, message, type, duration)
 end
+
+---Abre o Panel Centralizado (Workspace / Modal de Alta Interatividade com mouse liberado)
+---@param options PanelOptions
+function WestRP.Client.UI.OpenPanel(options)
+    if GetResourceState('westrp_ui') ~= 'started' then
+        WestRP.Shared.Logger.Error("UI", "O recurso 'westrp_ui' não está iniciado!")
+        return
+    end
+    exports['westrp_ui']:OpenPanel(options)
+end
+
+---Fecha o Panel Centralizado
+function WestRP.Client.UI.ClosePanel()
+    if GetResourceState('westrp_ui') ~= 'started' then return end
+    exports['westrp_ui']:ClosePanel()
+end
+
+---Retorna se o Panel Centralizado está aberto
+---@return boolean
+function WestRP.Client.UI.IsPanelOpen()
+    if GetResourceState('westrp_ui') ~= 'started' then return false end
+    return exports['westrp_ui']:IsPanelOpen()
+end
+

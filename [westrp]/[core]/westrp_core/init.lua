@@ -31,3 +31,15 @@ local function InitializeWestRP()
 end
 
 InitializeWestRP()
+
+AddEventHandler('onResourceStart', function(resName)
+    if resName == 'westrp_core' then
+        Wait(100)
+        local ok, core = pcall(function()
+            return exports['westrp_core']:GetCoreObject()
+        end)
+        if ok and core then
+            WestRP = core
+        end
+    end
+end)

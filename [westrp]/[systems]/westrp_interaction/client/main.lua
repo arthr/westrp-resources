@@ -6,7 +6,11 @@ local InteractionModule = {}
 
 ---Abre o menu demonstrativo do Saloon usando o WestRP UI Dock Engine
 local function OpenSaloonMenu()
-    WestRP.Client.UI.OpenDock({
+    local UI = (WestRP and WestRP.Client and WestRP.Client.UI)
+    if not (UI and UI.OpenDock) then
+        UI = exports['westrp_ui']
+    end
+    UI.OpenDock({
         id = 'saloon_smithfield',
         title = 'SALOON SMITHFIELD',
         tag = 'VALENTINE',
@@ -52,9 +56,105 @@ local function OpenSaloonMenu()
     })
 end
 
--- Comando para teste rápido em qualquer lugar do mapa
+-- Comando para teste rápido do Dock em qualquer lugar do mapa
 RegisterCommand('testdock', function()
     OpenSaloonMenu()
+end, false)
+
+---Abre o painel demonstrativo de Oficina / Bancada usando o WestRP UI Panel Engine
+local function OpenWorkshopPanel()
+    local UI = (WestRP and WestRP.Client and WestRP.Client.UI)
+    if not (UI and UI.OpenPanel) then
+        UI = exports['westrp_ui']
+    end
+    UI.OpenPanel({
+        id = 'valentine_workshop',
+        title = 'OFICINA & BANCADA DE VALENTINE',
+        tag = 'ESTABELECIMENTO COMERCIAL',
+        subtitle = 'Saldo: $ 342.50',
+        ctaLabel = 'EXECUTAR AÇÃO',
+        tabs = {
+            {
+                id = 'showcase',
+                label = 'Vitrine de Armas',
+                badge = 'NOVO',
+                viewType = 'grid',
+                items = {
+                    { id = 'colt', title = 'Revólver Cattleman', subtitle = 'Arma confiável e rápida de empunhadura.', price = 45.0, stock = 12, badge = 'POPULAR', badgeType = 'gold' },
+                    { id = 'schofield', title = 'Revólver Schofield', subtitle = 'Alta precisão e grande poder de parada.', price = 85.0, stock = 4, badge = 'DESTAQUE', badgeType = 'gold' },
+                    { id = 'repeater', title = 'Carabina de Repetição', subtitle = 'Excelente cadência de tiros a média distância.', price = 120.0, stock = 6 },
+                    { id = 'shotgun', title = 'Espingarda de Cano Duplo', subtitle = 'Devastadora em combates a curta distância.', price = 95.0, stock = 2, badge = 'LETAL', badgeType = 'danger' }
+                }
+            },
+            {
+                id = 'forge',
+                label = 'Forja & Crafting',
+                badge = 'BANCADA',
+                viewType = 'craft',
+                items = {
+                    {
+                        id = 'craft_knife',
+                        title = 'Faca de Caça Rústica',
+                        subtitle = 'Lâmina de aço afiada para esfolar animais e combate corporal.',
+                        requirements = {
+                            { item = 'iron', label = 'Barra de Ferro', current = 5, required = 2 },
+                            { item = 'wood', label = 'Madeira Tratada', current = 10, required = 1 }
+                        }
+                    },
+                    {
+                        id = 'craft_ammo',
+                        title = 'Munição Regular de Revólver (x12)',
+                        subtitle = 'Cartuchos padrão calibre .45.',
+                        requirements = {
+                            { item = 'lead', label = 'Chumbo', current = 8, required = 2 },
+                            { item = 'gunpowder', label = 'Pólvora', current = 3, required = 4 }
+                        }
+                    },
+                    {
+                        id = 'craft_lockpick',
+                        title = 'Gazua de Aço Reforçado',
+                        subtitle = 'Ferramenta fina para destrancar fechaduras resistentes.',
+                        requirements = {
+                            { item = 'steel_wire', label = 'Fio de Aço', current = 4, required = 2 },
+                            { item = 'oil', label = 'Óleo Lubrificante', current = 1, required = 1 }
+                        }
+                    }
+                }
+            },
+            {
+                id = 'ledger',
+                label = 'Livro de Registros',
+                badge = 'GESTOR',
+                viewType = 'table',
+                columns = {
+                    { key = 'date', label = 'DATA', width = '15%' },
+                    { key = 'desc', label = 'DESCRIÇÃO', width = '35%' },
+                    { key = 'player', label = 'CLIENTE', width = '20%' },
+                    { key = 'val', label = 'VALOR', width = '15%', align = 'right' },
+                    { key = 'status', label = 'STATUS', width = '15%', align = 'center', type = 'pill' }
+                },
+                rows = {
+                    { id = 'r1', date = '23/09', desc = 'Compra: Revólver Cattleman', player = 'Arthur Morgan', val = '$ 45.00', status = 'PAGO', status_type = 'on' },
+                    { id = 'r2', date = '23/09', desc = 'Serviço: Limpeza de Cano', player = 'John Marston', val = '$ 5.00', status = 'PAGO', status_type = 'on' },
+                    { id = 'r3', date = '22/09', desc = 'Encomenda: 50x Balas', player = 'Micah Bell', val = '$ 12.50', status = 'PENDENTE', status_type = 'off' },
+                    { id = 'r4', date = '21/09', desc = 'Fornecimento: 20x Barras Ferro', player = 'Mineradora Annesburg', val = '$ 30.00', status = 'CONCLUÍDO', status_type = 'gold' }
+                }
+            }
+        },
+        onAction = function(action, item, tabId, qty)
+            local itemName = item.title or item.desc or item.id or "Registro"
+            WestRP.Shared.Logger.Info("PANEL", "Ação executada: %s no item '%s' (Qtd: %s, Aba: %s)", action, itemName, tostring(qty or 1), tabId)
+            WestRP.Client.UI.ShowToast("OFICINA VALENTINE", "Ação processada: " .. itemName .. " (x" .. tostring(qty or 1) .. ")", "success")
+        end,
+        onClose = function()
+            WestRP.Shared.Logger.Info("PANEL", "Painel da oficina fechado.")
+        end
+    })
+end
+
+-- Comando para teste rápido do Panel de Alta Interatividade
+RegisterCommand('testpanel', function()
+    OpenWorkshopPanel()
 end, false)
 
 function InteractionModule:OnLoad()
@@ -152,6 +252,7 @@ function InteractionModule:OnUnload()
     end
     activePointKey = nil
     WestRP.Client.UI.CloseDock()
+    WestRP.Client.UI.ClosePanel()
 end
 
 AddEventHandler('onResourceStart', function(resName)

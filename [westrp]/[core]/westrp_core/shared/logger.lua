@@ -14,9 +14,21 @@ local function GetCurrentLevel()
     return LogLevels[lvl] or LogLevels.INFO
 end
 
+local function GetTimestamp()
+    if os and type(os.date) == "function" then
+        return os.date('%H:%M:%S')
+    end
+    local ms = GetGameTimer()
+    local totalSec = math.floor(ms / 1000)
+    local sec = totalSec % 60
+    local min = math.floor(totalSec / 60) % 60
+    local hr = math.floor(totalSec / 3600) % 24
+    return string.format('%02d:%02d:%02d', hr, min, sec)
+end
+
 local function FormatMessage(prefix, color, tag, msg, ...)
     local formattedMsg = (select('#', ...) > 0) and string.format(msg, ...) or tostring(msg)
-    local timestamp = os.date('%H:%M:%S')
+    local timestamp = GetTimestamp()
     return string.format('^7[%s] %s[%s]^7 [^3%s^7] %s^0', timestamp, color, prefix, tag or 'SYSTEM', formattedMsg)
 end
 

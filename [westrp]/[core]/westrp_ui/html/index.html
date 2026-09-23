@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WestRP UI Dock Engine</title>
+  <title>WestRP UI Engine (Dock & Panel)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body>
 
   <!-- ============================================================
-       CONTAINER HUD DOCK LATERAL (ROCKSTAR NATIVE INTERACTION MENU)
+       1. CONTAINER HUD DOCK LATERAL (ROCKSTAR NATIVE 350px)
        ============================================================ -->
   <div id="dock-container" class="dock-container" style="display: none;">
 
@@ -60,6 +60,99 @@
       <div class="k-group"><span class="k-box">ESC</span> <span class="k-label">Fechar</span></div>
     </footer>
 
+  </div>
+
+  <!-- ============================================================
+       2. CONTAINER HUD PANEL (MODAL / WORKSPACE DE ALTA INTERATIVIDADE)
+       ============================================================ -->
+  <div id="panel-container" class="panel-container" style="display: none;">
+    <div class="panel-backdrop" id="panel-backdrop"></div>
+    <div class="panel-modal">
+      
+      <!-- Cabeçalho do Panel -->
+      <header class="panel-header">
+        <div class="panel-header-brand">
+          <span class="panel-tag" id="panel-tag">ESTABELECIMENTO</span>
+          <h1 class="panel-title" id="panel-title">BANCADA DE CRIAÇÃO</h1>
+        </div>
+        
+        <div class="panel-header-actions">
+          <!-- Campo de Busca em Tempo Real -->
+          <div class="panel-search-wrap" id="panel-search-wrap">
+            <span class="panel-search-icon">🔍</span>
+            <input type="text" id="panel-search-input" placeholder="Buscar registros..." autocomplete="off">
+          </div>
+
+          <!-- Metadata / Saldo -->
+          <div class="panel-meta-pill" id="panel-meta-pill" style="display: none;">
+            <span id="panel-meta-text">Saldo: $ 0.00</span>
+          </div>
+
+          <!-- Botão Fechar -->
+          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (ESC)">✕</button>
+        </div>
+      </header>
+
+      <!-- Corpo Principal (Sidebar + Viewport de Conteúdo) -->
+      <div class="panel-body">
+        
+        <!-- Sidebar de Abas Verticais -->
+        <aside class="panel-sidebar" id="panel-sidebar">
+          <nav class="panel-tabs-list" id="panel-tabs-list">
+            <!-- Abas geradas dinamicamente -->
+          </nav>
+        </aside>
+
+        <!-- Viewport Principal de Conteúdo -->
+        <main class="panel-content" id="panel-content">
+          <!-- Viewport do Grid (Cards/Vitrine) -->
+          <div class="panel-grid-view" id="panel-grid-view" style="display: none;"></div>
+
+          <!-- Viewport da Tabela (Ledger/Registros) -->
+          <div class="panel-table-view" id="panel-table-view" style="display: none;">
+            <table class="panel-data-table" id="panel-data-table">
+              <thead id="panel-table-head"></thead>
+              <tbody id="panel-table-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Viewport de Crafting (Receita + Ingredientes) -->
+          <div class="panel-craft-view" id="panel-craft-view" style="display: none;">
+            <div class="craft-recipe-list" id="craft-recipe-list"></div>
+            <div class="craft-details-card" id="craft-details-card">
+              <h3 class="craft-details-title" id="craft-details-title">Selecione uma receita</h3>
+              <p class="craft-details-desc" id="craft-details-desc">Escolha uma receita na lista à esquerda para visualizar os materiais necessários.</p>
+              <div class="craft-reqs-wrap">
+                <span class="craft-reqs-label">MATERIAIS EXIGIDOS</span>
+                <div class="craft-reqs-list" id="craft-reqs-list"></div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      <!-- Rodapé / Drawer Inferior com Quantidade e CTA -->
+      <footer class="panel-footer" id="panel-footer">
+        <div class="panel-footer-info" id="panel-footer-info">
+          <span id="panel-selected-name">Nenhum item selecionado</span>
+          <span class="panel-selected-desc" id="panel-selected-desc"></span>
+        </div>
+
+        <div class="panel-footer-controls">
+          <!-- Seletor de Quantidade -->
+          <div class="panel-stepper" id="panel-stepper">
+            <button class="stepper-btn" id="btn-stepper-minus">-</button>
+            <span class="stepper-val" id="stepper-val">1</span>
+            <button class="stepper-btn" id="btn-stepper-plus">+</button>
+          </div>
+
+          <!-- Botão Primário de Ação -->
+          <button class="panel-cta-btn" id="panel-cta-btn">CONFIRMAR</button>
+        </div>
+      </footer>
+
+    </div>
   </div>
 
   <!-- Container Global de Notificações Toasts -->
