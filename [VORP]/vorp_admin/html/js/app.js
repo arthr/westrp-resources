@@ -1,19 +1,70 @@
 /**
- * THE FRONTIER GAZETTE & ADMINISTRATIVE REGISTRY - 1899
- * Client-Side NUI Application Logic
- * Pure ES6+, Zero External Frameworks, Fast Debounce & Robust CEF Focus Management
+ * HUD DOCK LATERAL - NATIVE ROCKSTAR STYLE (RDR2 / GTA V INTERACTION MENU)
+ * 100% Keyboard-Driven | 100% Free Camera & Aim | Western Frontier 1899-1910
+ * Pure ES6+, Zero External Frameworks, Web Audio Procedural Feedback
  */
 
 (function () {
   'use strict';
 
-  // --- Estado Global da Aplicação ---
+  // --- Audio Procedural Ticks (Web Audio API) ---
+  let audioCtx = null;
+
+  function playUiTick(type = 'nav') {
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+
+      if (type === 'nav') {
+        osc.frequency.setValueAtTime(650, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.02);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.02);
+      } else if (type === 'confirm') {
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.04);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.04);
+      } else if (type === 'back') {
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.03);
+      }
+    } catch (e) {
+      // Ignora silenciosamente se o navegador bloquear autoplay de áudio
+    }
+  }
+
+  // --- Estado Global ---
   const state = {
     isOpen: false,
+    staffRole: 'Staff',
     players: [],
-    filteredPlayers: [],
     selectedPlayer: null,
-    activeTab: 'tab-players',
+    activeTabIndex: 0,
+    selectedIndex: 0,
+    navigationStack: [], // Para submenus hierárquicos (ex: Dossiê de Ações do Jogador)
     boosters: {
       godmode: false,
       noclip: false,
@@ -22,153 +73,46 @@
       invis: false,
       autotpm: false,
       devlaser: false
-    },
-    searchQuery: '',
-    searchDebounceTimer: null
+    }
   };
+
+  // --- Definição das 5 Abas Principais ---
+  const TABS = [
+    { id: 'utilitarios', name: 'UTILITÁRIOS' },
+    { id: 'cidadaos', name: 'CIDADÃOS' },
+    { id: 'teleporte', name: 'TELEPORTE' },
+    { id: 'patrimonio', name: 'PATRIMÔNIO' },
+    { id: 'oficina', name: 'OFICINA' }
+  ];
 
   // --- Elementos do DOM ---
   const el = {
-    app: document.getElementById('admin-newspaper-app'),
-    btnClose: document.getElementById('btn-close-gazette'),
-    tabButtons: document.querySelectorAll('.nav-tab-btn'),
-    tabPanes: document.querySelectorAll('.tab-pane'),
-    
-    // Players Tab
-    searchInput: document.getElementById('player-search-input'),
-    playersTableBody: document.getElementById('players-table-body'),
-    playersCountText: document.getElementById('players-count-text'),
-    
-    // Dossier Panel
-    dossierName: document.getElementById('dossier-name'),
-    dossierSubinfo: document.getElementById('dossier-subinfo'),
-    dossierMetaSection: document.getElementById('dossier-meta-section'),
-    dossierActionsContainer: document.getElementById('dossier-actions-container'),
-    dossierEmptyHint: document.getElementById('dossier-empty-hint'),
-    
-    // Dossier Meta Fields
-    metaServerId: document.getElementById('meta-server-id'),
-    metaStaticId: document.getElementById('meta-static-id'),
-    metaGroup: document.getElementById('meta-group'),
-    metaWhitelist: document.getElementById('meta-whitelist'),
-    metaMoney: document.getElementById('meta-money'),
-    metaGold: document.getElementById('meta-gold'),
-    
-    // Dossier Actions
-    actGoto: document.getElementById('act-goto'),
-    actBring: document.getElementById('act-bring'),
-    actHeal: document.getElementById('act-heal'),
-    actRevive: document.getElementById('act-revive'),
-    actFreeze: document.getElementById('act-freeze'),
-    actSpectate: document.getElementById('act-spectate'),
-    actSendback: document.getElementById('act-sendback'),
-    actRespawn: document.getElementById('act-respawn'),
-    actKick: document.getElementById('act-kick'),
-    actBan: document.getElementById('act-ban'),
-    actSetjob: document.getElementById('act-setjob'),
-    actSetgroup: document.getElementById('act-setgroup'),
-    actToggleWl: document.getElementById('act-toggle-wl'),
-    
-    // Troll Actions
-    actTrollLightning: document.getElementById('act-troll-lightning'),
-    actTrollFire: document.getElementById('act-troll-fire'),
-    actTrollHeaven: document.getElementById('act-troll-heaven'),
-    actTrollHandcuff: document.getElementById('act-troll-handcuff'),
-    actTrollRagdoll: document.getElementById('act-troll-ragdoll'),
-    actTrollStam: document.getElementById('act-troll-stam'),
-    
-    // Boosters
-    statusGodmode: document.getElementById('status-godmode'),
-    statusNoclip: document.getElementById('status-noclip'),
-    statusGoldencores: document.getElementById('status-goldencores'),
-    statusInfiammo: document.getElementById('status-infiammo'),
-    statusInvis: document.getElementById('status-invis'),
-    btnToggleGodmode: document.getElementById('btn-toggle-godmode'),
-    btnToggleNoclip: document.getElementById('btn-toggle-noclip'),
-    btnToggleGoldencores: document.getElementById('btn-toggle-goldencores'),
-    btnToggleInfiammo: document.getElementById('btn-toggle-infiammo'),
-    btnToggleInvis: document.getElementById('btn-toggle-invis'),
-    btnSelfHeal: document.getElementById('btn-self-heal'),
-    btnSelfRevive: document.getElementById('btn-self-revive'),
-    btnSpawnHorse: document.getElementById('btn-spawn-horse'),
-    
-    // Treasury
-    treasuryTargetName: document.getElementById('treasury-target-name'),
-    inputMoneyAmount: document.getElementById('input-money-amount'),
-    btnGiveMoney: document.getElementById('btn-give-money'),
-    btnGiveGold: document.getElementById('btn-give-gold'),
-    inputItemName: document.getElementById('input-item-name'),
-    inputItemQty: document.getElementById('input-item-qty'),
-    btnGiveItem: document.getElementById('btn-give-item'),
-    inputWeaponHash: document.getElementById('input-weapon-hash'),
-    btnGiveWeapon: document.getElementById('btn-give-weapon'),
-    inputMountModel: document.getElementById('input-mount-model'),
-    btnGiveHorse: document.getElementById('btn-give-horse'),
-    btnGiveWagon: document.getElementById('btn-give-wagon'),
-    btnClearInventory: document.getElementById('btn-clear-inventory'),
-    btnClearMoney: document.getElementById('btn-clear-money'),
-    btnClearGold: document.getElementById('btn-clear-gold'),
-    
-    // Teleports
-    btnTpMarker: document.getElementById('btn-tp-marker'),
-    btnToggleAutotpm: document.getElementById('btn-toggle-autotpm'),
-    btnAdminGoback: document.getElementById('btn-admin-goback'),
-    btnTpGuarma: document.getElementById('btn-tp-guarma'),
-    inputCustomCoords: document.getElementById('input-custom-coords'),
-    btnTpCustomCoords: document.getElementById('btn-tp-custom-coords'),
-    inputAnnounceText: document.getElementById('input-announce-text'),
-    btnSendAnnounce: document.getElementById('btn-send-announce'),
-    
-    // DevTools
-    btnCopyVector3: document.getElementById('btn-copy-vector3'),
-    btnCopyVector4: document.getElementById('btn-copy-vector4'),
-    btnCopyHeading: document.getElementById('btn-copy-heading'),
-    btnGetInterior: document.getElementById('btn-get-interior'),
-    statusDevlaser: document.getElementById('status-devlaser'),
-    btnToggleDevlaser: document.getElementById('btn-toggle-devlaser'),
-    inputSpawnPedName: document.getElementById('input-spawn-ped-name'),
-    btnSpawnPed: document.getElementById('btn-spawn-ped'),
-    
-    // Modal
-    modalBackdrop: document.getElementById('gazette-modal-backdrop'),
-    modalTitle: document.getElementById('modal-title'),
-    modalBodyContent: document.getElementById('modal-body-content'),
-    modalCancelBtn: document.getElementById('modal-cancel-btn'),
-    modalConfirmBtn: document.getElementById('modal-confirm-btn'),
-    
-    // Toasts
+    app: document.getElementById('admin-dock'),
+    staffRole: document.getElementById('dock-staff-role'),
+    itemCounter: document.getElementById('dock-item-counter'),
+    tabIndexBadge: document.getElementById('dock-tab-index'),
+    currentTabName: document.getElementById('current-tab-name'),
+    btnTabPrev: document.getElementById('btn-tab-prev'),
+    btnTabNext: document.getElementById('btn-tab-next'),
+    breadcrumb: document.getElementById('dock-breadcrumb'),
+    breadcrumbTitle: document.getElementById('dock-breadcrumb-title'),
+    viewport: document.getElementById('dock-viewport'),
+    infoText: document.getElementById('dock-info-text'),
     toastContainer: document.getElementById('toast-container')
   };
 
-  // --- Função Utilitária para Chamadas ao Client Lua ---
+  // --- Utilitário de Comunicação NUI ---
   async function postNui(event, data = {}) {
     try {
-      const response = await fetch(`https://vorp_admin/${event}`, {
+      const res = await fetch(`https://vorp_admin/${event}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify(data)
       });
-      return await response.json();
-    } catch (err) {
-      // Ignora erro natural de fetch quando callback Lua não retorna json
+      return await res.json();
+    } catch (e) {
       return null;
     }
-  }
-
-  // --- Cópia para Clipboard (Compatibilidade Legada) ---
-  function copyToClipboard(str) {
-    if (!str) return;
-    const el = document.createElement('textarea');
-    el.value = str;
-    document.body.appendChild(el);
-    el.select();
-    try {
-      document.execCommand('copy');
-      showToast('Copiado para a Área de Transferência: ' + str);
-    } catch (e) {
-      console.error('Falha ao copiar:', e);
-    }
-    document.body.removeChild(el);
   }
 
   // --- Sistema de Notificações Toasts ---
@@ -179,500 +123,1038 @@
     toast.textContent = message;
     el.toastContainer.appendChild(toast);
     setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3200);
+  }
+
+  function copyToClipboard(str) {
+    if (!str) return;
+    const ta = document.createElement('textarea');
+    ta.value = String(str);
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showToast('Copiado para Área de Transferência: ' + str);
+    } catch (e) {
+      console.error(e);
+    }
+    document.body.removeChild(ta);
+  }
+
+  // --- Construtores de Itens para Cada Aba ---
+
+  function getUtilitariosItems() {
+    return [
+      {
+        label: 'Modo Deus (GodMode)',
+        desc: 'Torna o operador imune a todos os tipos de dano e disparos.',
+        type: 'toggle',
+        key: 'godmode',
+        action: () => toggleBoosterAction('godmode')
+      },
+      {
+        label: 'Voo Livre (NoClip)',
+        desc: 'Permite voar e atravessar qualquer estrutura territorial.',
+        type: 'toggle',
+        key: 'noclip',
+        action: () => toggleBoosterAction('noclip')
+      },
+      {
+        label: 'Núcleos de Ouro',
+        desc: 'Fortifica os núcleos de vida, estamina e Dead Eye.',
+        type: 'toggle',
+        key: 'goldencores',
+        action: () => toggleBoosterAction('goldencores')
+      },
+      {
+        label: 'Munição Infinita',
+        desc: 'Disparos sem necessidade de recarga de cartuchos.',
+        type: 'toggle',
+        key: 'infiammo',
+        action: () => toggleBoosterAction('infiammo')
+      },
+      {
+        label: 'Invisibilidade',
+        desc: 'Oculta o operador de todos os jogadores na fronteira.',
+        type: 'toggle',
+        key: 'invis',
+        action: () => toggleBoosterAction('invis')
+      },
+      {
+        label: 'Mira Laser Dev',
+        desc: 'Ativa raio laser para identificação e inspeção de entidades.',
+        type: 'toggle',
+        key: 'devlaser',
+        action: () => {
+          state.boosters.devlaser = !state.boosters.devlaser;
+          postNui('devtoolsAction', { type: 'laser' });
+          renderCurrentList();
+        }
+      },
+      {
+        label: 'Restaurar Vida & Estamina',
+        desc: 'Cura imediatamente todas as enfermidades e ferimentos.',
+        type: 'action',
+        action: () => {
+          postNui('toggleBooster', { booster: 'selfheal' });
+          showToast('Vida e estamina restauradas.');
+        }
+      },
+      {
+        label: 'Reviver a Si Mesmo',
+        desc: 'Retorna do estado incapacitado/morto instantaneamente.',
+        type: 'action',
+        action: () => {
+          postNui('toggleBooster', { booster: 'selfrevive' });
+          showToast('Auto-ressurreição executada.');
+        }
+      },
+      {
+        label: 'Ir ao Marcador (TPM)',
+        desc: 'Teleporta imediatamente ao marcador definido no mapa.',
+        type: 'action',
+        action: () => {
+          postNui('teleportAction', { type: 'tpm' });
+          showToast('Teleportando ao marcador...');
+        }
+      },
+      {
+        label: 'Invocar Cavalo de Montaria',
+        desc: 'Faz surgir um cavalo confiável para locomoção imediata.',
+        type: 'action',
+        action: () => {
+          postNui('toggleBooster', { booster: 'spawnhorse' });
+          showToast('Cavalo convocado.');
+        }
+      },
+      {
+        label: 'Invocar Carroça de Carga',
+        desc: 'Gera uma carroça para transporte rápido de provisões.',
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', {
+            type: 'giveMount',
+            mountType: 'wagon',
+            model: 'cart01',
+            targetId: 0,
+            targetName: 'Self'
+          });
+          showToast('Carroça invocada nas proximidades.');
+        }
       }
-    }, 3500);
+    ];
   }
 
-  // --- Gerenciador de Modais Customizados ---
-  let activeModalCallback = null;
-
-  function openPromptModal({ title, bodyHtml, confirmText = 'Confirmar', danger = false, onConfirm }) {
-    el.modalTitle.textContent = title;
-    el.modalBodyContent.innerHTML = bodyHtml;
-    el.modalConfirmBtn.textContent = confirmText;
-    
-    if (danger) {
-      el.modalConfirmBtn.classList.add('danger');
-    } else {
-      el.modalConfirmBtn.classList.remove('danger');
-    }
-    
-    activeModalCallback = onConfirm;
-    el.modalBackdrop.style.display = 'flex';
-    
-    const firstInput = el.modalBodyContent.querySelector('input, textarea');
-    if (firstInput) firstInput.focus();
-  }
-
-  function closeModal() {
-    el.modalBackdrop.style.display = 'none';
-    activeModalCallback = null;
-    el.modalBodyContent.innerHTML = '';
-  }
-
-  el.modalCancelBtn.addEventListener('click', closeModal);
-  el.modalConfirmBtn.addEventListener('click', () => {
-    if (typeof activeModalCallback === 'function') {
-      activeModalCallback();
-    }
-    closeModal();
-  });
-
-  // --- Controle de Abertura / Fechamento do Jornal ---
-  function openApp(data = {}) {
-    state.isOpen = true;
-    el.app.style.display = 'flex';
-    
-    if (data.players) {
-      updatePlayersData(data.players);
-    }
-    
-    if (data.boosters) {
-      updateBoostersState(data.boosters);
+  function getCidadaosItems() {
+    if (!state.players || state.players.length === 0) {
+      return [
+        {
+          label: 'Nenhum cidadão na fronteira',
+          desc: 'Aguardando sincronização ou jogadores conectados.',
+          type: 'info',
+          action: () => {}
+        }
+      ];
     }
 
-    if (data.staffRole) {
-      const tag = document.getElementById('header-staff-tag');
-      if (tag) tag.textContent = 'CARGO: ' + String(data.staffRole).toUpperCase();
-    }
-  }
-
-  function closeApp() {
-    state.isOpen = false;
-    el.app.style.display = 'none';
-    closeModal();
-    postNui('closeMenu');
-  }
-
-  el.btnClose.addEventListener('click', closeApp);
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && state.isOpen) {
-      e.preventDefault();
-      closeApp();
-    }
-  });
-
-  // --- Navegação por Abas ---
-  el.tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetTab = btn.getAttribute('data-tab');
-      switchTab(targetTab);
+    return state.players.map(p => {
+      const isWl = (p.WLstatus === 'true' || p.WLstatus === '1' || p.WLstatus === true);
+      const moneyStr = `$ ${Number(p.Money || 0).toFixed(0)}`;
+      return {
+        label: `#${p.serverId} - ${p.PlayerName || 'Desconhecido'}`,
+        sublabel: `${p.Job || 'Desempregado'} | ${moneyStr}`,
+        badge: isWl ? 'VERIF' : 'PEND',
+        badgeClass: isWl ? 'verified' : 'wanted',
+        desc: `ID Estático: ${p.staticID || 'N/A'} | Steam: ${p.name || 'N/A'} | Dinheiro: ${moneyStr}`,
+        type: 'submenu',
+        player: p,
+        action: () => openPlayerSubmenu(p)
+      };
     });
-  });
-
-  function switchTab(tabId) {
-    state.activeTab = tabId;
-    el.tabButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tabId));
-    el.tabPanes.forEach(p => p.classList.toggle('active', p.id === tabId));
   }
 
-  // --- Renderização da Tabela de Cidadãos & Live Search ---
-  // --- Renderização da Tabela de Cidadãos & Live Search ---
-  function updatePlayersData(playersList) {
-    const rawList = Array.isArray(playersList) ? playersList : Object.values(playersList || {});
-    // Higienização completa contra arrays esparsos gerados pelo JSON do CitizenFX
-    state.players = rawList.filter(p => p && typeof p === 'object' && p.serverId != null);
+  function getPlayerSubmenuItems(player) {
+    if (!player) return [];
+    const pId = player.serverId;
+    const pName = player.PlayerName || 'Cidadão';
+    const staticId = player.staticID;
+    const steam = player.SteamId;
 
-    // Se o cidadão selecionado não estiver mais online, reseta dossiê
-    if (state.selectedPlayer) {
-      const stillOnline = state.players.some(p => p.serverId === state.selectedPlayer.serverId);
-      if (!stillOnline) {
-        state.selectedPlayer = null;
-        if (el.dossierEmptyHint) el.dossierEmptyHint.style.display = 'block';
-        if (el.dossierMetaSection) el.dossierMetaSection.style.display = 'none';
-        if (el.dossierActionsContainer) el.dossierActionsContainer.style.display = 'none';
-        if (el.treasuryTargetName) el.treasuryTargetName.textContent = 'Nenhum Selecionado';
+    return [
+      {
+        label: 'Ir Até o Cidadão (Goto)',
+        desc: `Teleporta seu personagem imediatamente até ${pName}.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'goto', targetId: pId, targetName: pName });
+          showToast(`Indo até ${pName}...`);
+        }
+      },
+      {
+        label: 'Trazer Cidadão (Bring)',
+        desc: `Puxa ${pName} até as suas coordenadas atuais.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'bring', targetId: pId, targetName: pName });
+          showToast(`Trazendo ${pName}...`);
+        }
+      },
+      {
+        label: 'Curar Cidadão (Heal)',
+        desc: `Restaura a vida e os núcleos de ${pName}.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'heal', targetId: pId, targetName: pName });
+          showToast(`Curando ${pName}...`);
+        }
+      },
+      {
+        label: 'Reviver Cidadão (Revive)',
+        desc: `Ressuscita ${pName} do estado de morte.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'revive', targetId: pId, targetName: pName });
+          showToast(`Revivendo ${pName}...`);
+        }
+      },
+      {
+        label: 'Congelar Movimento (Freeze)',
+        desc: `Imobiliza totalmente o jogador no local atual.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'freeze', targetId: pId, targetName: pName });
+          showToast(`Alternando congelamento de ${pName}.`);
+        }
+      },
+      {
+        label: 'Espectar Jogador (Spectate)',
+        desc: `Fixa a câmera oculta para vigiar as ações de ${pName}.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'spectate', targetId: pId, targetName: pName });
+          showToast(`Modo espectador acionado.`);
+        }
+      },
+      {
+        label: 'Devolver à Posição Anterior',
+        desc: `Envia ${pName} de volta ao ponto antes do último teleporte.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'sendback', targetId: pId, targetName: pName });
+          showToast(`Retornando ${pName} ao local prévio.`);
+        }
+      },
+      {
+        label: 'Forçar Respawn no Hospital',
+        desc: `Envia o jogador para a clínica médica mais próxima.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'respawn', targetId: pId, targetName: pName });
+          showToast(`Respawn forçado para ${pName}.`);
+        }
+      },
+      {
+        label: 'Alternar Whitelist (Acesso)',
+        desc: `Concede ou revoga permissão de acesso ao condado.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'whitelist', targetId: pId, targetName: pName, steam, staticId });
+          showToast(`Whitelist alternada para ${pName}.`);
+        }
+      },
+      {
+        label: 'Conceder $100 Dólares',
+        desc: `Deposita $100 na carteira de ${pName}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 100, targetId: pId, targetName: pName });
+          showToast(`Concedido $100 para ${pName}.`);
+        }
+      },
+      {
+        label: 'Conceder $500 Dólares',
+        desc: `Deposita $500 na carteira de ${pName}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 500, targetId: pId, targetName: pName });
+          showToast(`Concedido $500 para ${pName}.`);
+        }
+      },
+      {
+        label: 'Conceder 5 Ouro',
+        desc: `Deposita 5 barras de ouro com ${pName}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 1, amount: 5, targetId: pId, targetName: pName });
+          showToast(`Concedido 5 ouro para ${pName}.`);
+        }
+      },
+      {
+        label: 'Expulsar do Condado (Kick)',
+        desc: `Desconecta o jogador da sessão imediatamente.`,
+        type: 'danger',
+        action: () => {
+          postNui('triggerAction', { actionType: 'kick', targetId: pId, targetName: pName, reason: 'Expulso pelo Administrador' });
+          showToast(`Expulsão aplicada a ${pName}.`, true);
+          popSubmenu();
+        }
+      },
+      {
+        label: 'Mandado de Prisão 24h (Ban)',
+        desc: `Bane temporariamente o cidadão por 24 horas.`,
+        type: 'danger',
+        action: () => {
+          postNui('triggerAction', { actionType: 'ban', targetId: pId, targetName: pName, time: 24, reason: 'Banimento 24h' });
+          showToast(`Mandado de prisão (24h) emitido para ${pName}.`, true);
+          popSubmenu();
+        }
+      },
+      {
+        label: 'Confiscar Todo o Inventário',
+        desc: `Esvazia completamente todos os itens da bolsa do cidadão.`,
+        type: 'danger',
+        action: () => {
+          postNui('databaseAction', { type: 'clearInventory', targetId: pId, targetName: pName });
+          showToast(`Inventário de ${pName} confiscado e zerado.`);
+        }
+      },
+      {
+        label: 'Zerar Dinheiro e Ouro',
+        desc: `Zera tanto dólares quanto barras de ouro do jogador.`,
+        type: 'danger',
+        action: () => {
+          postNui('databaseAction', { type: 'clearCurrency', currencyType: '0', targetId: pId, targetName: pName });
+          postNui('databaseAction', { type: 'clearCurrency', currencyType: '1', targetId: pId, targetName: pName });
+          showToast(`Patrimônio financeiro de ${pName} zerado.`);
+        }
+      },
+      {
+        label: 'Medida Disciplinar: Raio dos Céus',
+        desc: `Atinge o cidadão com uma descarga elétrica de advertência.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'troll_lightning', targetId: pId, targetName: pName });
+          showToast(`Relâmpago enviado sobre ${pName}.`);
+        }
+      },
+      {
+        label: 'Medida Disciplinar: Incêndio',
+        desc: `Cria chamas ao redor do infrator.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'troll_fire', targetId: pId, targetName: pName });
+          showToast(`Fogo aceso em ${pName}.`);
+        }
+      },
+      {
+        label: 'Medida Disciplinar: Queda das Nuvens',
+        desc: `Teleporta o jogador para o céu para queda livre segura.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'troll_heaven', targetId: pId, targetName: pName });
+          showToast(`Queda das nuvens iniciada.`);
+        }
+      },
+      {
+        label: 'Medida Disciplinar: Algemar',
+        desc: `Coloca algemas de ferro no jogador.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'troll_handcuff', targetId: pId, targetName: pName });
+          showToast(`Algemas aplicadas a ${pName}.`);
+        }
+      },
+      {
+        label: 'Medida Disciplinar: Desmaiar (Ragdoll)',
+        desc: `Faz o personagem tropeçar e cair inconsciente no solo.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'troll_ragdoll', targetId: pId, targetName: pName });
+          showToast(`Desmaio aplicado a ${pName}.`);
+        }
+      },
+      {
+        label: 'Medida Disciplinar: Esgotar Estamina',
+        desc: `Zera a resistência física imediata do jogador.`,
+        type: 'action',
+        action: () => {
+          postNui('triggerAction', { actionType: 'troll_stam', targetId: pId, targetName: pName });
+          showToast(`Estamina de ${pName} drenada.`);
+        }
       }
-    }
-
-    applySearchFilter();
+    ];
   }
 
-  function applySearchFilter() {
-    const query = state.searchQuery.trim().toLowerCase();
-    
-    if (!query) {
-      state.filteredPlayers = [...state.players];
-    } else {
-      state.filteredPlayers = state.players.filter(p => {
-        if (!p) return false;
-        const idStr = String(p.serverId ?? '');
-        const rpName = String(p.PlayerName ?? '').toLowerCase();
-        const steamName = String(p.name ?? '').toLowerCase();
-        const job = String(p.Job ?? '').toLowerCase();
-        const steamId = String(p.SteamId ?? '').toLowerCase();
-        return idStr.includes(query) || rpName.includes(query) || steamName.includes(query) || job.includes(query) || steamId.includes(query);
+  function getTeleporteItems() {
+    const locations = [
+      { name: 'Valentine', coords: '-180.5, 629.7, 114.1', desc: 'A próspera e barrenta cidade do gado em New Hanover.' },
+      { name: 'Saint Denis', coords: '2508.8, -1306.9, 48.9', desc: 'A metrópole industrial e moderna de Lemoyne.' },
+      { name: 'Blackwater', coords: '-813.6, -1325.2, 5.3', desc: 'A cidade portuária e comercial de West Elizabeth.' },
+      { name: 'Rhodes', coords: '1293.4, -1300.9, 77.0', desc: 'Cidade de terra vermelha no sul de Lemoyne.' },
+      { name: 'Strawberry', coords: '-1763.5, -384.3, 156.8', desc: 'Tranquilo refúgio montanhoso de West Elizabeth.' },
+      { name: 'Annesburg', coords: '2940.6, 1318.5, 44.8', desc: 'Vila mineira de carvão em Roanoke Ridge.' },
+      { name: 'Armadillo', coords: '-3623.7, -2600.3, -13.5', desc: 'Cidade assolada pelo calor árido de New Austin.' },
+      { name: 'Tumbleweed', coords: '-5525.7, -2928.8, -1.9', desc: 'Último posto avançado de lei no extremo oeste.' },
+      { name: 'Colter', coords: '-1364.5, 2397.9, 307.4', desc: 'Vila abandonada na neve rigorosa de Ambarino.' },
+      { name: 'Reserva Indígena Wapiti', coords: '566.2, 2217.3, 238.9', desc: 'Terras sagradas e reserva nativa nas montanhas.' }
+    ];
+
+    const items = [
+      {
+        label: 'Ir ao Marcador (TPM)',
+        desc: 'Teleporta imediatamente ao ponto marcado no mapa pelo operador.',
+        type: 'action',
+        action: () => {
+          postNui('teleportAction', { type: 'tpm' });
+          showToast('Teleportando ao marcador...');
+        }
+      },
+      {
+        label: 'Auto-TPM ao Marcar Mapa',
+        desc: 'Teleporte automático instantâneo assim que fixar um waypoint.',
+        type: 'toggle',
+        key: 'autotpm',
+        action: () => {
+          state.boosters.autotpm = !state.boosters.autotpm;
+          postNui('teleportAction', { type: 'autotpm' });
+          renderCurrentList();
+        }
+      },
+      {
+        label: 'Retornar à Posição Anterior',
+        desc: 'Desfaz o último teleporte retornando ao ponto de origem.',
+        type: 'action',
+        action: () => {
+          postNui('teleportAction', { type: 'goback' });
+          showToast('Retornando à posição anterior...');
+        }
+      },
+      {
+        label: 'Expedição a Guarma',
+        desc: 'Transporta o personagem para a ilha tropical de Guarma.',
+        type: 'action',
+        action: () => {
+          postNui('teleportAction', { type: 'guarma' });
+          showToast('Viajando a Guarma...');
+        }
+      }
+    ];
+
+    locations.forEach(loc => {
+      items.push({
+        label: `Viajar para ${loc.name}`,
+        desc: loc.desc,
+        type: 'action',
+        action: () => {
+          postNui('teleportAction', { type: 'customCoords', coords: loc.coords });
+          showToast(`Teleportando para ${loc.name}...`);
+        }
+      });
+    });
+
+    return items;
+  }
+
+  function getPatrimonioItems() {
+    const isSelf = !state.selectedPlayer;
+    const targetDisplay = state.selectedPlayer
+      ? `${state.selectedPlayer.PlayerName} (#${state.selectedPlayer.serverId})`
+      : (state.myPlayerName ? `${state.myPlayerName} (Você)` : 'Operador Atual (Você)');
+    const targetId = state.selectedPlayer ? state.selectedPlayer.serverId : (state.myServerId || 0);
+    const targetName = state.selectedPlayer ? state.selectedPlayer.PlayerName : (state.myPlayerName || 'Operador Atual');
+
+    const items = [
+      {
+        label: `Alvo Selecionado: ${targetDisplay}`,
+        desc: isSelf
+          ? 'As transações de tesouraria serão creditadas diretamente no seu próprio inventário.'
+          : `As transações de tesouraria serão creditadas no cidadão ${targetDisplay}.`,
+        type: 'info',
+        action: () => {}
+      }
+    ];
+
+    if (!isSelf) {
+      items.push({
+        label: '↩ Focar em Mim Mesmo (Desmarcar)',
+        desc: 'Limpa a seleção do cidadão externo para focar as operações em si mesmo.',
+        type: 'action',
+        action: () => {
+          state.selectedPlayer = null;
+          showToast('Alvo redefinido para o seu próprio personagem.');
+          renderCurrentList();
+        }
       });
     }
 
-    renderPlayersTable();
+    items.push(
+      {
+        label: 'Conceder $100 Dólares',
+        desc: `Adiciona $100 na posse de ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 100, targetId, targetName });
+          showToast(`Concedido $100 para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder $500 Dólares',
+        desc: `Adiciona $500 na posse de ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 500, targetId, targetName });
+          showToast(`Concedido $500 para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder $1,000 Dólares',
+        desc: `Adiciona $1,000 na posse de ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 1000, targetId, targetName });
+          showToast(`Concedido $1,000 para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder $5,000 Dólares',
+        desc: `Adiciona $5,000 na posse de ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 5000, targetId, targetName });
+          showToast(`Concedido $5,000 para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder $10,000 Dólares',
+        desc: `Adiciona $10,000 na posse de ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount: 10000, targetId, targetName });
+          showToast(`Concedido $10,000 para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder 1 Barra de Ouro',
+        desc: `Adiciona 1 barra de ouro a ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 1, amount: 1, targetId, targetName });
+          showToast(`Concedido 1 ouro para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder 5 Barras de Ouro',
+        desc: `Adiciona 5 barras de ouro a ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 1, amount: 5, targetId, targetName });
+          showToast(`Concedido 5 ouro para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder 10 Barras de Ouro',
+        desc: `Adiciona 10 barras de ouro a ${targetDisplay}.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveCurrency', currencyType: 1, amount: 10, targetId, targetName });
+          showToast(`Concedido 10 ouro para ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder Revólver Cattleman',
+        desc: `Arma clássica de tambor padrão da fronteira.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveWeapon', weapon: 'WEAPON_REVOLVER_CATTLEMAN', targetId, targetName });
+          showToast(`Revólver Cattleman concedido a ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder Rifle Lancaster Repeater',
+        desc: `Rifle de repetição de alta precisão e cadência.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveWeapon', weapon: 'WEAPON_REPEATER_LANCASTER', targetId, targetName });
+          showToast(`Lancaster Repeater concedido a ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Conceder Shotgun Pump-Action',
+        desc: `Escopeta de ação por bombeamento de alto impacto.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveWeapon', weapon: 'WEAPON_SHOTGUN_PUMP', targetId, targetName });
+          showToast(`Shotgun Pump concedida a ${targetDisplay}.`);
+        }
+      },
+      {
+        label: 'Invocar Montaria de Trabalho',
+        desc: `Faz surgir um cavalo forte para trabalho de campo.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveMount', mountType: 'horse', model: 'A_C_Horse_AmericanPaint_Overo', targetId, targetName });
+          showToast(`Cavalo convocado.`);
+        }
+      },
+      {
+        label: 'Invocar Carroça de Suprimentos',
+        desc: `Faz surgir uma carroça de carga média nas proximidades.`,
+        type: 'action',
+        action: () => {
+          postNui('databaseAction', { type: 'giveMount', mountType: 'wagon', model: 'cart01', targetId, targetName });
+          showToast(`Carroça gerada.`);
+        }
+      },
+      {
+        label: 'Confiscar Todo o Inventário',
+        desc: `Apreende todos os itens e armas da posse de ${targetDisplay}.`,
+        type: 'danger',
+        action: () => {
+          postNui('databaseAction', { type: 'clearInventory', targetId, targetName });
+          showToast(`Inventário de ${targetDisplay} confiscado.`);
+        }
+      },
+      {
+        label: 'Zerar Carteira de Dólares',
+        desc: `Recolhe todos os dólares na posse de ${targetDisplay}.`,
+        type: 'danger',
+        action: () => {
+          postNui('databaseAction', { type: 'clearCurrency', currencyType: '0', targetId, targetName });
+          showToast(`Dólares de ${targetDisplay} zerados.`);
+        }
+      },
+      {
+        label: 'Zerar Pepitas de Ouro',
+        desc: `Recolhe todo o ouro armazenado por ${targetDisplay}.`,
+        type: 'danger',
+        action: () => {
+          postNui('databaseAction', { type: 'clearCurrency', currencyType: '1', targetId, targetName });
+          showToast(`Ouro de ${targetDisplay} zerado.`);
+        }
+      }
+    );
+
+    return items;
   }
 
-  function renderPlayersTable() {
-    el.playersTableBody.innerHTML = '';
-    el.playersCountText.textContent = `Cidadãos em Registro: ${state.filteredPlayers.length} / ${state.players.length}`;
+  function getOficinaItems() {
+    return [
+      {
+        label: 'Copiar Coordenadas [Vector3]',
+        desc: 'Copia X, Y, Z da posição atual para a área de transferência.',
+        type: 'action',
+        action: () => postNui('devtoolsAction', { type: 'copyVector3' })
+      },
+      {
+        label: 'Copiar Coordenadas + Direção [Vector4]',
+        desc: 'Copia X, Y, Z e Ângulo (Heading) no formato vector4.',
+        type: 'action',
+        action: () => postNui('devtoolsAction', { type: 'copyVector4' })
+      },
+      {
+        label: 'Copiar Apenas Heading (Ângulo)',
+        desc: 'Copia o ângulo de visão atual do operador.',
+        type: 'action',
+        action: () => postNui('devtoolsAction', { type: 'copyHeading' })
+      },
+      {
+        label: 'Inspecionar ID do Interior Atual',
+        desc: 'Identifica o código hash do interior ou imóvel atual.',
+        type: 'action',
+        action: () => postNui('devtoolsAction', { type: 'interiorId' })
+      },
+      {
+        label: 'Mira Laser Dev',
+        desc: 'Linha de raio laser para inspecionar entidades no cenário.',
+        type: 'toggle',
+        key: 'devlaser',
+        action: () => {
+          state.boosters.devlaser = !state.boosters.devlaser;
+          postNui('devtoolsAction', { type: 'laser' });
+          renderCurrentList();
+        }
+      },
+      {
+        label: 'Invocar Ped: Fazendeiro de Valentine',
+        desc: 'Gera um NPC civil fazendeiro (A_M_M_ValFarmer_01).',
+        type: 'action',
+        action: () => {
+          postNui('devtoolsAction', { type: 'spawnPed', model: 'A_M_M_ValFarmer_01' });
+          showToast('Fazendeiro invocado.');
+        }
+      },
+      {
+        label: 'Invocar Ped: Xerife Local',
+        desc: 'Gera a autoridade da cidade (CS_ValSheriff).',
+        type: 'action',
+        action: () => {
+          postNui('devtoolsAction', { type: 'spawnPed', model: 'CS_ValSheriff' });
+          showToast('Xerife convocado.');
+        }
+      },
+      {
+        label: 'Invocar Ped: Fora da Lei (Bandito)',
+        desc: 'Gera um pistoleiro foragido (G_M_M_UniBanditos_01).',
+        type: 'action',
+        action: () => {
+          postNui('devtoolsAction', { type: 'spawnPed', model: 'G_M_M_UniBanditos_01' });
+          showToast('Bandito gerado.');
+        }
+      }
+    ];
+  }
 
-    if (state.filteredPlayers.length === 0) {
-      const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px; font-style: italic;">Nenhum registro encontrado para a busca especificada.</td>`;
-      el.playersTableBody.appendChild(row);
-      return;
+  // --- Recuperação dos Itens da Camada Ativa ---
+  function getCurrentItems() {
+    if (state.navigationStack.length > 0) {
+      const currentSub = state.navigationStack[state.navigationStack.length - 1];
+      return currentSub.items;
     }
 
-    state.filteredPlayers.forEach(p => {
-      if (!p) return;
-      const tr = document.createElement('tr');
-      if (state.selectedPlayer && state.selectedPlayer.serverId === p.serverId) {
-        tr.classList.add('selected');
-      }
-
-      const wlVal = p.WLstatus;
-      const isVerified = (wlVal === 'true' || wlVal === '1' || wlVal === true);
-      const wlClass = isVerified ? 'stamp-verified' : 'stamp-wanted';
-      const wlText = isVerified ? 'VERIFICADO' : 'PENDENTE';
-
-      tr.innerHTML = `
-        <td style="font-weight: 700;">#${p.serverId ?? 'N/A'}</td>
-        <td><strong>${escapeHtml(p.PlayerName || 'Desconhecido')}</strong></td>
-        <td style="color: var(--text-muted);">${escapeHtml(p.name || '')}</td>
-        <td>${escapeHtml(p.Job || 'Desempregado')} <span style="font-size: 10px; color: var(--text-muted);">(${p.Grade ?? 0})</span></td>
-        <td>$ ${(Number(p.Money || 0)).toFixed(2)} / <span style="color: var(--accent-gold); font-weight: 600;">${(Number(p.Gold || 0)).toFixed(2)}g</span></td>
-        <td><span class="stamp ${wlClass}">${wlText}</span></td>
-      `;
-
-      tr.addEventListener('click', () => selectPlayer(p));
-      el.playersTableBody.appendChild(tr);
-    });
+    const currentTab = TABS[state.activeTabIndex];
+    switch (currentTab.id) {
+      case 'utilitarios':
+        return getUtilitariosItems();
+      case 'cidadaos':
+        return getCidadaosItems();
+      case 'teleporte':
+        return getTeleporteItems();
+      case 'patrimonio':
+        return getPatrimonioItems();
+      case 'oficina':
+        return getOficinaItems();
+      default:
+        return [];
+    }
   }
 
-  // Live Search com Debounce de 120ms
-  el.searchInput.addEventListener('input', (e) => {
-    state.searchQuery = e.target.value;
-    clearTimeout(state.searchDebounceTimer);
-    state.searchDebounceTimer = setTimeout(() => {
-      applySearchFilter();
-    }, 120);
-  });
-
-  // --- Seleção de Cidadão e Atualização do Dossiê ---
-  function selectPlayer(player) {
-    if (!player) return;
+  // --- Submenus (Hierarquia / Pilha de Navegação) ---
+  function openPlayerSubmenu(player) {
+    playUiTick('confirm');
     state.selectedPlayer = player;
-    
-    // Atualiza destaque na tabela
-    const rows = el.playersTableBody.querySelectorAll('tr');
-    rows.forEach(r => r.classList.remove('selected'));
-    const selectedRow = Array.from(rows).find(r => r.querySelector('td') && r.querySelector('td').textContent === `#${player.serverId}`);
-    if (selectedRow) selectedRow.classList.add('selected');
+    const items = getPlayerSubmenuItems(player);
 
-    // Popula o Dossiê Lateral
-    el.dossierEmptyHint.style.display = 'none';
-    el.dossierMetaSection.style.display = 'grid';
-    el.dossierActionsContainer.style.display = 'block';
+    state.navigationStack.push({
+      title: `#${player.serverId} - ${player.PlayerName || 'Cidadão'}`,
+      previousIndex: state.selectedIndex,
+      items
+    });
 
-    el.dossierName.textContent = player.PlayerName || 'Cidadão';
-    el.dossierSubinfo.textContent = `Conta Steam: ${player.name || 'N/A'} | Ocupação: ${player.Job || 'N/A'}`;
-
-    el.metaServerId.textContent = `#${player.serverId ?? 'N/A'}`;
-    el.metaStaticId.textContent = player.staticID || 'N/A';
-    el.metaGroup.textContent = player.Group || 'user';
-    el.metaWhitelist.textContent = (player.WLstatus === 'true' || player.WLstatus === '1' || player.WLstatus === true) ? 'Sim' : 'Não';
-    el.metaMoney.textContent = `$ ${(Number(player.Money || 0)).toFixed(2)}`;
-    el.metaGold.textContent = `${(Number(player.Gold || 0)).toFixed(2)} Ouro`;
-
-    // Atualiza alvo na aba Tesouro
-    el.treasuryTargetName.textContent = `${player.PlayerName} (ID: ${player.serverId})`;
+    state.selectedIndex = 0;
+    renderCurrentList();
   }
 
-  // --- Helper de Ações por Jogador ---
-  function dispatchPlayerAction(type, extra = {}) {
-    if (!state.selectedPlayer) {
-      showToast('Selecione um cidadão no registro primeiro!', true);
+  function popSubmenu() {
+    if (state.navigationStack.length > 0) {
+      playUiTick('back');
+      const popped = state.navigationStack.pop();
+      state.selectedIndex = popped.previousIndex || 0;
+      renderCurrentList();
+      return true;
+    }
+    return false;
+  }
+
+  // --- Renderização da Lista no Viewport ---
+  function renderCurrentList() {
+    const items = getCurrentItems();
+    el.viewport.innerHTML = '';
+
+    // Atualiza cabeçalho de abas ou breadcrumb
+    if (state.navigationStack.length > 0) {
+      const currentSub = state.navigationStack[state.navigationStack.length - 1];
+      el.breadcrumb.style.display = 'flex';
+      el.breadcrumbTitle.textContent = currentSub.title;
+      el.tabIndexBadge.textContent = 'SUBMENU';
+      el.currentTabName.textContent = 'AÇÕES';
+      el.btnTabPrev.style.visibility = 'hidden';
+      el.btnTabNext.style.visibility = 'hidden';
+    } else {
+      el.breadcrumb.style.display = 'none';
+      const curTab = TABS[state.activeTabIndex];
+      el.tabIndexBadge.textContent = `ABA ${state.activeTabIndex + 1} / ${TABS.length}`;
+      el.currentTabName.textContent = curTab.name;
+      el.btnTabPrev.style.visibility = 'visible';
+      el.btnTabNext.style.visibility = 'visible';
+    }
+
+    if (!items || items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'dock-empty-msg';
+      empty.textContent = 'Nenhum item disponível neste registro.';
+      el.viewport.appendChild(empty);
+      el.itemCounter.textContent = '0 / 0';
+      el.infoText.textContent = '';
       return;
     }
 
-    const payload = {
-      actionType: type,
-      targetId: state.selectedPlayer.serverId,
-      targetName: state.selectedPlayer.PlayerName,
-      steam: state.selectedPlayer.SteamId,
-      staticId: state.selectedPlayer.staticID,
-      ...extra
-    };
+    // Garante que selectedIndex esteja dentro dos limites
+    if (state.selectedIndex >= items.length) {
+      state.selectedIndex = items.length - 1;
+    }
+    if (state.selectedIndex < 0) {
+      state.selectedIndex = 0;
+    }
 
-    postNui('triggerAction', payload);
-    showToast(`Ordem enviada: ${type.toUpperCase()} para ${state.selectedPlayer.PlayerName}`);
+    items.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'dock-item';
+      if (item.type === 'danger') row.classList.add('danger');
+      if (idx === state.selectedIndex) row.classList.add('selected');
+
+      const mainCol = document.createElement('div');
+      mainCol.className = 'dock-item-main';
+
+      const label = document.createElement('span');
+      label.className = 'dock-item-label';
+      label.textContent = item.label;
+      mainCol.appendChild(label);
+
+      if (item.sublabel) {
+        const sub = document.createElement('span');
+        sub.className = 'dock-item-sublabel';
+        sub.textContent = item.sublabel;
+        mainCol.appendChild(sub);
+      }
+
+      row.appendChild(mainCol);
+
+      const rightCol = document.createElement('div');
+      rightCol.className = 'dock-item-right';
+
+      if (item.type === 'toggle') {
+        const isOn = Boolean(state.boosters[item.key]);
+        const pill = document.createElement('span');
+        pill.className = isOn ? 'status-pill on' : 'status-pill off';
+        pill.textContent = isOn ? 'LIGADO' : 'DESLIGADO';
+        rightCol.appendChild(pill);
+      } else if (item.type === 'submenu') {
+        if (item.badge) {
+          const badge = document.createElement('span');
+          badge.className = `status-pill ${item.badgeClass || ''}`;
+          badge.textContent = item.badge;
+          rightCol.appendChild(badge);
+        }
+        const arrow = document.createElement('span');
+        arrow.className = 'submenu-arrow';
+        arrow.textContent = '▸';
+        rightCol.appendChild(arrow);
+      } else if (item.type === 'danger') {
+        const pill = document.createElement('span');
+        pill.className = 'status-pill off';
+        pill.style.color = '#ff8888';
+        pill.textContent = 'EXECUTAR';
+        rightCol.appendChild(pill);
+      } else if (item.type === 'action') {
+        const pill = document.createElement('span');
+        pill.className = 'status-pill action';
+        pill.textContent = '↵';
+        rightCol.appendChild(pill);
+      }
+
+      row.appendChild(rightCol);
+
+      // Clique com mouse também permite selecionar e acionar
+      row.addEventListener('click', () => {
+        state.selectedIndex = idx;
+        updateSelectionHighlight();
+        executeCurrentItem();
+      });
+
+      el.viewport.appendChild(row);
+    });
+
+    updateSelectionHighlight();
   }
 
-  // Ações de Patrulha
-  el.actGoto.addEventListener('click', () => dispatchPlayerAction('goto'));
-  el.actBring.addEventListener('click', () => dispatchPlayerAction('bring'));
-  el.actHeal.addEventListener('click', () => dispatchPlayerAction('heal'));
-  el.actRevive.addEventListener('click', () => dispatchPlayerAction('revive'));
-  el.actFreeze.addEventListener('click', () => dispatchPlayerAction('freeze'));
-  el.actSpectate.addEventListener('click', () => dispatchPlayerAction('spectate'));
-  el.actSendback.addEventListener('click', () => dispatchPlayerAction('sendback'));
-  el.actRespawn.addEventListener('click', () => dispatchPlayerAction('respawn'));
+  // --- Atualização de Destaque Sem Re-renderizar o DOM Inteiro ---
+  function updateSelectionHighlight() {
+    const items = getCurrentItems();
+    const rows = el.viewport.querySelectorAll('.dock-item');
 
-  // Sanções com Modal
-  el.actKick.addEventListener('click', () => {
-    if (!state.selectedPlayer) return;
-    openPromptModal({
-      title: `Expulsar ${state.selectedPlayer.PlayerName}`,
-      bodyHtml: `
-        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:700;">Motivo da Expulsão</label>
-        <input type="text" id="modal-kick-reason" class="form-input" placeholder="ex: Violação de conduta territorial">
-      `,
-      confirmText: 'Executar Expulsão',
-      danger: true,
-      onConfirm: () => {
-        const reason = document.getElementById('modal-kick-reason')?.value || 'Expulso pela Administração';
-        dispatchPlayerAction('kick', { reason });
-      }
+    rows.forEach((row, idx) => {
+      row.classList.toggle('selected', idx === state.selectedIndex);
     });
-  });
 
-  el.actBan.addEventListener('click', () => {
-    if (!state.selectedPlayer) return;
-    openPromptModal({
-      title: `Mandado de Prisão (Ban) - ${state.selectedPlayer.PlayerName}`,
-      bodyHtml: `
-        <div style="margin-bottom: 8px;">
-          <label style="display:block; font-size:11px; margin-bottom:4px; font-weight:700;">Duração em Horas (0 = Permanente)</label>
-          <input type="number" id="modal-ban-time" class="form-input" value="24" min="0">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; margin-bottom:4px; font-weight:700;">Motivo da Condenação</label>
-          <input type="text" id="modal-ban-reason" class="form-input" placeholder="ex: Quebra severa das leis de fronteira">
-        </div>
-      `,
-      confirmText: 'Emitir Mandado',
-      danger: true,
-      onConfirm: () => {
-        const time = Number(document.getElementById('modal-ban-time')?.value || 0);
-        const reason = document.getElementById('modal-ban-reason')?.value || 'Banido pela Administração';
-        dispatchPlayerAction('ban', { time, reason });
+    if (items.length > 0 && state.selectedIndex < items.length) {
+      const cur = items[state.selectedIndex];
+      el.itemCounter.textContent = `${state.selectedIndex + 1} / ${items.length}`;
+      el.infoText.textContent = cur.desc || cur.label || '';
+
+      const selectedEl = rows[state.selectedIndex];
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
-    });
-  });
-
-  el.actSetjob.addEventListener('click', () => {
-    if (!state.selectedPlayer) return;
-    openPromptModal({
-      title: `Nomeação de Cargo - ${state.selectedPlayer.PlayerName}`,
-      bodyHtml: `
-        <div style="margin-bottom: 8px;">
-          <label style="display:block; font-size:11px; margin-bottom:4px; font-weight:700;">Código do Emprego (Job)</label>
-          <input type="text" id="modal-job-name" class="form-input" placeholder="ex: police, doctor">
-        </div>
-        <div style="margin-bottom: 8px;">
-          <label style="display:block; font-size:11px; margin-bottom:4px; font-weight:700;">Grau Numérico (Grade)</label>
-          <input type="number" id="modal-job-grade" class="form-input" value="0" min="0">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; margin-bottom:4px; font-weight:700;">Rótulo Exibido (Job Label)</label>
-          <input type="text" id="modal-job-label" class="form-input" placeholder="ex: Xerife, Médico">
-        </div>
-      `,
-      confirmText: 'Confirmar Nomeação',
-      onConfirm: () => {
-        const job = document.getElementById('modal-job-name')?.value || 'unemployed';
-        const grade = Number(document.getElementById('modal-job-grade')?.value || 0);
-        const jobLabel = document.getElementById('modal-job-label')?.value || job;
-        dispatchPlayerAction('setJob', { job, grade, jobLabel });
-      }
-    });
-  });
-
-  el.actSetgroup.addEventListener('click', () => {
-    if (!state.selectedPlayer) return;
-    openPromptModal({
-      title: `Alterar Grupo Administrativo - ${state.selectedPlayer.PlayerName}`,
-      bodyHtml: `
-        <label style="display:block; font-size:11px; margin-bottom:4px; font-weight:700;">Nome do Grupo</label>
-        <input type="text" id="modal-group-name" class="form-input" placeholder="ex: admin, moderator, user">
-      `,
-      confirmText: 'Atribuir Grupo',
-      onConfirm: () => {
-        const group = document.getElementById('modal-group-name')?.value || 'user';
-        dispatchPlayerAction('setGroup', { group });
-      }
-    });
-  });
-
-  el.actToggleWl.addEventListener('click', () => {
-    dispatchPlayerAction('whitelist');
-  });
-
-  // Trolls da Fronteira
-  el.actTrollLightning.addEventListener('click', () => dispatchPlayerAction('troll_lightning'));
-  el.actTrollFire.addEventListener('click', () => dispatchPlayerAction('troll_fire'));
-  el.actTrollHeaven.addEventListener('click', () => dispatchPlayerAction('troll_heaven'));
-  el.actTrollHandcuff.addEventListener('click', () => dispatchPlayerAction('troll_handcuff'));
-  el.actTrollRagdoll.addEventListener('click', () => dispatchPlayerAction('troll_ragdoll'));
-  el.actTrollStam.addEventListener('click', () => dispatchPlayerAction('troll_stam'));
-
-  // --- Seção 2: Boosters & Poderes ---
-  function updateBoostersState(boosters = {}) {
-    Object.assign(state.boosters, boosters);
-    renderBoosterSwitch('godmode', el.statusGodmode, el.btnToggleGodmode);
-    renderBoosterSwitch('noclip', el.statusNoclip, el.btnToggleNoclip);
-    renderBoosterSwitch('goldencores', el.statusGoldencores, el.btnToggleGoldencores);
-    renderBoosterSwitch('infiammo', el.statusInfiammo, el.btnToggleInfiammo);
-    renderBoosterSwitch('invis', el.statusInvis, el.btnToggleInvis);
-    renderBoosterSwitch('devlaser', el.statusDevlaser, el.btnToggleDevlaser);
+    } else {
+      el.itemCounter.textContent = '0 / 0';
+      el.infoText.textContent = '';
+    }
   }
 
-  function renderBoosterSwitch(key, badgeEl, btnEl) {
-    if (!badgeEl || !btnEl) return;
-    const isActive = Boolean(state.boosters[key]);
-    badgeEl.textContent = isActive ? 'ATIVADO' : 'INATIVO';
-    badgeEl.className = isActive ? 'stamp stamp-verified' : 'stamp stamp-wanted';
-    btnEl.classList.toggle('active', isActive);
+  // --- Execução da Ação do Item Selecionado ---
+  function executeCurrentItem() {
+    const items = getCurrentItems();
+    if (!items || items.length === 0) return;
+    const item = items[state.selectedIndex];
+    if (!item) return;
+
+    if (typeof item.action === 'function') {
+      playUiTick(item.type === 'submenu' ? 'confirm' : 'confirm');
+      item.action();
+    }
   }
 
-  function toggleBooster(boosterName) {
-    state.boosters[boosterName] = !state.boosters[boosterName];
-    postNui('toggleBooster', { booster: boosterName });
-    updateBoostersState(state.boosters);
+  // --- Alternância de Booster Genérico ---
+  function toggleBoosterAction(boosterKey) {
+    state.boosters[boosterKey] = !state.boosters[boosterKey];
+    postNui('toggleBooster', { booster: boosterKey });
+    renderCurrentList();
   }
 
-  el.btnToggleGodmode.addEventListener('click', () => toggleBooster('godmode'));
-  el.btnToggleNoclip.addEventListener('click', () => toggleBooster('noclip'));
-  el.btnToggleGoldencores.addEventListener('click', () => toggleBooster('goldencores'));
-  el.btnToggleInfiammo.addEventListener('click', () => toggleBooster('infiammo'));
-  el.btnToggleInvis.addEventListener('click', () => toggleBooster('invis'));
-  el.btnSelfHeal.addEventListener('click', () => postNui('toggleBooster', { booster: 'selfheal' }));
-  el.btnSelfRevive.addEventListener('click', () => postNui('toggleBooster', { booster: 'selfrevive' }));
-  el.btnSpawnHorse.addEventListener('click', () => postNui('toggleBooster', { booster: 'spawnhorse' }));
+  // --- Navegação por Teclado (Rockstar Interaction Menu Engine) ---
+  window.addEventListener('keydown', (e) => {
+    if (!state.isOpen) return;
 
-  // --- Seção 3: Tesouro & Cargas ---
-  el.btnGiveMoney.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão no registro primeiro!', true);
-    const amount = Number(el.inputMoneyAmount.value || 0);
-    if (amount <= 0) return showToast('Digite uma quantia válida!', true);
-    postNui('databaseAction', { type: 'giveCurrency', currencyType: 0, amount, targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Concedido $ ${amount.toFixed(2)} para ${state.selectedPlayer.PlayerName}`);
+    const items = getCurrentItems();
+    const itemCount = items.length;
+
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'Up':
+        e.preventDefault();
+        if (itemCount === 0) return;
+        playUiTick('nav');
+        state.selectedIndex = (state.selectedIndex - 1 + itemCount) % itemCount;
+        updateSelectionHighlight();
+        break;
+
+      case 'ArrowDown':
+      case 'Down':
+        e.preventDefault();
+        if (itemCount === 0) return;
+        playUiTick('nav');
+        state.selectedIndex = (state.selectedIndex + 1) % itemCount;
+        updateSelectionHighlight();
+        break;
+
+      case 'ArrowLeft':
+      case 'Left':
+        e.preventDefault();
+        // Apenas troca de aba se estiver no nível raiz (fora de submenus)
+        if (state.navigationStack.length === 0) {
+          playUiTick('nav');
+          state.activeTabIndex = (state.activeTabIndex - 1 + TABS.length) % TABS.length;
+          state.selectedIndex = 0;
+          renderCurrentList();
+        }
+        break;
+
+      case 'ArrowRight':
+      case 'Right':
+        e.preventDefault();
+        if (state.navigationStack.length === 0) {
+          playUiTick('nav');
+          state.activeTabIndex = (state.activeTabIndex + 1) % TABS.length;
+          state.selectedIndex = 0;
+          renderCurrentList();
+        }
+        break;
+
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        executeCurrentItem();
+        break;
+
+      case 'Backspace':
+        e.preventDefault();
+        if (!popSubmenu()) {
+          // Se estiver na raiz, fecha o dock
+          closeDock();
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        closeDock();
+        break;
+
+      default:
+        break;
+    }
   });
 
-  el.btnGiveGold.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão no registro primeiro!', true);
-    const amount = Number(el.inputMoneyAmount.value || 0);
-    if (amount <= 0) return showToast('Digite uma quantia válida!', true);
-    postNui('databaseAction', { type: 'giveCurrency', currencyType: 1, amount, targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Concedido ${amount.toFixed(2)} de ouro para ${state.selectedPlayer.PlayerName}`);
+  // --- Cliques nas Setas da Aba ---
+  el.btnTabPrev.addEventListener('click', () => {
+    if (state.navigationStack.length === 0) {
+      playUiTick('nav');
+      state.activeTabIndex = (state.activeTabIndex - 1 + TABS.length) % TABS.length;
+      state.selectedIndex = 0;
+      renderCurrentList();
+    }
   });
 
-  el.btnGiveItem.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão no registro primeiro!', true);
-    const item = el.inputItemName.value.trim();
-    const qty = Number(el.inputItemQty.value || 1);
-    if (!item) return showToast('Digite o código do item!', true);
-    postNui('databaseAction', { type: 'giveItem', item, qty, targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Item ${item} (${qty}x) concedido a ${state.selectedPlayer.PlayerName}`);
+  el.btnTabNext.addEventListener('click', () => {
+    if (state.navigationStack.length === 0) {
+      playUiTick('nav');
+      state.activeTabIndex = (state.activeTabIndex + 1) % TABS.length;
+      state.selectedIndex = 0;
+      renderCurrentList();
+    }
   });
 
-  el.btnGiveWeapon.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão no registro primeiro!', true);
-    const weapon = el.inputWeaponHash.value.trim();
-    if (!weapon) return showToast('Digite o código da arma!', true);
-    postNui('databaseAction', { type: 'giveWeapon', weapon, targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Arma ${weapon} concedida a ${state.selectedPlayer.PlayerName}`);
-  });
+  // --- Abertura e Fechamento do Dock ---
+  function openDock(data = {}) {
+    state.isOpen = true;
+    el.app.style.display = 'flex';
 
-  el.btnGiveHorse.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão no registro primeiro!', true);
-    const model = el.inputMountModel.value.trim();
-    if (!model) return showToast('Digite o modelo do cavalo!', true);
-    postNui('databaseAction', { type: 'giveMount', mountType: 'horse', model, targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Montaria ${model} cadastrada no estábulo de ${state.selectedPlayer.PlayerName}`);
-  });
+    if (data.myServerId) state.myServerId = data.myServerId;
+    if (data.myPlayerName) state.myPlayerName = data.myPlayerName;
 
-  el.btnGiveWagon.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão no registro primeiro!', true);
-    const model = el.inputMountModel.value.trim();
-    if (!model) return showToast('Digite o modelo da carroça!', true);
-    postNui('databaseAction', { type: 'giveMount', mountType: 'wagon', model, targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Carroça ${model} cadastrada para ${state.selectedPlayer.PlayerName}`);
-  });
+    if (data.staffRole) {
+      state.staffRole = data.staffRole;
+      if (el.staffRole) {
+        el.staffRole.textContent = `COMANDO: ${String(data.staffRole).toUpperCase()}`;
+      }
+    }
 
-  el.btnClearInventory.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão primeiro!', true);
-    postNui('databaseAction', { type: 'clearInventory', targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Bolsa de ${state.selectedPlayer.PlayerName} esvaziada!`, true);
-  });
+    if (data.boosters) {
+      Object.assign(state.boosters, data.boosters);
+    }
 
-  el.btnClearMoney.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão primeiro!', true);
-    postNui('databaseAction', { type: 'clearCurrency', currencyType: 'money', targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Dinheiro de ${state.selectedPlayer.PlayerName} zerado!`, true);
-  });
+    if (data.players) {
+      updatePlayersData(data.players);
+    }
 
-  el.btnClearGold.addEventListener('click', () => {
-    if (!state.selectedPlayer) return showToast('Selecione um cidadão primeiro!', true);
-    postNui('databaseAction', { type: 'clearCurrency', currencyType: 'gold', targetId: state.selectedPlayer.serverId, targetName: state.selectedPlayer.PlayerName });
-    showToast(`Ouro de ${state.selectedPlayer.PlayerName} zerado!`, true);
-  });
+    renderCurrentList();
+  }
 
-  // --- Seção 4: Rotas & Expedições ---
-  el.btnTpMarker.addEventListener('click', () => {
-    postNui('teleportAction', { type: 'tpm' });
-  });
+  function closeDock() {
+    playUiTick('back');
+    state.isOpen = false;
+    el.app.style.display = 'none';
+    state.navigationStack = [];
+    postNui('closeMenu');
+  }
 
-  el.btnToggleAutotpm.addEventListener('click', () => {
-    state.boosters.autotpm = !state.boosters.autotpm;
-    el.btnToggleAutotpm.textContent = state.boosters.autotpm ? 'Desligar Auto-TPM' : 'Ligar Auto-TPM';
-    el.btnToggleAutotpm.classList.toggle('active', state.boosters.autotpm);
-    postNui('teleportAction', { type: 'autotpm' });
-  });
+  function updatePlayersData(playersList) {
+    const raw = Array.isArray(playersList) ? playersList : Object.values(playersList || {});
+    state.players = raw.filter(p => p && typeof p === 'object' && p.serverId != null);
 
-  el.btnAdminGoback.addEventListener('click', () => {
-    postNui('teleportAction', { type: 'goback' });
-  });
+    // Se estivermos vendo cidadãos, re-renderiza a lista
+    if (TABS[state.activeTabIndex].id === 'cidadaos' && state.navigationStack.length === 0) {
+      renderCurrentList();
+    }
+  }
 
-  el.btnTpGuarma.addEventListener('click', () => {
-    postNui('teleportAction', { type: 'guarma' });
-  });
-
-  el.btnTpCustomCoords.addEventListener('click', () => {
-    const coords = el.inputCustomCoords.value.trim();
-    if (!coords) return showToast('Insira coordenadas válidas!', true);
-    postNui('teleportAction', { type: 'customCoords', coords });
-  });
-
-  el.btnSendAnnounce.addEventListener('click', () => {
-    const message = el.inputAnnounceText.value.trim();
-    if (!message) return showToast('Insira o texto do comunicado!', true);
-    postNui('teleportAction', { type: 'announce', message });
-    el.inputAnnounceText.value = '';
-    showToast('Telegrama Oficial transmitido ao condado!');
-  });
-
-  // --- Seção 5: DevTools & Medição ---
-  el.btnCopyVector3.addEventListener('click', () => postNui('devtoolsAction', { type: 'copyVector3' }));
-  el.btnCopyVector4.addEventListener('click', () => postNui('devtoolsAction', { type: 'copyVector4' }));
-  el.btnCopyHeading.addEventListener('click', () => postNui('devtoolsAction', { type: 'copyHeading' }));
-  el.btnGetInterior.addEventListener('click', () => postNui('devtoolsAction', { type: 'interiorId' }));
-
-  el.btnToggleDevlaser.addEventListener('click', () => {
-    toggleBooster('devlaser');
-  });
-
-  el.btnSpawnPed.addEventListener('click', () => {
-    const model = el.inputSpawnPedName.value.trim();
-    if (!model) return showToast('Insira o código do Ped!', true);
-    postNui('devtoolsAction', { type: 'spawnPed', model });
-  });
-
-  // --- Listener Principal de Mensagens do CitizenFX ---
+  // --- Listener Principal do CitizenFX (NUI Message) ---
   window.addEventListener('message', (event) => {
     const data = event.data;
     if (!data) return;
 
-    // Compatibilidade com clipboard legado
     if (data.string !== undefined) {
       copyToClipboard(data.string);
       return;
@@ -680,16 +1162,21 @@
 
     switch (data.action) {
       case 'open':
-        openApp(data);
+      case 'openDock':
+        openDock(data);
         break;
       case 'close':
-        closeApp();
+      case 'closeDock':
+        closeDock();
         break;
       case 'updatePlayers':
         updatePlayersData(data.players);
         break;
       case 'updateBoosters':
-        updateBoostersState(data.boosters);
+        if (data.boosters) {
+          Object.assign(state.boosters, data.boosters);
+          renderCurrentList();
+        }
         break;
       case 'toast':
         showToast(data.message, data.isAlert);
@@ -698,15 +1185,5 @@
         break;
     }
   });
-
-  // Helper simples para escapar strings HTML
-  function escapeHtml(string) {
-    return String(string)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
 
 })();

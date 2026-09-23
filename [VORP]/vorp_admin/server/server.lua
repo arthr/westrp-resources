@@ -909,6 +909,10 @@ RegisterNetEvent('vorp_admin:ServerTrollTPToHeavenHandler', function(playerserve
     TriggerClientEvent('vorp_admin:ClientTrollTPToHeavenHandler', playerserverid)
 end)
 
+RegisterNetEvent('vorp_admin:ServerTrollTpToHeavenHandler', function(playerserverid)
+    TriggerEvent('vorp_admin:ServerTrollTPToHeavenHandler', playerserverid)
+end)
+
 RegisterNetEvent('vorp_admin:ServerTrollRagdollPlayerHandler', function(playerserverid)
     local _source = source
     if not AllowedToExecuteAction(_source, "troll_ragdoll_player") then
@@ -925,12 +929,20 @@ RegisterNetEvent('vorp_admin:ServerDrainPlayerStamHandler', function(playerserve
     TriggerClientEvent('vorp_admin:ClientDrainPlayerStamHandler', playerserverid)
 end)
 
+RegisterNetEvent('vorp_admin:ServerTrollDrainPlayerStamHandler', function(playerserverid)
+    TriggerEvent('vorp_admin:ServerDrainPlayerStamHandler', playerserverid)
+end)
+
 RegisterNetEvent('vorp_admin:ServerHandcuffPlayerHandler', function(playerserverid)
     local _source = source
     if not AllowedToExecuteAction(_source, "troll_handcuff_player") then
         return Core.NotifyRightTip(_source, "you are not allowed to use this command", 8000)
     end
     TriggerClientEvent('vorp_admin:ClientHandcuffPlayerHandler', playerserverid)
+end)
+
+RegisterNetEvent('vorp_admin:ServerTrollHandcuffPlayerHandler', function(playerserverid)
+    TriggerEvent('vorp_admin:ServerHandcuffPlayerHandler', playerserverid)
 end)
 
 RegisterNetEvent('vorp_admin:ServerTempHighPlayerHandler', function(playerserverid)

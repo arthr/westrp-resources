@@ -3,449 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Administração Territorial</title>
+  <title>HUD Dock de Comando Territorial - VORP Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Painel Central Translúcido Desfocado (Glassmorphism Minimalista) -->
-  <div id="admin-newspaper-app" class="admin-container">
+  <!-- ============================================================
+       CONTAINER HUD DOCK LATERAL (ROCKSTAR NATIVE INTERACTION MENU)
+       ============================================================ -->
+  <div id="admin-dock" class="admin-dock-container" style="display: none;">
 
-    <!-- Cabeçalho -->
-    <header class="header-bar">
-      <div class="header-title">
-        REGISTRO DE ADMINISTRAÇÃO TERRITORIAL <span class="header-sub">- VORP CORE</span>
+    <!-- Cabeçalho de Identificação & Contador -->
+    <header class="dock-header">
+      <div class="dock-header-brand">
+        <span class="dock-category-tag" id="dock-staff-role">FRONTIER ADMINISTRATION</span>
+        <h2 class="dock-title">REGISTRO DE COMANDO</h2>
       </div>
-      <div class="header-meta">
-        <span class="staff-tag" id="header-staff-tag">MARECHAL: AUTENTICANDO</span>
-        <button class="close-btn" id="btn-close-gazette" title="Fechar painel (ESC)">
-          FECHAR [ESC]
-        </button>
-      </div>
+      <div class="dock-counter-pill" id="dock-item-counter">1 / 1</div>
     </header>
 
-    <!-- Abas Minimalistas -->
-    <nav class="tabs-nav">
-      <button class="tab-btn nav-tab-btn active" data-tab="tab-players">CIDADÃOS</button>
-      <button class="tab-btn nav-tab-btn" data-tab="tab-boosters">UTILITÁRIOS</button>
-      <button class="tab-btn nav-tab-btn" data-tab="tab-treasury">PATRIMÔNIO</button>
-      <button class="tab-btn nav-tab-btn" data-tab="tab-teleports">TELEPORTE</button>
-      <button class="tab-btn nav-tab-btn" data-tab="tab-devtools">OFICINA DE CAMPO</button>
-    </nav>
-
-    <!-- Conteúdo Principal -->
-    <main class="admin-content">
-
-      <!-- ============================================================
-           ABA 1: CIDADÃOS (PLAYERS)
-           ============================================================ -->
-      <section id="tab-players" class="tab-pane active">
-        <div class="players-layout">
-          
-          <!-- Tabela de Cidadãos -->
-          <div class="players-table-wrapper content-section">
-            <div class="search-toolbar">
-              <div class="search-box">
-                <span class="search-label">BUSCAR:</span>
-                <input type="text" id="player-search-input" placeholder="ID, Nome RP, Conta Steam ou Ocupação..." autofocus>
-              </div>
-              <div class="players-count-badge" id="players-count-text">
-                Cidadãos em Registro: 0
-              </div>
-            </div>
-
-            <div class="table-scroll">
-              <table class="ledger-table">
-                <thead>
-                  <tr>
-                    <th style="width: 60px;">ID</th>
-                    <th>Cidadão (RP)</th>
-                    <th>Conta Steam</th>
-                    <th>Ocupação</th>
-                    <th>Patrimônio ($ / Ouro)</th>
-                    <th style="width: 120px;">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="players-table-body">
-                  <!-- Linhas injetadas dinamicamente via JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Dossiê Lateral -->
-          <aside class="player-dossier content-section" id="player-dossier-panel">
-            <div class="dossier-header">
-              <h3 id="dossier-name">Selecione um Cidadão</h3>
-              <div class="dossier-sub" id="dossier-subinfo">Clique em uma linha da tabela para visualizar o dossiê</div>
-            </div>
-
-            <div class="dossier-meta-grid" id="dossier-meta-section" style="display: none;">
-              <div class="meta-item">
-                <span class="meta-lbl">ID Servidor</span>
-                <span class="meta-val" id="meta-server-id">-</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-lbl">ID Estático</span>
-                <span class="meta-val" id="meta-static-id">-</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-lbl">Grupo</span>
-                <span class="meta-val" id="meta-group">-</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-lbl">Whitelist</span>
-                <span class="meta-val" id="meta-whitelist">-</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-lbl">Dinheiro</span>
-                <span class="meta-val gold-text" id="meta-money">$ 0.00</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-lbl">Ouro</span>
-                <span class="meta-val gold-text" id="meta-gold">0.00</span>
-              </div>
-            </div>
-
-            <div id="dossier-actions-container" style="display: none;">
-              <div class="dossier-group-title">Ações de Patrulha</div>
-              <div class="action-buttons-grid">
-                <button class="btn-action action-btn" id="act-goto">Ir Até (Goto)</button>
-                <button class="btn-action action-btn" id="act-bring">Trazer (Bring)</button>
-                <button class="btn-action action-btn" id="act-heal">Curar (Heal)</button>
-                <button class="btn-action action-btn" id="act-revive">Reviver</button>
-                <button class="btn-action action-btn" id="act-freeze">Congelar</button>
-                <button class="btn-action action-btn" id="act-spectate">Espectar</button>
-                <button class="btn-action action-btn" id="act-sendback">Devolver Origem</button>
-                <button class="btn-action action-btn" id="act-respawn">Forçar Respawn</button>
-              </div>
-
-              <div class="dossier-group-title">Sanções Administrativas</div>
-              <div class="action-buttons-grid">
-                <button class="btn-action btn-danger action-btn danger" id="act-kick">Expulsar (Kick)</button>
-                <button class="btn-action btn-danger action-btn danger" id="act-ban">Banir (Ban)</button>
-                <button class="btn-action action-btn" id="act-setjob">Alterar Cargo</button>
-                <button class="btn-action action-btn" id="act-setgroup">Alterar Grupo</button>
-                <button class="btn-action action-btn full-width" id="act-toggle-wl">Alternar Whitelist</button>
-              </div>
-
-              <div class="dossier-group-title">Punições Disciplinares</div>
-              <div class="action-buttons-grid">
-                <button class="btn-action action-btn" id="act-troll-lightning">Raio dos Céus</button>
-                <button class="btn-action action-btn" id="act-troll-fire">Incendiar</button>
-                <button class="btn-action action-btn" id="act-troll-heaven">Nuvens (Heaven)</button>
-                <button class="btn-action action-btn" id="act-troll-handcuff">Algemar</button>
-                <button class="btn-action action-btn" id="act-troll-ragdoll">Desmaiar</button>
-                <button class="btn-action action-btn" id="act-troll-stam">Zerar Estamina</button>
-              </div>
-            </div>
-
-            <div id="dossier-empty-hint" class="empty-hint">
-              Nenhum cidadão selecionado.<br>Selecione um registro na lista para gerenciar o jogador.
-            </div>
-          </aside>
-
-        </div>
-      </section>
-
-      <!-- ============================================================
-           ABA 2: UTILITÁRIOS (BOOSTERS)
-           ============================================================ -->
-      <section id="tab-boosters" class="tab-pane">
-        <div class="grid-cards">
-          
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Modo Deus (Invulnerabilidade)</h4>
-              <p>Imunidade a tiros, quedas, fogo, laço e animais selvagens.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp stamp-wanted" id="status-godmode">INATIVO</span>
-              <button class="btn-action toggle-btn" id="btn-toggle-godmode">Alternar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Voo Livre (NoClip)</h4>
-              <p>Locomoção aérea livre com controles de altitude e velocidade reguláveis.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp stamp-wanted" id="status-noclip">INATIVO</span>
-              <button class="btn-action toggle-btn" id="btn-toggle-noclip">Alternar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Núcleos de Ouro (Golden Cores)</h4>
-              <p>Fortifica a vitalidade com núcleos dourados de resistência máxima contínua.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp stamp-gold" id="status-goldencores">INATIVO</span>
-              <button class="btn-action toggle-btn" id="btn-toggle-goldencores">Alternar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Munição Infinita</h4>
-              <p>Disparos contínuos sem esgotar tambores de revólveres ou cartucheiras.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp" id="status-infiammo">INATIVO</span>
-              <button class="btn-action toggle-btn" id="btn-toggle-infiammo">Alternar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Invisibilidade</h4>
-              <p>Desvanece a presença física para fiscalização discreta do cenário.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp" id="status-invis">INATIVO</span>
-              <button class="btn-action toggle-btn" id="btn-toggle-invis">Alternar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Auto-Restauração Completa</h4>
-              <p>Restaura ferimentos, sacia toda a fome e sede, e revigora o fôlego imediatamente.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp stamp-verified">PRONTO</span>
-              <button class="btn-action toggle-btn" id="btn-self-heal">Restaurar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Reanimação Instantânea</h4>
-              <p>Levanta o operador caso tenha caído em combate ou sofrido infortúnio fatal.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp stamp-verified">PRONTO</span>
-              <button class="btn-action toggle-btn" id="btn-self-revive">Reviver</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Invocar Montaria de Campo</h4>
-              <p>Chama um cavalo de sela para transporte imediato pelas redondezas.</p>
-            </div>
-            <div class="card-action">
-              <span class="stamp">MONTARIA</span>
-              <button class="btn-action toggle-btn" id="btn-spawn-horse">Invocar</button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ============================================================
-           ABA 3: PATRIMÔNIO (DATABASE) - LAYOUT EXATO DO MOCKUP
-           ============================================================ -->
-      <section id="tab-treasury" class="tab-pane">
-        <div class="treasury-columns">
-          
-          <!-- Coluna Esquerda: Concessão de Valores e Bens -->
-          <div class="column-panel">
-            <h3 class="section-title">CONCESSÃO DE VALORES E BENS</h3>
-            <div class="section-subtitle" id="treasury-selected-hint">
-              Alvo selecionado: <strong id="treasury-target-name">Nenhum cidadão selecionado na aba Cidadãos</strong>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">ENTREGA DE MOEDAS (DÓLARES OU OURO)</label>
-              <div class="form-row">
-                <input type="number" id="input-money-amount" placeholder="Quantia (ex: 150)">
-                <button class="btn-action" id="btn-give-money">DAR DÓLARES ($)</button>
-                <button class="btn-action" id="btn-give-gold">DAR OURO</button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">CONCESSÃO DE ITEM (INVENTÁRIO)</label>
-              <div class="form-row">
-                <input type="text" id="input-item-name" placeholder="Nome do item (ex: apple)">
-                <input type="number" id="input-item-qty" style="max-width: 75px; text-align: center;" value="1" min="1">
-                <button class="btn-action" id="btn-give-item">ENTREGAR ITEM</button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">CONCESSÃO DE ARMAMENTO</label>
-              <div class="form-row">
-                <input type="text" id="input-weapon-hash" placeholder="Código da arma (ex: WEAPON_REVOLVER_CATTLEMAN)">
-                <button class="btn-action" id="btn-give-weapon">ENTREGAR ARMA</button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">REGISTRO DE MONTARIA OU CARROÇA</label>
-              <div class="form-row">
-                <input type="text" id="input-mount-model" placeholder="Modelo (ex: A_C_Horse_AmericanPaint_Overo)">
-                <button class="btn-action" id="btn-give-horse">CADASTRAR CAVALO</button>
-                <button class="btn-action" id="btn-give-wagon">CARROÇA</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Coluna Direita: Ações Disciplinares de Confisco -->
-          <div class="column-panel">
-            <h3 class="section-title">AÇÕES DISCIPLINARES DE CONFISCO</h3>
-            <div class="section-subtitle">
-              Ações executadas imediatamente sobre o inventário ou carteira do cidadão selecionado.
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">CONFISCO TOTAL DO INVENTÁRIO</label>
-              <button class="btn-action btn-danger full-width" id="btn-clear-inventory">
-                ESVAZIAR INVENTÁRIO COMPLETO
-              </button>
-            </div>
-
-            <div class="form-group" style="margin-top: 24px;">
-              <label class="form-label">ZERAR MOEDAS DA CARTEIRA</label>
-              <div class="form-row">
-                <button class="btn-action btn-danger" style="flex: 1;" id="btn-clear-money">ZERAR DÓLARES ($)</button>
-                <button class="btn-action btn-danger" style="flex: 1;" id="btn-clear-gold">ZERAR OURO</button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ============================================================
-           ABA 4: TELEPORTE
-           ============================================================ -->
-      <section id="tab-teleports" class="tab-pane">
-        <div class="teleport-grid">
-          
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Viagem ao Marcador (TPM)</h4>
-              <p>Transporta imediatamente para as coordenadas do marco no mapa de navegação.</p>
-            </div>
-            <button class="btn-action" id="btn-tp-marker">Viajar ao Marcador</button>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Teleporte Automático (Auto-TPM)</h4>
-              <p>Deslocamento instantâneo a cada nova demarcação traçada no mapa territorial.</p>
-            </div>
-            <button class="btn-action toggle-btn" id="btn-toggle-autotpm">Ligar Auto-TPM</button>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Retornar à Posição Anterior</h4>
-              <p>Desfaz a última viagem, devolvendo o operador às coordenadas exatas anteriores.</p>
-            </div>
-            <button class="btn-action" id="btn-admin-goback">Retornar Origem</button>
-          </div>
-
-          <div class="card-item content-section">
-            <div class="card-info">
-              <h4>Expedição a Guarma</h4>
-              <p>Travessia entre os territórios continentais e os mares tropicais da ilha de Guarma.</p>
-            </div>
-            <button class="btn-action" id="btn-tp-guarma">Viajar / Voltar</button>
-          </div>
-
-          <div class="card-item content-section full-row">
-            <div class="card-info">
-              <h4>Teleporte por Coordenadas Vetoriais</h4>
-              <p>Insira coordenadas manuais cartográficas (X, Y, Z) ou código vector3.</p>
-            </div>
-            <div class="form-row" style="margin-top: 10px;">
-              <input type="text" id="input-custom-coords" placeholder="ex: -280.38, 817.81, 119.38">
-              <button class="btn-action" id="btn-tp-custom-coords">Teleportar</button>
-            </div>
-          </div>
-
-          <div class="card-item content-section full-row">
-            <div class="card-info">
-              <h4>Comunicado Territorial Geral (Anúncio)</h4>
-              <p>Dispara uma mensagem oficial no topo da tela de todos os habitantes conectados.</p>
-            </div>
-            <div class="form-row" style="margin-top: 10px;">
-              <input type="text" id="input-announce-text" placeholder="Digite a mensagem do comunicado oficial...">
-              <button class="btn-action" id="btn-send-announce">Transmitir Anúncio</button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ============================================================
-           ABA 5: OFICINA DE CAMPO (DEV TOOLS)
-           ============================================================ -->
-      <section id="tab-devtools" class="tab-pane">
-        <div class="devtools-grid">
-          
-          <div class="column-panel content-section">
-            <h3 class="section-title">EXTRAÇÃO CARTOGRÁFICA</h3>
-            <div class="section-subtitle">
-              Extrai posições geográficas e transfere para a área de transferência do Windows.
-            </div>
-
-            <div class="stack-buttons">
-              <button class="btn-action" id="btn-copy-vector3">Copiar Coordenadas [vector3]</button>
-              <button class="btn-action" id="btn-copy-vector4">Copiar Coordenadas + Direção [vector4]</button>
-              <button class="btn-action" id="btn-copy-heading">Copiar Apenas Heading (Ângulo)</button>
-              <button class="btn-action" id="btn-get-interior">Inspecionar ID do Interior Atual</button>
-            </div>
-          </div>
-
-          <div class="column-panel content-section">
-            <h3 class="section-title">INSPEÇÃO DE CAMPO & PEDS</h3>
-            <div class="section-subtitle">
-              Mira laser com raycast para identificação de entidades no cenário.
-            </div>
-
-            <div class="card-action" style="margin-bottom: 24px;">
-              <span class="stamp" id="status-devlaser">DESLIGADO</span>
-              <button class="btn-action toggle-btn" id="btn-toggle-devlaser">Alternar Mira Laser</button>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">INVOCAÇÃO DE PED / NPC POR CÓDIGO</label>
-              <div class="form-row">
-                <input type="text" id="input-spawn-ped-name" placeholder="Hash do Ped (ex: A_M_M_ValFarmer_01)">
-                <button class="btn-action" id="btn-spawn-ped">Invocar</button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-    </main>
-
-    <!-- Modal Dinâmico de Confirmação & Entrada -->
-    <div class="gazette-modal-backdrop" id="gazette-modal-backdrop">
-      <div class="gazette-modal">
-        <div class="modal-header">
-          <h3 id="modal-title">Confirmar Ação</h3>
-        </div>
-        <div class="modal-body" id="modal-body-content">
-          <!-- Conteúdo inserido dinamicamente via JS -->
-        </div>
-        <div class="modal-footer">
-          <button class="btn-action" id="modal-cancel-btn">Cancelar</button>
-          <button class="btn-action btn-danger danger" id="modal-confirm-btn">Confirmar</button>
-        </div>
+    <!-- Barra de Abas Horizontais com Setas (◄ NOME DA ABA ►) -->
+    <div class="dock-tabs-bar" id="dock-tabs-bar">
+      <button class="tab-arrow-btn" id="btn-tab-prev" title="Aba Anterior (Seta Esquerda)">◄</button>
+      <div class="tab-title-wrap">
+        <span class="tab-index-badge" id="dock-tab-index">ABA 1 / 5</span>
+        <h3 class="current-tab-name" id="current-tab-name">UTILITÁRIOS</h3>
       </div>
+      <button class="tab-arrow-btn" id="btn-tab-next" title="Próxima Aba (Seta Direita)">►</button>
     </div>
+
+    <!-- Indicador de Submenu / Breadcrumb de Retorno -->
+    <div class="dock-breadcrumb" id="dock-breadcrumb" style="display: none;">
+      <span class="breadcrumb-back-key">◂ BACKSPACE</span>
+      <span class="breadcrumb-title" id="dock-breadcrumb-title">AÇÕES DO CIDADÃO</span>
+    </div>
+
+    <!-- Viewport da Lista Vertical Interativa (Navegação por Setas ▲ ▼) -->
+    <div class="dock-viewport" id="dock-viewport" tabindex="0">
+      <!-- Elementos .dock-item gerados dinamicamente via app.js -->
+    </div>
+
+    <!-- Caixa de Contexto / Descrição do Item Selecionado -->
+    <div class="dock-info-box" id="dock-info-box">
+      <p id="dock-info-text">Selecione uma opção para gerenciar os recursos da fronteira.</p>
+    </div>
+
+    <!-- Rodapé de Legenda de Teclas de Navegação Nativa -->
+    <footer class="dock-footer-keys">
+      <div class="k-group"><span class="k-box">▲▼</span> <span class="k-label">Navegar</span></div>
+      <div class="k-group"><span class="k-box">◄►</span> <span class="k-label">Abas</span></div>
+      <div class="k-group"><span class="k-box">↵</span> <span class="k-label">Executar</span></div>
+      <div class="k-group"><span class="k-box">BACKSPACE</span> <span class="k-label">Voltar</span></div>
+      <div class="k-group"><span class="k-box">ESC</span> <span class="k-label">Fechar</span></div>
+    </footer>
 
     <!-- Container de Notificações Rápidas (Toasts) -->
     <div id="toast-container"></div>

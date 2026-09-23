@@ -1,9 +1,11 @@
 local Key = Config.Key
 local CanOpen = Config.CanOpenMenuWhenDead
 local Inmenu
+local isDockOpen = false
 local spectating = false
 local Camera = nil
 local lastcoords = { x = 0, y = 0, z = 0 }
+local frozenPlayersState = {}
 local T = Translation.Langs[Config.Lang]
 MenuData = exports.vorp_menu:GetMenuData()
 VORP = exports.vorp_core:GetCore()
@@ -16,6 +18,8 @@ AddEventHandler("onResourceStop", function(resourceName)
     local player = PlayerPedId()
     ClearPedTasksImmediately(player, true, true)
     Closem()
+    isDockOpen = false
+    SetNuiFocusKeepInput(false)
     SetNuiFocus(false, false)
     AdminAllowed = false
 
@@ -56,16 +60,27 @@ end
 local function OpenCustomAdminNUI()
     local boosters = (type(GetBoosterStates) == "function") and GetBoosterStates() or {}
     local staffRole = "Staff"
-    if LocalPlayer.state and LocalPlayer.state.Character and LocalPlayer.state.Character.Group then
-        staffRole = tostring(LocalPlayer.state.Character.Group)
+    local myPlayerName = GetPlayerName(PlayerId())
+    local myServerId = GetPlayerServerId(PlayerId())
+    if LocalPlayer.state and LocalPlayer.state.Character then
+        if LocalPlayer.state.Character.Group then
+            staffRole = tostring(LocalPlayer.state.Character.Group)
+        end
+        if LocalPlayer.state.Character.Firstname then
+            myPlayerName = LocalPlayer.state.Character.Firstname .. " " .. (LocalPlayer.state.Character.Lastname or "")
+        end
     end
 
-    SetNuiFocus(true, true)
+    isDockOpen = true
+    SetNuiFocus(true, false) -- Foco de teclado ativo na NUI, cursor do MOUSE DESATIVADO (false)
+    SetNuiFocusKeepInput(true) -- Mantém movimentação e câmera livres no jogo
     SendNUIMessage({
         action = "open",
         players = {},
         boosters = boosters,
-        staffRole = staffRole
+        staffRole = staffRole,
+        myServerId = myServerId,
+        myPlayerName = myPlayerName
     })
 
     VORP.Callback.TriggerAsync("vorp_admin:Callback:getplayersinfo", function(cb)
@@ -86,7 +101,20 @@ local function OpenCustomAdminNUI()
     end, { search = "all" })
 end
 
-local function OpenAdminMenu()
+local function CloseCustomAdminNUI()
+    if isDockOpen then
+        isDockOpen = false
+        SetNuiFocusKeepInput(false)
+        SetNuiFocus(false, false)
+        SendNUIMessage({ action = "close" })
+    end
+end
+
+local function ToggleAdminMenu()
+    if isDockOpen then
+        CloseCustomAdminNUI()
+        return true
+    end
     local AdminAllowed = IsAdminAllowed("open_menu")
     if AdminAllowed then
         if Config.UseCustomNUI then
@@ -99,14 +127,31 @@ local function OpenAdminMenu()
     return false
 end
 
+-- Thread de controle para desativar apenas ações de setas e celular do jogo enquanto usa o HUD dock lateral por teclado
+CreateThread(function()
+    while true do
+        if isDockOpen then
+            DisableControlAction(0, 0xD9D0E1C0, true) -- INPUT_CELLPHONE_UP
+            DisableControlAction(0, 0x39CCABD5, true) -- INPUT_CELLPHONE_DOWN
+            DisableControlAction(0, 0x862AE100, true) -- INPUT_CELLPHONE_LEFT
+            DisableControlAction(0, 0xA65EBAB4, true) -- INPUT_CELLPHONE_RIGHT
+            DisableControlAction(0, 0x3076E97C, true) -- INPUT_CELLPHONE_SELECT
+            DisableControlAction(0, 0x156F7119, true) -- INPUT_CELLPHONE_CANCEL
+            DisableControlAction(0, 0x07CE1E0E, true) -- Attack
+            Wait(0)
+        else
+            Wait(250)
+        end
+    end
+end)
 
 CreateThread(function()
     repeat Wait(3000) until LocalPlayer.state.IsInSession
 
     if Config.useAdminCommand then
-        TriggerEvent('chat:addSuggestion', '/' .. Config.commandAdmin, 'Open admin menu or use pagedown', { {} })
+        TriggerEvent('chat:addSuggestion', '/' .. Config.commandAdmin, 'Open admin dock or use pagedown', { {} })
         RegisterCommand(Config.commandAdmin, function()
-            OpenAdminMenu()
+            ToggleAdminMenu()
         end, false)
     end
 
@@ -119,7 +164,7 @@ CreateThread(function()
                 canOpenNow = not IsPedDeadOrDying(PlayerPedId(), false)
             end
             if canOpenNow then
-                if not OpenAdminMenu() then
+                if not ToggleAdminMenu() then
                     CanOpenUsersMenu()
                 end
             end
@@ -246,24 +291,50 @@ end)
 
 RegisterNetEvent('vorp_admin:ClientTrollTPToHeavenHandler', function()
     local pl = GetEntityCoords(PlayerPedId())
-    SetEntityCoords(PlayerPedId(), pl.x, pl.y, pl.z + 200, false, false, false, false)
+    SetEntityCoords(PlayerPedId(), pl.x, pl.y, pl.z + 200.0, false, false, false, false)
+end)
+
+RegisterNetEvent('vorp_admin:ClientTrollTpToHeavenHandler', function()
+    TriggerEvent('vorp_admin:ClientTrollTPToHeavenHandler')
 end)
 
 RegisterNetEvent('vorp_admin:ClientTrollRagdollPlayerHandler', function()
-    SetPedToRagdoll(PlayerPedId(), 5000, 5000, 0, false, false, false)
+    local ped = PlayerPedId()
+    SetPedCanRagdoll(ped, true)
+    ClearPedTasksImmediately(ped)
+    SetPedToRagdoll(ped, 6000, 6000, 0, true, true, false)
 end)
 
 RegisterNetEvent('vorp_admin:ClientDrainPlayerStamHandler', function()
-    Citizen.InvokeNative(0xC3D4B754C0E86B9E, PlayerPedId(), -1000.0)
+    local ped = PlayerPedId()
+    Citizen.InvokeNative(0xC3D4B754C0E86B9E, ped, -1000.0)
+    Citizen.InvokeNative(0xC6258F41D86676E0, ped, 1, 0)
+end)
+
+RegisterNetEvent('vorp_admin:ClientTrollDrainPlayerStamHandler', function()
+    TriggerEvent('vorp_admin:ClientDrainPlayerStamHandler')
 end)
 
 RegisterNetEvent('vorp_admin:ClientHandcuffPlayerHandler', function()
     local player = PlayerPedId()
     if not IsPedCuffed(player) then
         SetEnableHandcuffs(player, true, false)
+        if type(CuffPed) == "function" then
+            CuffPed(player)
+        end
+        SetPedCanPlayGestureAnims(player, false)
     else
+        if type(UncuffPed) == "function" then
+            UncuffPed(player)
+        end
         SetEnableHandcuffs(player, false, false)
+        SetPedCanPlayGestureAnims(player, true)
+        ClearPedTasksImmediately(player)
     end
+end)
+
+RegisterNetEvent('vorp_admin:ClientTrollHandcuffPlayerHandler', function()
+    TriggerEvent('vorp_admin:ClientHandcuffPlayerHandler')
 end)
 
 RegisterNetEvent('vorp_admin:ClientTempHighPlayerHandler', function()
@@ -277,9 +348,19 @@ end)
 -----------------------------------------------------------------------------
 
 RegisterNUICallback('closeMenu', function(_, cb)
+    isDockOpen = false
+    SetNuiFocusKeepInput(false)
     SetNuiFocus(false, false)
     cb('ok')
 end)
+
+RegisterNUICallback('closeDock', function(_, cb)
+    isDockOpen = false
+    SetNuiFocusKeepInput(false)
+    SetNuiFocus(false, false)
+    cb('ok')
+end)
+
 
 RegisterNUICallback('triggerAction', function(data, cb)
     if not data or not data.actionType or not data.targetId then
@@ -302,7 +383,8 @@ RegisterNUICallback('triggerAction', function(data, cb)
         elseif action == "revive" then
             TriggerServerEvent("vorp_admin:revive", targetId, nil, targetName)
         elseif action == "freeze" then
-            TriggerServerEvent("vorp_admin:FreezePlayer", targetId, targetName)
+            frozenPlayersState[targetId] = not frozenPlayersState[targetId]
+            TriggerServerEvent("vorp_admin:freeze", targetId, frozenPlayersState[targetId], nil, targetName)
         elseif action == "spectate" then
             TriggerServerEvent("vorp_admin:spectate", targetId, nil, targetName)
         elseif action == "sendback" then
@@ -325,13 +407,13 @@ RegisterNUICallback('triggerAction', function(data, cb)
         elseif action == "troll_fire" then
             TriggerServerEvent('vorp_admin:ServerTrollSetPlayerOnFireHandler', targetId)
         elseif action == "troll_heaven" then
-            TriggerServerEvent('vorp_admin:ServerTrollTpToHeavenHandler', targetId)
+            TriggerServerEvent('vorp_admin:ServerTrollTPToHeavenHandler', targetId)
         elseif action == "troll_handcuff" then
-            TriggerServerEvent('vorp_admin:ServerTrollHandcuffPlayerHandler', targetId)
+            TriggerServerEvent('vorp_admin:ServerHandcuffPlayerHandler', targetId)
         elseif action == "troll_ragdoll" then
             TriggerServerEvent('vorp_admin:ServerTrollRagdollPlayerHandler', targetId)
         elseif action == "troll_stam" then
-            TriggerServerEvent('vorp_admin:ServerTrollDrainPlayerStamHandler', targetId)
+            TriggerServerEvent('vorp_admin:ServerDrainPlayerStamHandler', targetId)
         end
     end)
 
@@ -375,29 +457,44 @@ RegisterNUICallback('toggleBooster', function(data, cb)
 end)
 
 RegisterNUICallback('databaseAction', function(data, cb)
-    if not data or not data.type or not data.targetId then return cb('error') end
+    if not data or not data.type then return cb('error') end
 
     local ok, err = pcall(function()
         local tId = tonumber(data.targetId)
-        if not tId then return end
+        local myServerId = GetPlayerServerId(PlayerId())
+        if not tId or tId <= 0 then
+            tId = myServerId
+        end
         local tName = tostring(data.targetName or "Player")
+        if tName == "Operador Atual" or tName == "Self" or tId == myServerId then
+            tName = GetPlayerName(PlayerId())
+        end
 
         if data.type == "giveCurrency" then
-            TriggerServerEvent("vorp_admin:giveMoneyGold", tId, tonumber(data.currencyType) or 0, tonumber(data.amount) or 0, tName)
+            local currencyType = tonumber(data.currencyType) or 0
+            local amount = tonumber(data.amount) or 0
+            TriggerServerEvent("vorp_admin:givePlayer", tId, "moneygold", currencyType, amount, nil, "vorp.staff.GiveCurrency", tName)
         elseif data.type == "giveItem" then
-            TriggerServerEvent("vorp_admin:giveItem", tId, tostring(data.item or ""), tonumber(data.qty) or 1, tName)
+            local item = tostring(data.item or "")
+            local qty = tonumber(data.qty) or 1
+            TriggerServerEvent("vorp_admin:givePlayer", tId, "item", item, qty, nil, "vorp.staff.Giveitems", tName)
         elseif data.type == "giveWeapon" then
-            TriggerServerEvent("vorp_admin:giveWeapon", tId, tostring(data.weapon or ""), tName)
+            local weapon = tostring(data.weapon or "")
+            TriggerServerEvent("vorp_admin:givePlayer", tId, "weapon", weapon, nil, nil, "vorp.staff.GiveWeapons", tName)
         elseif data.type == "giveMount" then
             if data.mountType == "horse" then
-                TriggerServerEvent("vorp_admin:giveHorse", tId, tostring(data.model or ""), tName)
+                local model = tostring(data.model or "A_C_Horse_AmericanPaint_Overo")
+                TriggerServerEvent("vorp_admin:givePlayer", tId, "horse", model, "Cavalo", 0, "vorp.staff.GiveHorse", tName)
             else
-                TriggerServerEvent("vorp_admin:giveWagon", tId, tostring(data.model or ""), tName)
+                local model = tostring(data.model or "cart01")
+                TriggerServerEvent("vorp_admin:givePlayer", tId, "wagon", model, "Carroca", nil, "vorp.staff.GiveWagons", tName)
             end
         elseif data.type == "clearInventory" then
-            TriggerServerEvent("vorp_admin:clearInventory", tId, tName)
+            TriggerServerEvent("vorp_admin:ClearAllItems", "items", tId, "vorp.staff.RemoveAllItems", tName)
+            TriggerServerEvent("vorp_admin:ClearAllItems", "weapons", tId, "vorp.staff.RemoveAllWeapons", tName)
         elseif data.type == "clearCurrency" then
-            TriggerServerEvent("vorp_admin:clearCurrency", tId, tostring(data.currencyType or "0"), tName)
+            local cType = (data.currencyType == "1" or data.currencyType == 1 or data.currencyType == "gold") and "gold" or "money"
+            TriggerServerEvent("vorp_admin:ClearCurrency", tId, cType, "vorp.staff.RemoveCurrency", tName)
         end
     end)
 

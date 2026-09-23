@@ -1,26 +1,31 @@
 /* ==========================================================================
-   DIRETRIZ DE REFATORAÇÃO VISUAL DA NUI (REDM) - TEMA MINIMALISTA TRANSLÚCIDO
-   Estilo: Glassmorphism Fumê, Linhas Finas Douradas/Bronze, Zero Texturas
+   HUD DOCK LATERAL - ESTILO NATIVO ROCKSTAR (RDR2 / GTA V INTERACTION MENU)
+   100% Teclado | 100% Câmera Livre | Western Frontier 1910
    ========================================================================== */
 
 :root {
-  /* Paleta de Cores e Transparências */
-  --bg-panel: rgba(16, 15, 14, 0.82);
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-input: rgba(0, 0, 0, 0.45);
-  
-  --border-subtle: rgba(212, 175, 55, 0.2);
-  --border-focus: rgba(212, 175, 55, 0.65);
-  --border-danger: rgba(195, 55, 55, 0.4);
-  
-  --text-title: #f2e9d8;
-  --text-body: #c7bea9;
-  --text-muted: #7d776b;
-  --accent-gold: #d4af37;
-  --accent-danger: #e55353;
-  
+  --bg-dock: rgba(13, 12, 11, 0.94);
+  --bg-header: rgba(8, 7, 6, 0.98);
+  --bg-row: rgba(255, 255, 255, 0.025);
+  --bg-row-selected: rgba(212, 175, 55, 0.18);
+  --bg-row-danger-selected: rgba(220, 53, 69, 0.22);
+  --bg-info-box: rgba(6, 6, 5, 0.75);
+
+  --border-dock: rgba(212, 175, 55, 0.28);
+  --border-separator: rgba(212, 175, 55, 0.12);
+  --border-gold: #d4af37;
+  --border-danger: #dc3545;
+
+  --text-title: #f5eedf;
+  --text-main: #d8cebc;
+  --text-selected: #ffffff;
+  --text-muted: #8c8474;
+  --accent-gold: #cba332;
+  --accent-green: #50c878;
+  --accent-danger: #e04545;
+
   --font-serif: 'Cinzel', serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 * {
@@ -28,742 +33,440 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  -webkit-user-drag: none;
 }
 
 body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: transparent;
   font-family: var(--font-sans);
-  color: var(--text-body);
+  color: var(--text-main);
 }
 
 /* ==========================================================================
-   PAINEL CENTRAL TRANSLÚCIDO DESFOCADO (GLASSMORPHISM)
+   CONTAINER DO HUD DOCK LATERAL (COMPACTO 350px)
    ========================================================================== */
-#admin-newspaper-app,
-.admin-container {
-  display: none;
-  background: var(--bg-panel);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
-  color: var(--text-body);
-  font-family: var(--font-sans);
-  padding: 24px 28px;
-  width: 95vw;
-  max-width: 1120px;
-  height: 88vh;
-  max-height: 840px;
-  margin: auto;
-  position: relative;
+.admin-dock-container {
+  display: flex;
   flex-direction: column;
-  animation: fadeInPanel 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: fixed;
+  left: 36px;
+  top: 48px;
+  width: 350px;
+  background: var(--bg-dock);
+  border: 1px solid var(--border-dock);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 1px rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  z-index: 999;
+  animation: dockSlideIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes fadeInPanel {
-  0% {
+@keyframes dockSlideIn {
+  from {
     opacity: 0;
-    transform: scale(0.98) translateY(6px);
+    transform: translateX(-20px);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateX(0);
   }
 }
 
 /* ==========================================================================
-   CABEÇALHO
+   CABEÇALHO ROCKSTAR (TÍTULO + CONTADOR)
    ========================================================================== */
-.header-bar {
+.dock-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 14px;
-  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-dock);
 }
 
-.header-title {
-  font-family: var(--font-serif);
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: var(--text-title);
-  line-height: 1;
-}
-
-.header-sub {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  font-weight: 400;
-  letter-spacing: 1.5px;
-}
-
-.header-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.staff-tag {
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.close-btn {
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-title);
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  letter-spacing: 1.5px;
-  padding: 6px 14px;
-  border-radius: 2px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: var(--accent-gold);
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
-}
-
-/* ==========================================================================
-   ABAS MINIMALISTAS
-   ========================================================================== */
-.tabs-nav {
-  display: flex;
-  gap: 8px;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 20px;
-}
-
-.tab-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.82rem;
-  letter-spacing: 1.8px;
-  padding: 10px 18px;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s ease;
-  text-transform: uppercase;
-}
-
-.tab-btn:hover {
-  color: var(--text-title);
-}
-
-.tab-btn.active {
-  color: var(--accent-gold);
-  font-weight: 600;
-}
-
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--accent-gold);
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-}
-
-/* ==========================================================================
-   CORPO PRINCIPAL & SEÇÕES
-   ========================================================================== */
-.admin-content {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-}
-
-.tab-pane {
-  display: none;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-}
-
-.tab-pane.active {
+.dock-header-brand {
   display: flex;
   flex-direction: column;
+  gap: 1px;
 }
 
-/* Containers de Conteúdo / Cards */
-.content-section {
-  background: var(--bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-  padding: 18px 20px;
-}
-
-.section-title {
+.dock-category-tag {
   font-family: var(--font-serif);
-  font-size: 0.95rem;
+  font-size: 0.62rem;
   letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-title);
-  margin-bottom: 4px;
-}
-
-.section-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-  line-height: 1.35;
-}
-
-.section-subtitle strong {
-  color: var(--text-title);
-  font-weight: 500;
-}
-
-/* ==========================================================================
-   INPUTS & FORMULÁRIOS CLEAN
-   ========================================================================== */
-.form-group {
-  margin-bottom: 14px;
-}
-
-.form-label {
-  display: block;
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.form-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-input[type="text"],
-input[type="number"],
-select {
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: 2px;
-  color: var(--text-title);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  width: 100%;
-  height: 36px;
-}
-
-input::placeholder {
-  color: #555047;
-}
-
-input:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
-}
-
-/* ==========================================================================
-   BOTÕES: ESTILO HAIRLINE LIMPO E ELEGANTE
-   ========================================================================== */
-.btn-action,
-.action-btn {
-  background: rgba(212, 175, 55, 0.06);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-title);
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  padding: 8px 16px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.25s ease;
-  white-space: nowrap;
-}
-
-.btn-action:hover,
-.action-btn:hover {
-  background: rgba(212, 175, 55, 0.18);
-  border-color: var(--accent-gold);
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
-}
-
-/* Ações Críticas / Confisco / Reset */
-.btn-danger,
-.action-btn.danger {
-  background: rgba(195, 55, 55, 0.06);
-  border: 1px solid var(--border-danger);
-  color: #ff9999;
-}
-
-.btn-danger:hover,
-.action-btn.danger:hover {
-  background: rgba(195, 55, 55, 0.2);
-  border-color: var(--accent-danger);
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(229, 83, 83, 0.25);
-}
-
-.full-width {
-  width: 100% !important;
-}
-
-/* ==========================================================================
-   ABA 1: REGISTRO DE CIDADÃOS
-   ========================================================================== */
-.players-layout {
-  display: flex;
-  gap: 16px;
-  height: 100%;
-  width: 100%;
-}
-
-.players-table-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
-
-.search-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgba(0, 0, 0, 0.2);
-  gap: 12px;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.search-label {
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  letter-spacing: 1.5px;
-  color: var(--text-muted);
-}
-
-.players-count-badge {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.table-scroll {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.ledger-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.8rem;
-}
-
-.ledger-table thead {
-  position: sticky;
-  top: 0;
-  background: rgba(18, 16, 14, 0.95);
-  z-index: 5;
-}
-
-.ledger-table th {
-  padding: 9px 12px;
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border-subtle);
-  font-weight: 600;
-}
-
-.ledger-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--text-body);
-  vertical-align: middle;
-}
-
-.ledger-table tbody tr {
-  transition: background 0.12s ease;
-  cursor: pointer;
-}
-
-.ledger-table tbody tr:hover {
-  background: rgba(212, 175, 55, 0.06);
-}
-
-.ledger-table tbody tr.selected {
-  background: rgba(212, 175, 55, 0.14) !important;
-  outline: 1px solid var(--border-focus);
-}
-
-/* Dossiê Lateral */
-.player-dossier {
-  width: 360px;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.dossier-header {
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 10px;
-  margin-bottom: 12px;
-}
-
-.dossier-header h3 {
-  font-family: var(--font-serif);
-  font-size: 0.95rem;
-  letter-spacing: 1.5px;
-  color: var(--text-title);
-  text-transform: uppercase;
-}
-
-.dossier-sub {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.empty-hint {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  margin-top: 40px;
-  line-height: 1.5;
-}
-
-.dossier-meta-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.meta-item {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(212, 175, 55, 0.12);
-  padding: 5px 8px;
-  border-radius: 2px;
-}
-
-.meta-lbl {
-  display: block;
-  font-family: var(--font-serif);
-  font-size: 0.65rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.meta-val {
-  font-size: 0.85rem;
-  color: var(--text-title);
-  font-weight: 500;
-}
-
-.gold-text {
   color: var(--accent-gold);
-}
-
-.dossier-group-title {
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 4px;
-  margin: 12px 0 8px 0;
+  font-weight: 700;
 }
 
-.action-buttons-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.action-buttons-grid .full-width {
-  grid-column: span 2;
-}
-
-/* Badges e Carimbos */
-.stamp {
-  display: inline-block;
+.dock-title {
   font-family: var(--font-serif);
-  font-size: 0.68rem;
-  letter-spacing: 1px;
-  padding: 3px 8px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 2px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.stamp.stamp-verified {
-  border-color: rgba(65, 180, 100, 0.4);
-  color: #7de8a0;
-  background: rgba(65, 180, 100, 0.08);
-}
-
-.stamp.stamp-wanted {
-  border-color: var(--border-danger);
-  color: #ff9999;
-  background: rgba(195, 55, 55, 0.08);
-}
-
-.stamp.stamp-gold {
-  border-color: var(--border-subtle);
-  color: var(--accent-gold);
-  background: rgba(212, 175, 55, 0.08);
-}
-
-/* ==========================================================================
-   ABA 2 & 4: CARDS (BOOSTERS & TELEPORT)
-   ========================================================================== */
-.grid-cards,
-.teleport-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-  gap: 12px;
-}
-
-.card-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.card-item.full-row {
-  grid-column: 1 / -1;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-.card-info h4 {
-  font-family: var(--font-serif);
-  font-size: 0.85rem;
+  font-size: 0.96rem;
+  font-weight: 700;
   letter-spacing: 1.2px;
   color: var(--text-title);
   text-transform: uppercase;
 }
 
-.card-info p {
-  font-size: 0.74rem;
-  color: var(--text-muted);
-  margin-top: 3px;
-  line-height: 1.35;
-}
-
-.card-action {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   ABA 3: PATRIMÔNIO (DATABASE) - LAYOUT DO MOCKUP
-   ========================================================================== */
-.treasury-columns {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 28px;
-}
-
-.column-panel {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ==========================================================================
-   ABA 5: OFICINA DE CAMPO (DEV TOOLS)
-   ========================================================================== */
-.devtools-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.stack-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-/* ==========================================================================
-   MODAL DINÂMICO
-   ========================================================================== */
-.gazette-modal-backdrop {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-}
-
-.gazette-modal {
-  width: 420px;
-  background: rgba(18, 16, 14, 0.94);
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-  border-radius: 4px;
-  padding: 20px;
-}
-
-.modal-header {
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 10px;
-  margin-bottom: 14px;
-}
-
-.modal-header h3 {
+.dock-counter-pill {
   font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 2px;
+  padding: 3px 8px;
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   BARRA DE ABAS HORIZONTAIS COM SETAS (◄ UTILITÁRIOS ►)
+   ========================================================================== */
+.dock-tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid var(--border-separator);
+}
+
+.tab-arrow-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-gold);
   font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: opacity 0.1s, transform 0.1s;
+}
+
+.tab-arrow-btn:active {
+  transform: scale(0.9);
+}
+
+.tab-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tab-index-badge {
+  font-family: var(--font-serif);
+  font-size: 0.58rem;
   letter-spacing: 1.5px;
+  color: var(--text-muted);
   text-transform: uppercase;
+}
+
+.current-tab-name {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 2px;
   color: var(--text-title);
+  text-transform: uppercase;
 }
 
-.modal-body {
-  margin-bottom: 18px;
-  font-size: 0.82rem;
-  color: var(--text-body);
+/* ==========================================================================
+   BREADCRUMB / SUBMENU (VOLTAR COM BACKSPACE)
+   ========================================================================== */
+.dock-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(212, 175, 55, 0.08);
+  border-bottom: 1px solid var(--border-separator);
 }
 
-.modal-body label {
-  display: block;
+.breadcrumb-back-key {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+  font-family: var(--font-sans);
+}
+
+.breadcrumb-title {
   font-family: var(--font-serif);
   font-size: 0.72rem;
+  font-weight: 700;
   letter-spacing: 1px;
+  color: var(--text-title);
   text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.modal-body input,
-.modal-body select {
-  margin-bottom: 12px;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 14px;
 }
 
 /* ==========================================================================
-   TOASTS (AVISOS FLUTUANTES)
+   VIEWPORT DA LISTA VERTICAL (.dock-viewport)
    ========================================================================== */
-#toast-container {
-  position: absolute;
-  bottom: 20px;
-  right: 24px;
+.dock-viewport {
+  max-height: 380px;
+  min-height: 180px;
+  overflow-y: auto;
+  outline: none;
   display: flex;
   flex-direction: column;
+}
+
+/* Custom Minimal Gold Scrollbar */
+.dock-viewport::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dock-viewport::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dock-viewport::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+}
+
+.dock-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.65);
+}
+
+/* ==========================================================================
+   ITEM DA LISTA (.dock-item)
+   ========================================================================== */
+.dock-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  min-height: 38px;
+  background: var(--bg-row);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.08s ease;
+}
+
+.dock-item:last-child {
+  border-bottom: none;
+}
+
+.dock-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.dock-item-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  letter-spacing: 0.3px;
+}
+
+.dock-item-sublabel {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.dock-item-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+/* Estado Selecionado (Navegação Ativa por Setas) */
+.dock-item.selected {
+  border-left: 3px solid var(--border-gold) !important;
+  background: var(--bg-row-selected) !important;
+}
+
+.dock-item.selected .dock-item-label {
+  color: var(--text-selected);
+  font-weight: 600;
+}
+
+.dock-item.selected .dock-item-sublabel {
+  color: #e2d8c3;
+}
+
+/* Estado de Perigo Selecionado (Expulsar, Banir, Confiscar) */
+.dock-item.danger.selected {
+  border-left: 3px solid var(--border-danger) !important;
+  background: var(--bg-row-danger-selected) !important;
+}
+
+.dock-item.danger .dock-item-label {
+  color: #ff9999;
+}
+
+.dock-item.danger.selected .dock-item-label {
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   PILLS DE STATUS & INDICADORES (ON/OFF, SUBMENU, VALOR)
+   ========================================================================== */
+.status-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.status-pill.on {
+  color: var(--accent-green);
+  background: rgba(80, 200, 120, 0.14);
+  border: 1px solid rgba(80, 200, 120, 0.35);
+}
+
+.status-pill.off {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-pill.action {
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.status-pill.verified {
+  color: #50c878;
+  border: 1px solid rgba(80, 200, 120, 0.3);
+  background: rgba(80, 200, 120, 0.1);
+}
+
+.status-pill.wanted {
+  color: #e09040;
+  border: 1px solid rgba(224, 144, 64, 0.3);
+  background: rgba(224, 144, 64, 0.1);
+}
+
+.submenu-arrow {
+  color: var(--accent-gold);
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   CAIXA DE CONTEXTO / DESCRIÇÃO ROCKSTAR (#dock-info-box)
+   ========================================================================== */
+.dock-info-box {
+  padding: 8px 12px;
+  background: var(--bg-info-box);
+  border-top: 1px solid var(--border-separator);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.dock-info-box p {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   LEGENDA DE TECLAS NO RODAPÉ (.dock-footer-keys)
+   ========================================================================== */
+.dock-footer-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
-  z-index: 300;
+  padding: 8px 10px;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border-dock);
+}
+
+.k-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.k-box {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+  padding: 1px 4px;
+  letter-spacing: 0.5px;
+}
+
+.k-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   MENSAGENS VAZIAS
+   ========================================================================== */
+.dock-empty-msg {
+  padding: 30px 16px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   NOTIFICAÇÕES TOASTS
+   ========================================================================== */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 36px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+  z-index: 10000;
   pointer-events: none;
 }
 
 .toast-msg {
-  background: rgba(18, 16, 14, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border-subtle);
-  padding: 8px 14px;
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  letter-spacing: 1px;
+  background: rgba(14, 13, 11, 0.95);
+  border: 1px solid var(--border-dock);
+  border-left: 3px solid var(--accent-gold);
   color: var(--text-title);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  font-size: 0.76rem;
+  padding: 8px 14px;
   border-radius: 2px;
-  animation: slideToast 0.15s ease-out forwards;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
+  animation: toastFade 0.2s ease-out;
+  max-width: 320px;
 }
 
 .toast-msg.alert {
-  border-color: var(--border-danger);
-  color: #ff9999;
+  border-left-color: var(--accent-danger);
 }
 
-@keyframes slideToast {
-  0% {
+@keyframes toastFade {
+  from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* ==========================================================================
-   SCROLLBAR MINIMALISTA
-   ========================================================================== */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.2);
-  border-radius: 2px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.5);
 }
