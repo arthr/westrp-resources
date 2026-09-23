@@ -208,6 +208,22 @@
       if (item.disabled) row.classList.add('disabled');
       row.dataset.index = index;
 
+      const leftCol = document.createElement('div');
+      leftCol.className = 'dock-item-left';
+
+      const iconUrl = resolveItemIcon(item);
+      if (iconUrl) {
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'dock-item-icon-wrap';
+        const img = document.createElement('img');
+        img.className = 'dock-item-icon';
+        img.src = iconUrl;
+        img.alt = '';
+        img.onerror = () => { iconWrap.style.display = 'none'; };
+        iconWrap.appendChild(img);
+        leftCol.appendChild(iconWrap);
+      }
+
       const mainCol = document.createElement('div');
       mainCol.className = 'dock-item-main';
 
@@ -223,7 +239,8 @@
         mainCol.appendChild(subSpan);
       }
 
-      row.appendChild(mainCol);
+      leftCol.appendChild(mainCol);
+      row.appendChild(leftCol);
 
       const rightCol = document.createElement('div');
       rightCol.className = 'dock-item-right';
@@ -811,8 +828,11 @@
       const isOk = current >= needed;
       if (!isOk) hasAll = false;
 
+      const reqIconUrl = resolveItemIcon({ id: req.item, icon: req.icon });
+      const iconHtml = reqIconUrl ? `<img class="craft-req-icon" src="${reqIconUrl}" alt="" onerror="this.style.display='none'"> ` : '';
+
       row.className = `craft-req-row ${isOk ? 'ok' : 'missing'}`;
-      row.innerHTML = `<span>${req.label || req.item}</span> <span class="status-pill ${isOk ? 'on' : 'off'}">${current} / ${needed}</span>`;
+      row.innerHTML = `<div class="craft-req-label-wrap">${iconHtml}<span>${req.label || req.item}</span></div> <span class="status-pill ${isOk ? 'on' : 'off'}">${current} / ${needed}</span>`;
       panelEl.craftReqsList.appendChild(row);
     });
 

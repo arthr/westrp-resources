@@ -13,42 +13,58 @@ local function OpenSaloonMenu()
     UI.OpenDock({
         id = 'saloon_smithfield',
         title = 'SALOON SMITHFIELD',
-        tag = 'VALENTINE',
+        tag = 'VALENTINE • FRONTIER',
         tabs = {
             {
                 id = 'drinks',
-                name = 'BEBIDAS',
+                name = 'BEBIDAS & DESTILADOS',
                 items = {
-                    { id = 'whiskey', label = 'Whiskey Especial', sublabel = 'Envelhecido em barril de carvalho', badge = '$ 2.50', badgeType = 'gold', description = 'Dose de destilado forte que recupera o fôlego.' },
-                    { id = 'beer', label = 'Cerveja Artesanal', sublabel = 'Cerveja gelada do condado', badge = '$ 0.75', badgeType = 'gold', description = 'Uma caneca refrescante de cerveja pura.' },
-                    { id = 'smoke', label = 'Permitir Fumar no Balcão', type = 'toggle', checked = true, description = 'Alterna a permissão de fumo para os clientes no balcão.' }
+                    { id = 'consumable_alcohol_bourbon', label = 'Bourbon Envelhecido', sublabel = 'Dose pura de carvalho americano', badge = '$ 3.50', badgeType = 'gold', description = 'Destilado forte e aromático que recupera a estamina do cavaleiro.' },
+                    { id = 'consumable_alcohol_beer_pint_amber', label = 'Caneca de Cerveja Âmbar', sublabel = 'Cerveja artesanal gelada do condado', badge = '$ 1.00', badgeType = 'gold', description = 'Uma caneca generosa servida em estanho direto do barril da adega.' },
+                    { id = 'consumable_alcohol_bottle_brandy', label = 'Garrafa de Conhaque Fino', sublabel = 'Importado de Saint Denis', badge = '$ 7.50', badgeType = 'gold', description = 'Bebida destilada refinada para cavalheiros e ocasiões solenes.' },
+                    { id = 'coffee_pot', label = 'Café Preto de Fogueira', sublabel = 'Fresco, quente e revigorante', badge = '$ 0.50', badgeType = 'gold', description = 'Café passado forte na hora para dispersar o cansaço e o frio.' }
+                }
+            },
+            {
+                id = 'provisions',
+                name = 'PROVISÕES & FUMO',
+                items = {
+                    { id = 'consumable_meat_prime_beef_wild_mint_cooked', label = 'Bife de Primeira com Menta', sublabel = 'Carne nobre assada na brasa', badge = '$ 4.50', badgeType = 'gold', description = 'Corte suculento grelhado na brasa que restaura toda a energia vital.' },
+                    { id = 'consumable_bread6', label = 'Pão Rústico de Centeio', sublabel = 'Fornada do dia com manteiga fresca', badge = '$ 1.20', badgeType = 'gold', description = 'Fatia generosa de pão de forno rústico tradicional da fronteira.' },
+                    { id = 'cigar1', label = 'Charuto Premium Havano', sublabel = 'Tabaco puro enrolado à mão', badge = '$ 5.00', badgeType = 'gold', description = 'Charuto de aroma nobre e amadeirado apreciado por homens de negócio.' },
+                    { id = 'cigar_box_preimium', label = 'Caixa Lacrada de Charutos', sublabel = 'Caixa de cedro contendo 10 unidades', badge = '$ 22.00', badgeType = 'gold', description = 'Lote nobre para grandes apreciadores ou revenda de alto valor.' }
                 }
             },
             {
                 id = 'services',
-                name = 'SERVIÇOS',
+                name = 'SERVIÇOS & GESTÃO',
                 items = {
-                    { id = 'rounds', label = 'Rodadas para o Saloon', type = 'slider', min = 1, max = 10, value = 1, description = 'Pague rodadas para todos os presentes no estabelecimento.' },
+                    { id = 'rounds', label = 'Pagar Rodada Geral', type = 'slider', min = 1, max = 10, value = 1, description = 'Pague uma rodada de cerveja gelada para todos os presentes no estabelecimento.' },
+                    { id = 'ambiance_tune', label = 'Música do Pianista', type = 'slider', options = {'Silêncio', 'Ragtime Animado', 'Valsa Lenta', 'Balada Western'}, valueIndex = 1, description = 'Comande o pianista no canto do Saloon para mudar a melodia ambiente.' },
+                    { id = 'smoke_policy', label = 'Permitir Fumo no Balcão', type = 'toggle', checked = true, description = 'Alterna a tolerância de cinzas e fumo de charuto para a clientela no balcão.' },
                     {
                         id = 'special_orders',
-                        label = 'Encomendas Especiais',
+                        label = 'Mercadorias Clandestinas',
                         type = 'submenu',
-                        description = 'Acesse produtos raros fornecidos pelo contrabando.',
+                        description = 'Acesse itens ilegais fornecidos pelo contrabando da meia-noite.',
                         subItems = {
-                            { id = 'moonshine', label = 'Moonshine Ilegal', badge = '$ 15.00', badgeType = 'danger', danger = true, description = 'Bebida destilada clandestina com teor alcoólico violento.' },
-                            { id = 'cigar', label = 'Charuto Premium', badge = '$ 5.00', badgeType = 'gold', description = 'Tabaco nobre importado de Cuba.' }
+                            { id = 'consumable_alcohol_moonshine_apple', label = 'Moonshine de Maçã Ilegal', badge = '$ 18.00', badgeType = 'danger', danger = true, description = 'Bebida clandestina com teor alcoólico violento proibido pelas autoridades.' },
+                            { id = 'lockpick', label = 'Gazua de Fechadura', badge = '$ 12.00', badgeType = 'danger', danger = true, description = 'Ferramenta precisa de aço fino para violar fechaduras e trincos.' },
+                            { id = 'weapon_thrown_molotov', label = 'Garrafa Incendiária Caseira', badge = '$ 15.00', badgeType = 'danger', danger = true, description = 'Garrafa inflamável com pavio embebido em querosene para desordem.' }
                         }
-                    }
+                    },
+                    { id = 'bath_service', label = 'Banho Quente Deluxe', badge = 'OCUPADO', badgeType = 'off', disabled = true, description = 'As tinas de imersão estão ocupadas por outros hóspedes no momento.' },
+                    { id = 'sheriff_alert', label = 'Disparar Alerta ao Xerife', badge = 'ALERTA', badgeType = 'danger', danger = true, description = 'Aciona um chamado discreto de perturbação da ordem ao gabinete da lei.' }
                 }
             }
         },
         onSelect = function(item, tabId)
-            WestRP.Shared.Logger.Info("SALOON", "Item selecionado: %s (Aba: %s)", item.label, tabId)
-            WestRP.Client.UI.ShowToast("SALOON SMITHFIELD", "Você selecionou: " .. item.label, "success")
+            WestRP.Shared.Logger.Info("SALOON", "Item selecionado: %s (Aba: %s)", item.label or item.id, tabId)
+            WestRP.Client.UI.ShowToast("SALOON SMITHFIELD", "Você selecionou: " .. (item.label or item.id), "success")
         end,
         onChange = function(item, newValue, tabId)
-            WestRP.Shared.Logger.Info("SALOON", "Item alterado: %s -> %s", item.label, tostring(newValue))
-            WestRP.Client.UI.ShowToast("SALOON", item.label .. ": " .. tostring(newValue), "info")
+            WestRP.Shared.Logger.Info("SALOON", "Item alterado: %s -> %s", item.label or item.id, tostring(newValue))
+            WestRP.Client.UI.ShowToast("SALOON SMITHFIELD", (item.label or item.id) .. ": " .. tostring(newValue), "info")
         end,
         onClose = function()
             WestRP.Shared.Logger.Info("SALOON", "Menu do Saloon encerrado.")
@@ -69,82 +85,137 @@ local function OpenWorkshopPanel()
     end
     UI.OpenPanel({
         id = 'valentine_workshop',
-        title = 'OFICINA & BANCADA DE VALENTINE',
-        tag = 'ESTABELECIMENTO COMERCIAL',
-        subtitle = 'Saldo: $ 342.50',
-        ctaLabel = 'EXECUTAR AÇÃO',
+        title = 'OFICINA & ARMAZÉM DE VALENTINE',
+        tag = 'ESTABELECIMENTO COMERCIAL & ARTESÃO',
+        subtitle = 'Saldo em Caixa: $ 580.00',
+        ctaLabel = 'EXECUTAR TRANSAÇÃO',
         tabs = {
             {
-                id = 'showcase',
-                label = 'Vitrine de Armas',
-                badge = 'NOVO',
+                id = 'weapons',
+                label = 'Vitrine de Armamentos',
+                badge = 'VITRINE',
                 viewType = 'grid',
                 items = {
-                    { id = 'weapon_thrown_tomahawk', title = 'Tomahawk de Caça', subtitle = 'Arma de arremesso forjada e balanceada.', price = 35.0, stock = 8, badge = 'POPULAR', badgeType = 'gold' },
-                    { id = 'weapon_melee_hammer', title = 'Martelo Pesado de Combate', subtitle = 'Ferramenta e arma de impacto demolidora.', price = 45.0, stock = 4, badge = 'ROBUSTO', badgeType = 'gold' },
-                    { id = 'weapon_thrown_molotov', title = 'Coquetel Molotov Incendiário', subtitle = 'Garrafa inflamável com pavio embebido em querosene.', price = 25.0, stock = 12, badge = 'PERIGO', badgeType = 'danger' },
-                    { id = 'weapon_lasso_reinforced', title = 'Laço Reforçado de Couro', subtitle = 'Corda trançada de alta resistência para captura.', price = 50.0, stock = 5 }
+                    { id = 'weapon_thrown_tomahawk', title = 'Tomahawk de Caça', subtitle = 'Arma de arremesso forjada em aço carbono com peso balanceado.', price = 35.0, stock = 8, badge = 'POPULAR', badgeType = 'gold' },
+                    { id = 'weapon_melee_hammer', title = 'Martelo Pesado de Combate', subtitle = 'Ferramenta e arma de impacto demolidora para ferraria e defesa.', price = 45.0, stock = 4, badge = 'PESADO', badgeType = 'gold' },
+                    { id = 'weapon_thrown_molotov', title = 'Coquetel Molotov Incendiário', subtitle = 'Garrafa inflamável com pavio embebido em querosene de lampião.', price = 25.0, stock = 12, badge = 'PERIGO', badgeType = 'danger' },
+                    { id = 'weapon_lasso_reinforced', title = 'Laço Reforçado de Couro', subtitle = 'Corda de couro cru entrelaçado com alta resistência à tração.', price = 50.0, stock = 5, badge = 'ROBUSTO', badgeType = 'gold' },
+                    { id = 'weapon_fishingrod_master', title = 'Vara de Pesca Profissional', subtitle = 'Vara flexível de bambu tratado com molinete de precisão para rios bravios.', price = 38.0, stock = 6 },
+                    { id = 'weapon_kit_binoculars_improved', title = 'Binóculos Militares', subtitle = 'Lentes prismáticas de longo alcance para patrulha e rastreamento.', price = 65.0, stock = 3, badge = 'ÓTICA', badgeType = 'gold' },
+                    { id = 'tool_hatchet', title = 'Machadinha de Lenhador', subtitle = 'Machado compacto para extração florestal de madeira e sobrevivência.', price = 22.0, stock = 10 },
+                    { id = 'tool_heavy_pickaxe', title = 'Picareta de Mineração', subtitle = 'Ponta de aço temperado indicada para pedreiras densas e veios auríferos.', price = 42.0, stock = 7 }
                 }
             },
             {
                 id = 'forge',
-                label = 'Forja & Crafting',
+                label = 'Bancada de Forja',
                 badge = 'BANCADA',
                 viewType = 'craft',
                 items = {
                     {
                         id = 'tool_resource_knife',
                         title = 'Faca de Caça Rústica',
-                        subtitle = 'Lâmina de aço afiada para esfolar animais e combate corporal.',
+                        subtitle = 'Lâmina afiada para esfolar animais de grande porte e corte geral.',
                         requirements = {
-                            { item = 'tool_pickaxe_iron', label = 'Ferro Bruto', current = 5, required = 2 },
-                            { item = 'campfire', label = 'Carvão Vegetal', current = 10, required = 1 }
+                            { item = 'resource_iron_dirty', label = 'Minério de Ferro', current = 6, required = 2 },
+                            { item = 'resource_coal', label = 'Carvão Mineral', current = 12, required = 1 },
+                            { item = 'lumber_pine_wood_plank', label = 'Empunhadura de Madeira', current = 4, required = 1 }
                         }
                     },
                     {
-                        id = 'ammo_revolver',
-                        title = 'Munição Regular de Revólver (x12)',
-                        subtitle = 'Cartuchos padrão calibre .45.',
+                        id = 'ammo_revolver_split_point',
+                        title = 'Munição .45 Dum-Dum (x12)',
+                        subtitle = 'Cartuchos perfurantes com ponta entalhada para maior expansão.',
                         requirements = {
-                            { item = 'gunpowder', label = 'Pólvora Seca', current = 8, required = 2 },
-                            { item = 'brick', label = 'Chumbo Fundido', current = 3, required = 4 }
+                            { item = 'brick', label = 'Chumbo Fundido', current = 8, required = 2 },
+                            { item = 'acid', label = 'Pólvora Seca', current = 5, required = 2 },
+                            { item = 'tool_chisel', label = 'Cinzel de Entalhe', current = 1, required = 1 }
                         }
                     },
                     {
                         id = 'lockpick',
-                        title = 'Gazua de Aço Reforçado',
-                        subtitle = 'Ferramenta fina para destrancar fechaduras resistentes.',
+                        title = 'Gazua Reforçada de Aço',
+                        subtitle = 'Ferramenta precisa com haste fina para destrancar fechaduras.',
                         requirements = {
-                            { item = 'tool_hammer', label = 'Ferro Moldado', current = 4, required = 2 },
-                            { item = 'tool_chisel', label = 'Pino Guia', current = 1, required = 1 }
+                            { item = 'tool_hammer', label = 'Martelo de Forjar', current = 1, required = 1 },
+                            { item = 'resource_iron_dirty', label = 'Haste de Ferro', current = 4, required = 2 }
+                        }
+                    },
+                    {
+                        id = 'tool_repair_kit',
+                        title = 'Kit de Limpeza & Manutenção',
+                        subtitle = 'Conjunto de escovas e óleos para preservar o funcionamento das armas.',
+                        requirements = {
+                            { item = 'gunoil3', label = 'Óleo de Armamento', current = 3, required = 1 },
+                            { item = 'washcloth', label = 'Flanela Limpa', current = 6, required = 2 }
+                        }
+                    },
+                    {
+                        id = 'campfire',
+                        title = 'Kit de Acampamento & Fogueira',
+                        subtitle = 'Fogueira portátil com estacas de apoio para assar carnes em viagens.',
+                        requirements = {
+                            { item = 'lumber_cedar_hardwood', label = 'Lenha de Cedro', current = 15, required = 5 },
+                            { item = 'match', label = 'Fósforos Sulfúricos', current = 2, required = 1 }
                         }
                     }
                 }
             },
             {
+                id = 'supplies',
+                label = 'Armazém Geral',
+                badge = 'ARMAZÉM',
+                viewType = 'grid',
+                items = {
+                    { id = 'consumable_coffee', title = 'Café Moído Torrado', subtitle = 'Pacote com café puro para infusão em caneca no acampamento.', price = 1.50, stock = 20, badge = 'ENERGIA', badgeType = 'gold' },
+                    { id = 'consumable_meat_venison_cooked', title = 'Carne de Cervo Assada', subtitle = 'Corte farto defumado com sal marinho e especiarias da floresta.', price = 4.00, stock = 15 },
+                    { id = 'consumable_bread6', title = 'Pão Caseiro de Centeio', subtitle = 'Pão fresco assado na madrugada pelos colonos locais.', price = 1.20, stock = 30 },
+                    { id = 'consumable_med_herbal_tonic', title = 'Tônico Medicinal Herbal', subtitle = 'Xarope reconstituinte feito de ervas amargas da pradaria.', price = 8.00, stock = 8, badge = 'SAÚDE', badgeType = 'gold' },
+                    { id = 'torch_smoker', title = 'Tocha Noturna Embebida', subtitle = 'Tocha de estopa com querosene para iluminar cavernas e minas.', price = 2.50, stock = 16 },
+                    { id = 'horse_shoe', title = 'Jogo de Ferraduras de Ferro', subtitle = 'Quatro ferraduras batidas para proteger os cascos da sua montaria.', price = 12.00, stock = 6 }
+                }
+            },
+            {
                 id = 'ledger',
-                label = 'Livro de Registros',
-                badge = 'GESTOR',
+                label = 'Livro-Razão de Vendas',
+                badge = 'LIVRO-RAZÃO',
                 viewType = 'table',
                 columns = {
-                    { key = 'date', label = 'DATA', width = '15%' },
-                    { key = 'desc', label = 'DESCRIÇÃO', width = '35%' },
-                    { key = 'player', label = 'CLIENTE', width = '20%' },
-                    { key = 'val', label = 'VALOR', width = '15%', align = 'right' },
-                    { key = 'status', label = 'STATUS', width = '15%', align = 'center', type = 'pill' }
+                    { key = 'code', label = 'Nº REGISTRO', width = '12%', align = 'center' },
+                    { key = 'date', label = 'DATA', width = '10%' },
+                    { key = 'item', label = 'MERCADORIA / SERVIÇO', width = '34%' },
+                    { key = 'client', label = 'CIDADÃO', width = '20%' },
+                    { key = 'amount', label = 'VALOR TOTAL', width = '12%', align = 'right' },
+                    { key = 'status', label = 'SITUAÇÃO', width = '12%', align = 'center', type = 'pill' }
                 },
                 rows = {
-                    { id = 'r1', date = '23/09', desc = 'Compra: Revólver Cattleman', player = 'Arthur Morgan', val = '$ 45.00', status = 'PAGO', status_type = 'on' },
-                    { id = 'r2', date = '23/09', desc = 'Serviço: Limpeza de Cano', player = 'John Marston', val = '$ 5.00', status = 'PAGO', status_type = 'on' },
-                    { id = 'r3', date = '22/09', desc = 'Encomenda: 50x Balas', player = 'Micah Bell', val = '$ 12.50', status = 'PENDENTE', status_type = 'off' },
-                    { id = 'r4', date = '21/09', desc = 'Fornecimento: 20x Barras Ferro', player = 'Mineradora Annesburg', val = '$ 30.00', status = 'CONCLUÍDO', status_type = 'gold' }
+                    { id = 'l1', code = '#201', date = '23/09', item = 'Compra: Tomahawk de Caça (x2)', client = 'Arthur Morgan', amount = '$ 70.00', status = 'CONCLUÍDO', status_type = 'on' },
+                    { id = 'l2', code = '#202', date = '23/09', item = 'Reparo: Cano de Revólver Cattleman', client = 'John Marston', amount = '$ 7.50', status = 'CONCLUÍDO', status_type = 'on' },
+                    { id = 'l3', code = '#203', date = '23/09', item = 'Encomenda: 50x Balas .45 Dum-Dum', client = 'Micah Bell', amount = '$ 25.00', status = 'PENDENTE', status_type = 'off' },
+                    { id = 'l4', code = '#204', date = '22/09', item = 'Fornecimento: 20x Barras de Ferro', client = 'Mineradora Annesburg', amount = '$ 60.00', status = 'PAGO', status_type = 'gold' },
+                    { id = 'l5', code = '#205', date = '22/09', item = 'Reparo: Molinete Vara de Pesca', client = 'Hosea Matthews', amount = '$ 14.00', status = 'CONCLUÍDO', status_type = 'on' },
+                    { id = 'l6', code = '#206', date = '21/09', item = 'Pedido Especial: Lote Querosene', client = 'Bill Williamson', amount = '$ 32.00', status = 'CANCELADO', status_type = 'danger' }
                 }
             }
         },
         onAction = function(action, item, tabId, qty)
-            local itemName = item.title or item.desc or item.id or "Registro"
-            WestRP.Shared.Logger.Info("PANEL", "Ação executada: %s no item '%s' (Qtd: %s, Aba: %s)", action, itemName, tostring(qty or 1), tabId)
-            WestRP.Client.UI.ShowToast("OFICINA VALENTINE", "Ação processada: " .. itemName .. " (x" .. tostring(qty or 1) .. ")", "success")
+            local count = qty or 1
+            local itemName = item.title or item.label or item.item or item.desc or item.id or "Item"
+            local totalPrice = (item.price and (item.price * count)) or 0
+
+            if tabId == 'weapons' or tabId == 'supplies' then
+                WestRP.Shared.Logger.Info("PANEL", "Transação Comercial: Compra de %s (x%d) por $ %.2f", itemName, count, totalPrice)
+                WestRP.Client.UI.ShowToast("OFICINA VALENTINE", string.format("Compra realizada: %s (x%d) - Total: $ %.2f", itemName, count, totalPrice), "success", 4000)
+            elseif tabId == 'forge' then
+                WestRP.Shared.Logger.Info("PANEL", "Bancada de Forja: Fabricado %s (x%d)", itemName, count)
+                WestRP.Client.UI.ShowToast("BANCADA DE FORJA", string.format("Manufaturado com sucesso: %s (x%d)", itemName, count), "success", 4000)
+            elseif tabId == 'ledger' then
+                WestRP.Shared.Logger.Info("PANEL", "Livro-Razão: Inspecionado %s (Cliente: %s)", item.code or "Item", item.client or "N/A")
+                WestRP.Client.UI.ShowToast("LIVRO-RAZÃO", string.format("Registro aberto: %s (%s)", item.code or "", item.item or ""), "info", 3500)
+            else
+                WestRP.Shared.Logger.Info("PANEL", "Ação executada: %s (x%d)", itemName, count)
+                WestRP.Client.UI.ShowToast("OFICINA", itemName .. " (x" .. tostring(count) .. ")", "info", 3500)
+            end
         end,
         onClose = function()
             WestRP.Shared.Logger.Info("PANEL", "Painel da oficina fechado.")
