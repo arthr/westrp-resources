@@ -29,13 +29,10 @@ function GODmode()
                 SetPedConfigFlag(ped, 2, true) -- Sem acertos críticos (headshots)
                 SetPedCanRagdoll(ped, false)
                 SetPedCanBeTargetted(ped, false)
-                Citizen.InvokeNative(0x5240864E847C691C, ped, false) -- Não pode ser incapacitado
-                Citizen.InvokeNative(0xFD6943B6DF77E449, ped, false) -- Não pode ser laçado
-                -- Proteção contra afogamento (no RDR2 afogamento ocorre por esgotamento de estamina na água)
-                if IsEntityInWater(ped) then
-                    Citizen.InvokeNative(0xC3D4B754C0E86B9E, ped, 1000.0) -- Estamina externa cheia
-                    Citizen.InvokeNative(0xC6258F41D86676E0, ped, 1, 100) -- Núcleo interno de estamina em 100%
-                end
+                Citizen.InvokeNative(0x5240864E847C691C, ped, false)  -- Não pode ser incapacitado
+                Citizen.InvokeNative(0xFD6943B6DF77E449, ped, false)  -- Não pode ser laçado
+                Citizen.InvokeNative(0xC3D4B754C0E86B9E, ped, 1000.0) -- Estamina externa cheia
+                Citizen.InvokeNative(0xC6258F41D86676E0, ped, 1, 100) -- Núcleo interno de estamina em 100%
                 ClearPedBloodDamage(ped)
                 if IsEntityOnFire(ped) then
                     StopEntityFire(ped)
@@ -494,10 +491,18 @@ end)
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
 
-    if Prompt1 and Prompt1 ~= 0 then UiPromptDelete(Prompt1); Prompt1 = 0 end
-    if Prompt2 and Prompt2 ~= 0 then UiPromptDelete(Prompt2); Prompt2 = 0 end
-    if Prompt4 and Prompt4 ~= 0 then UiPromptDelete(Prompt4); Prompt4 = 0 end
-    if Prompt6 and Prompt6 ~= 0 then UiPromptDelete(Prompt6); Prompt6 = 0 end
+    if Prompt1 and Prompt1 ~= 0 then
+        UiPromptDelete(Prompt1); Prompt1 = 0
+    end
+    if Prompt2 and Prompt2 ~= 0 then
+        UiPromptDelete(Prompt2); Prompt2 = 0
+    end
+    if Prompt4 and Prompt4 ~= 0 then
+        UiPromptDelete(Prompt4); Prompt4 = 0
+    end
+    if Prompt6 and Prompt6 ~= 0 then
+        UiPromptDelete(Prompt6); Prompt6 = 0
+    end
 
     local player = PlayerPedId()
     if NoClipActive then
