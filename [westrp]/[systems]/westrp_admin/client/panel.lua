@@ -419,7 +419,10 @@ function WestRP.Admin.Panel.OpenCurrencyDialog(targetId, targetName, playerRow)
     WestRP.Client.UI.CloseDock()
     Wait(100)
 
-    WestRP.Client.UI.OpenDialog({
+    local OpenDialogFn = (WestRP.Client and WestRP.Client.UI and WestRP.Client.UI.OpenDialog)
+        or function(opts) return exports['westrp_ui']:OpenDialog(opts) end
+
+    OpenDialogFn({
         id = "currency_modal_" .. targetId,
         tag = "GESTOR FINANCEIRO & ECONÔMICO",
         title = "INJETAR / RETIRAR MOEDA",
