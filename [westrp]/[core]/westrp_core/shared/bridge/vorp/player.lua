@@ -47,8 +47,23 @@ if isServer then
             money = char.money or 0.0,
             gold = char.gold or 0.0,
             rol = char.rol or 0.0,
+            isDead = char.isdead == true,
             raw = char
         }
+    end
+
+    ---Verifica se o jogador está morto
+    ---@param source number
+    ---@return boolean
+    function WestRP.Shared.Bridge.Player.IsDead(source)
+        local core = GetVorpCore()
+        if core then
+            local user = core.getUser(source)
+            if user and user.getUsedCharacter then
+                return user.getUsedCharacter.isdead == true
+            end
+        end
+        return Player(source).state.isDead == true
     end
 
     ---Adiciona dinheiro/moeda ao personagem

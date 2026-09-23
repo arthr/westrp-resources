@@ -155,21 +155,43 @@ end, 'cash')
 ```
 
 #### `WestRP.Shared.Bridge`
-Interface única com o VORP.
-```lua
--- Obter dados do personagem
----@return table|nil characterData { identifier, charid, firstname, lastname, job, grade }
-local char = WestRP.Shared.Bridge.Player.GetCharacter(source)
+Interface única com o VORP (Regra R3).
 
--- Manipular dinheiro
+**Player Bridge (`WestRP.Shared.Bridge.Player`):**
+```lua
+-- Obter dados e estado de vida do personagem
+local char = WestRP.Shared.Bridge.Player.GetCharacter(source)
+local isDead = WestRP.Shared.Bridge.Player.IsDead(source)
+
+-- Manipular economia (cash, gold, rol)
 local success = WestRP.Shared.Bridge.Player.AddMoney(source, 'cash', 50.0)
 local hasEnough = WestRP.Shared.Bridge.Player.RemoveMoney(source, 'cash', 25.0)
 
--- Manipular inventário
+-- Saúde e reanimação
+WestRP.Shared.Bridge.Player.Heal(source)
+WestRP.Shared.Bridge.Player.Revive(source)
+WestRP.Shared.Bridge.Player.Respawn(source)
+
+-- Gestão de cargos e whitelist
+WestRP.Shared.Bridge.Player.SetJob(source, 'sheriff', 2, 'Deputy')
+WestRP.Shared.Bridge.Player.SetGroup(source, 'admin')
+WestRP.Shared.Bridge.Player.WhitelistUser(identifier)
+WestRP.Shared.Bridge.Player.UnwhitelistUser(identifier)
+```
+
+**Inventory Bridge (`WestRP.Shared.Bridge.Inventory`):**
+```lua
+-- Itens
 local canCarry = WestRP.Shared.Bridge.Inventory.CanCarryItem(source, 'bread', 2)
 if canCarry then
     WestRP.Shared.Bridge.Inventory.AddItem(source, 'bread', 2, { quality = 100 })
 end
+WestRP.Shared.Bridge.Inventory.RemoveItem(source, 'bread', 1)
+local count = WestRP.Shared.Bridge.Inventory.GetItemCount(source, 'bread')
+
+-- Armas e Wipe
+WestRP.Shared.Bridge.Inventory.GiveWeapon(source, 'WEAPON_REVOLVER_CATTLEMAN')
+WestRP.Shared.Bridge.Inventory.ClearInventory(source)
 ```
 
 ---

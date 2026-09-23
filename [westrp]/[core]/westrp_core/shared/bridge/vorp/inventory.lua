@@ -29,20 +29,21 @@ if isServer then
     ---@param metadata? table
     ---@return boolean
     function WestRP.Shared.Bridge.Inventory.AddItem(source, itemName, count, metadata)
-        local inv = GetVorpInventory()
-        if not inv or not itemName or not count or count <= 0 then return false end
+        local countNum = tonumber(count) or 1
+        if not source or not itemName or countNum <= 0 then return false end
 
-        local p = promise.new()
-        TriggerEvent("vorpCore:canCarryItem", source, count, function(canCarry)
-            if not canCarry then
-                p:resolve(false)
-                return
-            end
-            inv.addItem(source, tostring(itemName), tonumber(count), metadata or {})
-            p:resolve(true)
-        end, tostring(itemName))
+        local okCarry, canCarry = pcall(function()
+            return exports['vorp_inventory']:canCarryItem(source, tostring(itemName), countNum)
+        end)
+        if not okCarry or canCarry == false then
+            return false
+        end
 
-        return Citizen.Await(p)
+        local okAdd, result = pcall(function()
+            return exports['vorp_inventory']:addItem(source, tostring(itemName), countNum, metadata or {})
+        end)
+
+        return okAdd and (result ~= false)
     end
 
     ---Remove um item do inventário do jogador
@@ -52,16 +53,18 @@ if isServer then
     ---@param metadata? table
     ---@return boolean
     function WestRP.Shared.Bridge.Inventory.RemoveItem(source, itemName, count, metadata)
-        local inv = GetVorpInventory()
-        if not inv or not itemName or not count or count <= 0 then return false end
+        local countNum = tonumber(count) or 1
+        if not source or not itemName or countNum <= 0 then return false end
 
         local currentCount = WestRP.Shared.Bridge.Inventory.GetItemCount(source, itemName)
-        if currentCount < count then
+        if currentCount < countNum then
             return false
         end
 
-        inv.subItem(source, tostring(itemName), tonumber(count), metadata)
-        return true
+        local okSub = pcall(function()
+            exports['vorp_inventory']:subItem(source, tostring(itemName), countNum, metadata or {})
+        end)
+        return okSub == true
     end
 
     ---Retorna a quantidade de um item no inventário
@@ -69,14 +72,11 @@ if isServer then
     ---@param itemName string
     ---@return number
     function WestRP.Shared.Bridge.Inventory.GetItemCount(source, itemName)
-        local inv = GetVorpInventory()
-        if not inv or not itemName then return 0 end
-
-        local item = inv.getItemByName(source, tostring(itemName))
-        if item and item.count then
-            return tonumber(item.count) or 0
-        end
-        return 0
+        if not source or not itemName then return 0 end
+        local ok, count = pcall(function()
+            return exports['vorp_inventory']:getItemCount(source, tostring(itemName))
+        end)
+        return ok and (tonumber(count) or 0) or 0
     end
 
     ---Verifica se o jogador tem espaço para carregar a quantidade do item
@@ -85,11 +85,13 @@ if isServer then
     ---@param count number
     ---@return boolean
     function WestRP.Shared.Bridge.Inventory.CanCarryItem(source, itemName, count)
-        local p = promise.new()
-        TriggerEvent("vorpCore:canCarryItem", source, tonumber(count), function(canCarry)
-            p:resolve(canCarry == true)
-        end, tostring(itemName))
-        return Citizen.Await(p)
+        local countNum = tonumber(count) or 1
+        if not source or not itemName or countNum <= 0 then return false end
+
+        local okCarry, canCarry = pcall(function()
+            return exports['vorp_inventory']:canCarryItem(source, tostring(itemName), countNum)
+        end)
+        return okCarry and (canCarry == true)
     end
 
     ---Concede arma ao jogador via API de inventário
@@ -97,37 +99,30 @@ if isServer then
     ---@param weaponName string
     ---@return boolean
     function WestRP.Shared.Bridge.Inventory.GiveWeapon(source, weaponName)
-        local ok, inv = pcall(function() return exports['vorp_inventory'] end)
-        if ok and inv and inv.createWeapon then
-            inv:createWeapon(source, weaponName)
-            return true
+        if not source or not weaponName then return false end
+
+        local okCarry, canCarry = pcall(function()
+            return exports['vorp_inventory']:canCarryWeapons(source, 1, nil, tostring(weaponName))
+        end)
+        if okCarry and canCarry == false then
+            return false
         end
-        return false
+
+        local okCreate = pcall(function()
+            exports['vorp_inventory']:createWeapon(source, tostring(string.upper(weaponName)))
+        end)
+        return okCreate == true
     end
 
     ---Limpa completamente o inventário de itens e armas do jogador
     ---@param source number
     ---@return boolean
     function WestRP.Shared.Bridge.Inventory.ClearInventory(source)
-        local ok, inv = pcall(function() return exports['vorp_inventory'] end)
-        if not ok or not inv then return false end
-
-        local userItems = inv:getUserInventoryItems(source)
-        if userItems then
-            for _, it in pairs(userItems) do
-                inv:subItem(source, it.name, it.count)
-            end
-        end
-
-        local weapons = inv:getUserInventoryWeapons(source)
-        if weapons then
-            for _, w in pairs(weapons) do
-                inv:subWeapon(source, w.id)
-                inv:deleteWeapon(source, w.id)
-            end
-        end
-
-        inv:removeAllUserAmmo(source)
-        return true
+        if not source then return false end
+        local ok = pcall(function()
+            exports['vorp_inventory']:subAllItems(source)
+            exports['vorp_inventory']:subAllWeapons(source)
+        end)
+        return ok == true
     end
 end

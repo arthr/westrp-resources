@@ -19,12 +19,7 @@ function WestRP.Server.Admin.Players.GetList(filter)
             local steamName = GetPlayerName(src) or "Desconhecido"
             local charName = char and (char.firstname .. " " .. char.lastname) or "Sem Personagem"
             local ping = GetPlayerPing(src)
-            local ped = GetPlayerPed(src)
-            local isDead = false
-
-            if DoesEntityExist(ped) then
-                isDead = GetEntityHealth(ped) <= 0
-            end
+            local isDead = (char and char.isDead == true) or (Player(src).state.isDead == true)
 
             local staticId = char and char.charid or src
             local group = char and char.group or "user"
