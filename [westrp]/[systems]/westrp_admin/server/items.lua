@@ -65,16 +65,15 @@ end
 ---@param targetId number Alvo
 ---@param weaponName string
 function WestRP.Server.Admin.Items.GiveWeapon(source, targetId, weaponName)
-    local ok, inv = pcall(function() return exports['vorp_inventory'] end)
+    local success = WestRP.Shared.Bridge.Inventory.GiveWeapon(targetId, weaponName)
     local targetName = GetPlayerName(targetId) or "Jogador"
 
-    if ok and inv and inv.createWeapon then
-        inv:createWeapon(targetId, weaponName)
+    if success then
         WestRP.Shared.Bridge.Player.Notify(targetId, "Você recebeu uma arma: " .. weaponName, 5000)
         WestRP.Shared.Bridge.Player.Notify(source, string.format("Arma %s entregue para %s", weaponName, targetName), 4000)
         WestRP.Server.Admin.Logger.Log("Spawner", "Concessão de Arma", "Arma: `" .. weaponName .. "`", source, targetId)
     else
-        WestRP.Shared.Bridge.Player.Notify(source, "Falha na exportação vorp_inventory:createWeapon", 4000)
+        WestRP.Shared.Bridge.Player.Notify(source, "Falha ao conceder arma: inventário indisponível", 4000)
     end
 end
 
@@ -111,23 +110,7 @@ end
 ---@param targetId number
 function WestRP.Server.Admin.Items.ClearInventory(source, targetId)
     local targetName = GetPlayerName(targetId) or "Jogador"
-    local inv = exports['vorp_inventory']:getUserInventoryItems(targetId)
-
-    if inv then
-        for _, it in pairs(inv) do
-            exports['vorp_inventory']:subItem(targetId, it.name, it.count)
-        end
-    end
-
-    local weapons = exports['vorp_inventory']:getUserInventoryWeapons(targetId)
-    if weapons then
-        for _, w in pairs(weapons) do
-            exports['vorp_inventory']:subWeapon(targetId, w.id)
-            exports['vorp_inventory']:deleteWeapon(targetId, w.id)
-        end
-    end
-
-    exports['vorp_inventory']:removeAllUserAmmo(targetId)
+    WestRP.Shared.Bridge.Inventory.ClearInventory(targetId)
 
     WestRP.Shared.Bridge.Player.Notify(targetId, "Seu inventário foi completamente esvaziado por um administrador", 5000)
     WestRP.Shared.Bridge.Player.Notify(source, "Inventário de " .. targetName .. " foi limpo com sucesso", 4000)

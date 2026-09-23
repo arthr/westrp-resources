@@ -1,6 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
     <Infos>
             <CWeaponInfo>
+            <Name>WEAPON_SHOTGUN_PUMP</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_RIFLE_ELEPHANT</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_SNIPERRIFLE_ROLLINGBLOCK</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_SHOTGUN_SEMIAUTO</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_REPEATER_EVANS</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_RIFLE_VARMINT</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_RIFLE_BOLTACTION</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_PISTOL_VOLCANIC</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_SHOTGUN_DOUBLEBARREL</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_SHOTGUN_REPEATING</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_REVOLVER_NAVY</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_REVOLVER_SCHOFIELD</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
             <Name>WEAPON_SNIPERRIFLE_CARCANO</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="0.60" />
@@ -16,61 +88,7 @@
             
         </CWeaponInfo>
                <CWeaponInfo>
-            <Name>WEAPON_SHOTGUN_DOUBLEBARREL</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REVOLVER_LEMAT</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_RIFLE_BOLTACTION</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REPEATER_EVANS</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_PISTOL_VOLCANIC</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_SHOTGUN_SEMIAUTO</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_SHOTGUN_REPEATING</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REVOLVER_SCHOFIELD</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REVOLVER_DOUBLEACTION</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_SHOTGUN_DOUBLEBARREL_EXOTIC</Name>
+            <Name>WEAPON_RIFLE_SPRINGFIELD</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="1.00" />
             </WeaponReload>
@@ -82,13 +100,7 @@
             </WeaponReload>
         </CWeaponInfo>
                <CWeaponInfo>
-            <Name>WEAPON_REPEATER_HENRY</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_PISTOL_SEMIAUTO</Name>
+            <Name>WEAPON_SHOTGUN_DOUBLEBARREL_EXOTIC</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="1.00" />
             </WeaponReload>
@@ -100,25 +112,13 @@
             </WeaponReload>
         </CWeaponInfo>
                <CWeaponInfo>
-            <Name>WEAPON_REPEATER_CARBINE</Name>
+            <Name>WEAPON_PISTOL_SEMIAUTO</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="1.00" />
             </WeaponReload>
         </CWeaponInfo>
                <CWeaponInfo>
-            <Name>WEAPON_RIFLE_VARMINT</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REVOLVER_NAVY</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_SNIPERRIFLE_ROLLINGBLOCK</Name>
+            <Name>WEAPON_REVOLVER_DOUBLEACTION</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="1.00" />
             </WeaponReload>
@@ -130,31 +130,7 @@
             </WeaponReload>
         </CWeaponInfo>
                <CWeaponInfo>
-            <Name>WEAPON_SHOTGUN_PUMP</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_RIFLE_ELEPHANT</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_RIFLE_SPRINGFIELD</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REVOLVER_CATTLEMAN_MEXICAN</Name>
-            <WeaponReload type="CWeaponReload">
-                <AnimReloadRate value="1.00" />
-            </WeaponReload>
-        </CWeaponInfo>
-               <CWeaponInfo>
-            <Name>WEAPON_REVOLVER_NAVY_CROSSOVER</Name>
+            <Name>WEAPON_REPEATER_CARBINE</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="1.00" />
             </WeaponReload>
@@ -166,10 +142,34 @@
             </WeaponReload>           <ShortArmHolsterDOF value="3" />
         </CWeaponInfo>
                <CWeaponInfo>
+            <Name>WEAPON_REPEATER_HENRY</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_REVOLVER_LEMAT</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
             <Name>WEAPON_PISTOL_MAUSER</Name>
             <WeaponReload type="CWeaponReload">
                 <AnimReloadRate value="1.00" />
             </WeaponReload>           <ShortArmHolsterDOF value="2" />
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_REVOLVER_NAVY_CROSSOVER</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
+        </CWeaponInfo>
+               <CWeaponInfo>
+            <Name>WEAPON_REVOLVER_CATTLEMAN_MEXICAN</Name>
+            <WeaponReload type="CWeaponReload">
+                <AnimReloadRate value="1.00" />
+            </WeaponReload>
         </CWeaponInfo>
            </Infos>
     

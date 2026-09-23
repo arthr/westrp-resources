@@ -125,6 +125,88 @@ if isServer then
         end
     end
 
+    ---Restaura vida e estamina do jogador via Core
+    ---@param source number
+    function WestRP.Shared.Bridge.Player.Heal(source)
+        local core = GetVorpCore()
+        if core and core.Player and core.Player.Heal then
+            core.Player.Heal(source)
+        end
+    end
+
+    ---Reanima o jogador caso esteja morto ou incapacitado
+    ---@param source number
+    function WestRP.Shared.Bridge.Player.Revive(source)
+        local core = GetVorpCore()
+        if core and core.Player and core.Player.Revive then
+            core.Player.Revive(source)
+        end
+    end
+
+    ---Executa respawn do jogador
+    ---@param source number
+    function WestRP.Shared.Bridge.Player.Respawn(source)
+        local core = GetVorpCore()
+        if core and core.Player and core.Player.Respawn then
+            core.Player.Respawn(source)
+        end
+    end
+
+    ---Define emprego e graduação do personagem
+    ---@param source number
+    ---@param job string
+    ---@param grade number
+    ---@param label? string
+    ---@return boolean
+    function WestRP.Shared.Bridge.Player.SetJob(source, job, grade, label)
+        local core = GetVorpCore()
+        if not core then return false end
+        local user = core.getUser(source)
+        if not user then return false end
+        local char = user.getUsedCharacter
+        if not char then return false end
+
+        char.setJob(job)
+        char.setJobGrade(tonumber(grade) or 0)
+        char.setJobLabel(label or job)
+        return true
+    end
+
+    ---Define grupo/permissão administrativa do jogador
+    ---@param source number
+    ---@param group string
+    ---@return boolean
+    function WestRP.Shared.Bridge.Player.SetGroup(source, group)
+        local core = GetVorpCore()
+        if not core then return false end
+        local user = core.getUser(source)
+        if not user then return false end
+        local char = user.getUsedCharacter
+        if char then
+            char.setGroup(group)
+        end
+        user.setGroup(group)
+        return true
+    end
+
+    ---Adiciona usuário à whitelist
+    ---@param identifier string
+    function WestRP.Shared.Bridge.Player.WhitelistUser(identifier)
+        local core = GetVorpCore()
+        if core and core.Whitelist and core.Whitelist.whitelistUser then
+            core.Whitelist.whitelistUser(identifier)
+        end
+    end
+
+    ---Remove usuário da whitelist
+    ---@param identifier string
+    function WestRP.Shared.Bridge.Player.UnwhitelistUser(identifier)
+        local core = GetVorpCore()
+        if core and core.Whitelist and core.Whitelist.unWhitelistUser then
+            core.Whitelist.unWhitelistUser(identifier)
+        end
+    end
+
 else
     ---Exibe notificação no client
     ---@param text string

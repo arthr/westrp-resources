@@ -26,12 +26,12 @@ function WestRP.Client.UI.IsDockOpen()
 end
 
 ---Atualiza dados de um item no menu aberto em tempo real
----@param tabId? string
 ---@param itemId string
 ---@param updates table
-function WestRP.Client.UI.UpdateItem(tabId, itemId, updates)
+---@param tabId? string
+function WestRP.Client.UI.UpdateItem(itemId, updates, tabId)
     if GetResourceState('westrp_ui') ~= 'started' then return end
-    exports['westrp_ui']:UpdateItem(tabId, itemId, updates)
+    exports['westrp_ui']:UpdateItem(itemId, updates, tabId)
 end
 
 ---Dispara notificação Toast elegante padrão Rockstar no canto da tela

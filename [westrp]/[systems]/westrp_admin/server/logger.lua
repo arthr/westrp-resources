@@ -16,7 +16,7 @@ function WestRP.Server.Admin.Logger.Log(category, title, description, source, ta
     if not webhookUrl or webhookUrl == "" then return end
 
     local operatorName = GetPlayerName(source) or "Desconhecido"
-    local operatorSteam = GetPlayerIdentifier(source, 1) or "Sem Steam"
+    local operatorSteam = GetPlayerIdentifierByType(source, "steam") or GetPlayerIdentifier(source, 0) or "Sem Steam"
     local operatorDiscord = "Não Vinculado"
     local discordId = GetPlayerIdentifierByType(source, "discord")
     if discordId then
@@ -40,7 +40,7 @@ function WestRP.Server.Admin.Logger.Log(category, title, description, source, ta
 
     if targetId and targetId > 0 then
         local targetName = GetPlayerName(targetId) or "Desconhecido"
-        local targetSteam = GetPlayerIdentifier(targetId, 1) or "Sem Steam"
+        local targetSteam = GetPlayerIdentifierByType(targetId, "steam") or GetPlayerIdentifier(targetId, 0) or "Sem Steam"
         fields[#fields + 1] = { name = "🎯 Alvo da Ação", value = string.format("**%s** (ID: %s)\nSteam: `%s`", targetName, targetId, targetSteam), inline = false }
     end
 

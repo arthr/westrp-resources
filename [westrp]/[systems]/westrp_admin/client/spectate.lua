@@ -32,12 +32,24 @@ function WestRP.Admin.Spectate.Toggle(targetId, targetCoords)
         SetEntityCoords(admin, targetCoords.x, targetCoords.y, targetCoords.z + 10.0, false, false, false, false)
         Wait(300)
 
-        local targetPlayer = GetPlayerFromServerId(targetId)
-        local targetPed = GetPlayerPed(targetPlayer)
+        local targetPed = 0
+        local timeout = 12
+        while timeout > 0 do
+            local p = GetPlayerFromServerId(targetId)
+            if p and p ~= -1 then
+                local ped = GetPlayerPed(p)
+                if ped and ped ~= 0 and DoesEntityExist(ped) then
+                    targetPed = ped
+                    break
+                end
+            end
+            Wait(50)
+            timeout = timeout - 1
+        end
 
         -- Cria câmera roteirizada acoplada
         spectateCam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-        if DoesEntityExist(targetPed) then
+        if targetPed ~= 0 and DoesEntityExist(targetPed) then
             AttachCamToEntity(spectateCam, targetPed, 0.0, -2.2, 0.8, false)
         else
             SetCamCoord(spectateCam, targetCoords.x, targetCoords.y - 2.5, targetCoords.z + 1.5)

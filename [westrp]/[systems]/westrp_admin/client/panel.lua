@@ -3,8 +3,6 @@ WestRP.Admin = WestRP.Admin or {}
 WestRP.Admin.Panel = {}
 
 local isPanelOpen = false
-local selectedPlayer = nil
-local selectedItem = nil
 
 ---Constrói os dados de linhas para a tabela de jogadores online
 ---@param playersList table
@@ -73,9 +71,9 @@ function WestRP.Admin.Panel.Open()
     local myName = GetPlayerName(PlayerId())
 
     -- Carregamento de dados via RPC assíncrono
-    local players = WestRP.Callback.TriggerAwait("westrp_admin:server:getPlayers", "all") or {}
-    local catalog = WestRP.Callback.TriggerAwait("westrp_admin:server:getItemsCatalog") or {}
-    local bans = WestRP.Callback.TriggerAwait("westrp_admin:server:getBansList") or {}
+    local players = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getPlayers", "all") or {}
+    local catalog = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getItemsCatalog") or {}
+    local bans = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getBansList") or {}
 
     local playerRows = BuildPlayerRows(players)
     local banRows = BuildBanRows(bans)
@@ -131,7 +129,6 @@ function WestRP.Admin.Panel.Open()
             local count = tonumber(qty) or 1
 
             if tabId == "players_tab" then
-                selectedPlayer = item
                 if action == "confirm" and item and item.serverId then
                     -- Abre menu contextual com as ações rápidas para o jogador selecionado
                     WestRP.Admin.Panel.OpenPlayerActionModal(item)
@@ -166,8 +163,6 @@ function WestRP.Admin.Panel.Open()
         end,
         onClose = function()
             isPanelOpen = false
-            selectedPlayer = nil
-            selectedItem = nil
         end
     }
 

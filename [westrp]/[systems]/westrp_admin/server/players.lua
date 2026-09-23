@@ -3,16 +3,6 @@ WestRP.Server = WestRP.Server or {}
 WestRP.Server.Admin = WestRP.Server.Admin or {}
 WestRP.Server.Admin.Players = {}
 
-local VorpCore = nil
-local function GetVorpCore()
-    if not VorpCore then
-        pcall(function()
-            VorpCore = exports['vorp_core']:GetCore()
-        end)
-    end
-    return VorpCore
-end
-
 local frozenStates = {}
 
 ---Retorna a lista de todos os jogadores online estruturada para tabelas NUI
@@ -21,7 +11,6 @@ local frozenStates = {}
 function WestRP.Server.Admin.Players.GetList(filter)
     local players = GetPlayers()
     local list = {}
-    local core = GetVorpCore()
 
     for _, pId in ipairs(players) do
         local src = tonumber(pId)
@@ -45,7 +34,7 @@ function WestRP.Server.Admin.Players.GetList(filter)
             local gold = char and char.gold or 0.0
 
             local include = true
-            if filter and filter ~= "" and filter ~= "all" then
+            if type(filter) == "string" and filter ~= "" and filter ~= "all" then
                 local f = string.lower(filter)
                 local matchId = tostring(src) == f
                 local matchSteam = string.find(string.lower(steamName), f, 1, true) ~= nil
@@ -123,11 +112,7 @@ end
 ---@param source number
 ---@param targetId number
 function WestRP.Server.Admin.Players.Heal(source, targetId)
-    local core = GetVorpCore()
-    if core and core.Player and core.Player.Heal then
-        core.Player.Heal(targetId)
-    end
-
+    WestRP.Shared.Bridge.Player.Heal(targetId)
     WestRP.Shared.Bridge.Player.Notify(targetId, "Você foi curado por um administrador", 4000)
     WestRP.Shared.Bridge.Player.Notify(source, "Jogador curado com sucesso", 3000)
     WestRP.Server.Admin.Logger.Log("General", "Cura de Jogador", "Operador curou vida e núcleos do jogador alvo", source, targetId)
@@ -137,11 +122,7 @@ end
 ---@param source number
 ---@param targetId number
 function WestRP.Server.Admin.Players.Revive(source, targetId)
-    local core = GetVorpCore()
-    if core and core.Player and core.Player.Revive then
-        core.Player.Revive(targetId)
-    end
-
+    WestRP.Shared.Bridge.Player.Revive(targetId)
     WestRP.Shared.Bridge.Player.Notify(targetId, "Você foi revivido por um administrador", 4000)
     WestRP.Shared.Bridge.Player.Notify(source, "Jogador revivido com sucesso", 3000)
     WestRP.Server.Admin.Logger.Log("General", "Reviver Jogador", "Operador reanimou o jogador alvo", source, targetId)
@@ -151,11 +132,7 @@ end
 ---@param source number
 ---@param targetId number
 function WestRP.Server.Admin.Players.Respawn(source, targetId)
-    local core = GetVorpCore()
-    if core and core.Player and core.Player.Respawn then
-        core.Player.Respawn(targetId)
-    end
-
+    WestRP.Shared.Bridge.Player.Respawn(targetId)
     TriggerClientEvent("westrp_admin:client:respawn", targetId)
     WestRP.Shared.Bridge.Player.Notify(source, "Respawn disparado no jogador alvo", 3000)
     WestRP.Server.Admin.Logger.Log("General", "Respawn de Jogador", "Operador disparou respawn forçado no alvo", source, targetId)
@@ -181,19 +158,9 @@ end
 ---@param grade number
 ---@param label? string
 function WestRP.Server.Admin.Players.SetJob(source, targetId, job, grade, label)
-    local core = GetVorpCore()
-    if not core then return end
-
-    local user = core.getUser(targetId)
-    if not user then return end
-
-    local char = user.getUsedCharacter
-    if not char then return end
-
     local jobLabel = label or job
-    char.setJob(job)
-    char.setJobGrade(tonumber(grade) or 0)
-    char.setJobLabel(jobLabel)
+    local success = WestRP.Shared.Bridge.Player.SetJob(targetId, job, grade, jobLabel)
+    if not success then return end
 
     WestRP.Shared.Bridge.Player.Notify(targetId, string.format("Seu emprego foi alterado para: %s (Grau %s)", jobLabel, grade), 5000)
     WestRP.Shared.Bridge.Player.Notify(source, string.format("Emprego de ID %s alterado para %s [%s]", targetId, job, grade), 4000)
@@ -205,17 +172,8 @@ end
 ---@param targetId number
 ---@param group string
 function WestRP.Server.Admin.Players.SetGroup(source, targetId, group)
-    local core = GetVorpCore()
-    if not core then return end
-
-    local user = core.getUser(targetId)
-    if not user then return end
-
-    local char = user.getUsedCharacter
-    if char then
-        char.setGroup(group)
-    end
-    user.setGroup(group)
+    local success = WestRP.Shared.Bridge.Player.SetGroup(targetId, group)
+    if not success then return end
 
     WestRP.Shared.Bridge.Player.Notify(targetId, "Seu grupo administrativo foi alterado para: " .. group, 5000)
     WestRP.Shared.Bridge.Player.Notify(source, string.format("Grupo de ID %s alterado para %s", targetId, group), 4000)

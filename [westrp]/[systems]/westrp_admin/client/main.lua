@@ -4,7 +4,13 @@ WestRP.Admin = WestRP.Admin or {}
 local isPlayerReady = false
 
 CreateThread(function()
-    repeat Wait(1000) until LocalPlayer.state.IsInSession
+    if LocalPlayer.state.IsInSession or NetworkIsSessionStarted() then
+        isPlayerReady = true
+        return
+    end
+    while not LocalPlayer.state.IsInSession and not NetworkIsSessionStarted() do
+        Wait(500)
+    end
     isPlayerReady = true
 end)
 

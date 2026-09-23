@@ -91,4 +91,43 @@ if isServer then
         end, tostring(itemName))
         return Citizen.Await(p)
     end
+
+    ---Concede arma ao jogador via API de inventário
+    ---@param source number
+    ---@param weaponName string
+    ---@return boolean
+    function WestRP.Shared.Bridge.Inventory.GiveWeapon(source, weaponName)
+        local ok, inv = pcall(function() return exports['vorp_inventory'] end)
+        if ok and inv and inv.createWeapon then
+            inv:createWeapon(source, weaponName)
+            return true
+        end
+        return false
+    end
+
+    ---Limpa completamente o inventário de itens e armas do jogador
+    ---@param source number
+    ---@return boolean
+    function WestRP.Shared.Bridge.Inventory.ClearInventory(source)
+        local ok, inv = pcall(function() return exports['vorp_inventory'] end)
+        if not ok or not inv then return false end
+
+        local userItems = inv:getUserInventoryItems(source)
+        if userItems then
+            for _, it in pairs(userItems) do
+                inv:subItem(source, it.name, it.count)
+            end
+        end
+
+        local weapons = inv:getUserInventoryWeapons(source)
+        if weapons then
+            for _, w in pairs(weapons) do
+                inv:subWeapon(source, w.id)
+                inv:deleteWeapon(source, w.id)
+            end
+        end
+
+        inv:removeAllUserAmmo(source)
+        return true
+    end
 end

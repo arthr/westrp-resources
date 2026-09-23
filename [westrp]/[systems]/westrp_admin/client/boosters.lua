@@ -14,7 +14,6 @@ local currentSpeedIndex = 3 -- 'Normal' por padrão
 local promptGroup = GetRandomIntInRange(0, 0xffffff)
 local prompts = {}
 
---------------------------------------------------------------------------------
 -- FUNÇÕES AUXILIARES DE PROMPTS
 --------------------------------------------------------------------------------
 local function InitializePrompts()
@@ -372,9 +371,11 @@ function WestRP.Admin.Boosters.SelfHeal()
         Citizen.InvokeNative(0xC6258F41D86676E0, mount, 1, 600)
     end
 
-    -- Disparar evento de metabolismo se existir
-    TriggerEvent("vorpmetabolism:changeValue", "Thirst", 1000)
-    TriggerEvent("vorpmetabolism:changeValue", "Hunger", 1000)
+    -- Disparar evento de metabolismo se ativo
+    if GetResourceState("vorp_metabolism") == "started" then
+        TriggerEvent("vorpmetabolism:changeValue", "Thirst", 1000)
+        TriggerEvent("vorpmetabolism:changeValue", "Hunger", 1000)
+    end
 
     WestRP.Client.UI.ShowToast("AUTO CURA", "Vida, estamina e metabolismo restaurados", "success")
     TriggerServerEvent("westrp_admin:server:selfHeal")

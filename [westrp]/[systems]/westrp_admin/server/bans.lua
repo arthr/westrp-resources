@@ -3,15 +3,6 @@ WestRP.Server = WestRP.Server or {}
 WestRP.Server.Admin = WestRP.Server.Admin or {}
 WestRP.Server.Admin.Bans = {}
 
-local VorpCore = nil
-local function GetVorpCore()
-    if not VorpCore then
-        pcall(function()
-            VorpCore = exports['vorp_core']:GetCore()
-        end)
-    end
-    return VorpCore
-end
 
 ---Converte string de tempo amigável ('2h', '3d', '1w', '1m', '0') em timestamp UNIX
 ---@param timeStr string
@@ -75,9 +66,9 @@ end
 ---@param source number Operador
 ---@param targetId number Jogador Alvo
 ---@param duration string Duração ('3d', '1w', '0')
----@param reason? string Motivo
 function WestRP.Server.Admin.Bans.BanPlayer(source, targetId, duration, reason)
-    local targetIdentifier = GetPlayerIdentifier(targetId, 1)
+    local char = WestRP.Shared.Bridge.Player.GetCharacter(targetId)
+    local targetIdentifier = (char and char.identifier) or GetPlayerIdentifierByType(targetId, "steam") or GetPlayerIdentifier(targetId, 0)
     if not targetIdentifier then
         return WestRP.Shared.Bridge.Player.Notify(source, "Identificador do alvo não encontrado", 4000)
     end
@@ -139,15 +130,12 @@ end
 ---@param identifier string
 ---@param action "add"|"remove"
 function WestRP.Server.Admin.Bans.SetWhitelist(source, identifier, action)
-    local core = GetVorpCore()
-    if not core or not core.Whitelist then return end
-
     if action == "add" then
-        core.Whitelist.whitelistUser(identifier)
+        WestRP.Shared.Bridge.Player.WhitelistUser(identifier)
         WestRP.Shared.Bridge.Player.Notify(source, "Whitelist concedida para: " .. identifier, 4000)
         WestRP.Server.Admin.Logger.Log("General", "Whitelist Concedida", "Identificador: " .. identifier, source)
     else
-        core.Whitelist.unWhitelistUser(identifier)
+        WestRP.Shared.Bridge.Player.UnwhitelistUser(identifier)
         WestRP.Shared.Bridge.Player.Notify(source, "Whitelist revogada de: " .. identifier, 4000)
         WestRP.Server.Admin.Logger.Log("General", "Whitelist Revogada", "Identificador: " .. identifier, source)
     end

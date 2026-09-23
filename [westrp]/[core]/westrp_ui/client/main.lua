@@ -102,10 +102,10 @@ function IsDockOpen()
 end
 
 ---Atualiza dados de um item no dock aberto em tempo real
----@param tabId? string
 ---@param itemId string
 ---@param updates table
-function UpdateItem(tabId, itemId, updates)
+---@param tabId? string
+function UpdateItem(itemId, updates, tabId)
     if not isDockOpen then return end
     SendNUIMessage({
         action = 'westrp_ui:updateItem',

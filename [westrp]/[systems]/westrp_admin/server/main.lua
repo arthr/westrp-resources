@@ -2,46 +2,41 @@ WestRP = WestRP or {}
 WestRP.Server = WestRP.Server or {}
 WestRP.Server.Admin = WestRP.Server.Admin or {}
 
-local VorpCore = nil
-local function GetVorpCore()
-    if not VorpCore then
-        pcall(function()
-            VorpCore = exports['vorp_core']:GetCore()
-        end)
-    end
-    return VorpCore
-end
 
 --------------------------------------------------------------------------------
 -- REGISTRO DE CALLBACKS RPC (WestRP.Callback)
 --------------------------------------------------------------------------------
 -- Obtenção do cargo staff do operador
-WestRP.Callback.Register("westrp_admin:server:getStaffRole", function(source)
-    return WestRP.Server.Admin.Security.GetPlayerRole(source)
+WestRP.Server.Callback.Register("westrp_admin:server:getStaffRole", function(source, cb)
+    local role = WestRP.Server.Admin.Security.GetPlayerRole(source)
+    cb(role)
 end)
 
 -- Obtenção da lista de jogadores online
-WestRP.Callback.Register("westrp_admin:server:getPlayers", function(source, filter)
+WestRP.Server.Callback.Register("westrp_admin:server:getPlayers", function(source, cb, filter)
     if not WestRP.Server.Admin.Security.CanExecute(source, "players_list") then
-        return {}
+        return cb({})
     end
-    return WestRP.Server.Admin.Players.GetList(filter)
+    local list = WestRP.Server.Admin.Players.GetList(filter)
+    cb(list)
 end)
 
 -- Obtenção do catálogo de itens para o Spawner
-WestRP.Callback.Register("westrp_admin:server:getItemsCatalog", function(source)
+WestRP.Server.Callback.Register("westrp_admin:server:getItemsCatalog", function(source, cb)
     if not WestRP.Server.Admin.Security.CanExecute(source, "give_item") then
-        return {}
+        return cb({})
     end
-    return WestRP.Server.Admin.Items.GetCatalog()
+    local catalog = WestRP.Server.Admin.Items.GetCatalog()
+    cb(catalog)
 end)
 
 -- Obtenção da lista de banimentos ativos
-WestRP.Callback.Register("westrp_admin:server:getBansList", function(source)
+WestRP.Server.Callback.Register("westrp_admin:server:getBansList", function(source, cb)
     if not WestRP.Server.Admin.Security.CanExecute(source, "ban_player") then
-        return {}
+        return cb({})
     end
-    return WestRP.Server.Admin.Bans.GetBansList()
+    local bans = WestRP.Server.Admin.Bans.GetBansList()
+    cb(bans)
 end)
 
 --------------------------------------------------------------------------------
@@ -127,10 +122,7 @@ end)
 RegisterNetEvent("westrp_admin:server:selfHeal", function()
     local _source = source
     if WestRP.Server.Admin.Security.CanExecute(_source, "selfheal") then
-        local core = GetVorpCore()
-        if core and core.Player and core.Player.Heal then
-            core.Player.Heal(_source)
-        end
+        WestRP.Shared.Bridge.Player.Heal(_source)
         WestRP.Server.Admin.Logger.Log("General", "Auto Cura", "Operador restaurou vida e estamina", _source)
     end
 end)
@@ -138,10 +130,7 @@ end)
 RegisterNetEvent("westrp_admin:server:selfRevive", function()
     local _source = source
     if WestRP.Server.Admin.Security.CanExecute(_source, "selfrevive") then
-        local core = GetVorpCore()
-        if core and core.Player and core.Player.Revive then
-            core.Player.Revive(_source)
-        end
+        WestRP.Shared.Bridge.Player.Revive(_source)
         WestRP.Server.Admin.Logger.Log("General", "Auto Reviver", "Operador reanimou a si mesmo", _source)
     end
 end)

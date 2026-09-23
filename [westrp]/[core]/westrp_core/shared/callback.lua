@@ -25,14 +25,19 @@ if isServer then
             return
         end
 
+        local responded = false
         local function respond(...)
+            if responded then return end
+            responded = true
             TriggerClientEvent('westrp:core:client:callbackResponse', src, ticket, true, ...)
         end
 
-        local ok, err = pcall(ServerCallbacks[name], src, respond, ...)
+        local ok, result = pcall(ServerCallbacks[name], src, respond, ...)
         if not ok then
-            WestRP.Shared.Logger.Error("CALLBACK", "Erro ao executar callback '%s' para player %s: %s", name, src, err)
+            WestRP.Shared.Logger.Error("CALLBACK", "Erro ao executar callback '%s' para player %s: %s", name, src, result)
             respond(nil)
+        elseif not responded and result ~= nil then
+            respond(result)
         end
     end)
 

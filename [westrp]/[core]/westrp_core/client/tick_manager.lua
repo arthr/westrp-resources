@@ -61,6 +61,22 @@ function WestRP.Client.TickManager.RemoveTask(name)
     end
 end
 
+---Registra um tick gerenciado (executado a cada frame com interval 0 por padrão)
+---@param name string
+---@param fn fun()
+---@param interval? number ms (padrão 0)
+function WestRP.Client.TickManager.RegisterTick(name, fn, interval)
+    return WestRP.Client.TickManager.CreateTask(name, function(task)
+        fn()
+    end, interval or 0)
+end
+
+---Desregistra e remove um tick gerenciado
+---@param name string
+function WestRP.Client.TickManager.UnregisterTick(name)
+    WestRP.Client.TickManager.RemoveTask(name)
+end
+
 ---Encerra todas as tarefas ativas do TickManager (usado no onResourceStop)
 function WestRP.Client.TickManager.StopAll()
     for name, task in pairs(activeTasks) do

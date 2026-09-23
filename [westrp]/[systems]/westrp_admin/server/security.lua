@@ -3,16 +3,6 @@ WestRP.Server = WestRP.Server or {}
 WestRP.Server.Admin = WestRP.Server.Admin or {}
 WestRP.Server.Admin.Security = {}
 
-local VorpCore = nil
-local function GetVorpCore()
-    if not VorpCore then
-        pcall(function()
-            VorpCore = exports['vorp_core']:GetCore()
-        end)
-    end
-    return VorpCore
-end
-
 ---Obtém o cargo administrativo ativo do jogador (a partir do personagem ou da conta)
 ---@param source number
 ---@return string
@@ -28,18 +18,6 @@ function WestRP.Server.Admin.Security.GetPlayerRole(source)
     local char = WestRP.Shared.Bridge.Player.GetCharacter(source)
     if char and char.group and Config.Roles[string.lower(char.group)] then
         return string.lower(char.group)
-    end
-
-    -- 3. Fallback no VORP Core direto
-    local core = GetVorpCore()
-    if core then
-        local user = core.getUser(source)
-        if user then
-            local uGroup = user.getGroup
-            if uGroup and Config.Roles[string.lower(uGroup)] then
-                return string.lower(uGroup)
-            end
-        end
     end
 
     return "user"

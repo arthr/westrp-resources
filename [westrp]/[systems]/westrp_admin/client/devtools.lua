@@ -22,7 +22,11 @@ local function InitializeHashDictionaries()
     end
 end
 
-InitializeHashDictionaries()
+CreateThread(function()
+    InitializeHashDictionaries()
+end)
+
+
 
 --------------------------------------------------------------------------------
 -- UTILITÁRIOS DE RENDERIZAÇÃO & CÓPIA
@@ -171,9 +175,22 @@ end
 function WestRP.Admin.DevTools.DeleteClosestObject()
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)
-    local closestObj = GetClosestObjectOfType(coords.x, coords.y, coords.z, 5.0, 0, false, false, false)
+    local objects = GetGamePool('CObject')
+    local closestObj = nil
+    local closestDist = 5.0
 
-    if DoesEntityExist(closestObj) and not IsPedAPlayer(closestObj) then
+    for i = 1, #objects do
+        local obj = objects[i]
+        if DoesEntityExist(obj) and not IsPedAPlayer(obj) then
+            local dist = #(GetEntityCoords(obj) - coords)
+            if dist < closestDist then
+                closestDist = dist
+                closestObj = obj
+            end
+        end
+    end
+
+    if closestObj and DoesEntityExist(closestObj) then
         SetEntityAsMissionEntity(closestObj, true, true)
         DeleteEntity(closestObj)
         WestRP.Client.UI.ShowToast("OBJETO", "Objeto próximo excluído com sucesso", "success")
