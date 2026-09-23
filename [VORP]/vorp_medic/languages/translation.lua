@@ -132,7 +132,71 @@ Translation.Langs = {
             playeralert = "alerta de jugador"
         }
     },
-    -- Add your language here and open a PR to merge other languages to the main repo
+    Portuguese = {
+        Menu = {
+            Hire = "Contratar",
+            Fire = "Demitir",
+            HirePlayer = "Contratar Jogador",
+            FirePlayer = "Demitir Jogador",
+            DoctorMenu = "Menu de Doutor",
+            HireFireMenu = "Menu Contratar/Demitir",
+            OpenDoctorMenu = "Abrir Menu de Doutor",
+            Press = "Pressione",
+            SubMenu = "SubMenu",
+            PressEnter = "Pressione Enter",
+        },
+        Teleport = {
+            TeleportTo = "Teletransportar para",
+            TeleportMenu = "Menu de Teletransporte",
+            TeleportToDifferentLocations = "Teletransportar para locais diferentes",
+        },
+        Duty = {
+            GoOnDuty = "Entrar de Serviço",
+            GoOffDuty = "Sair de Serviço",
+            OnDuty = "De Serviço",
+            OffDuty = "Fora de Serviço",
+            YouAreNotOnDuty = "Você não está de serviço",
+            YouAreNowOnDuty = "Você agora está de serviço",
+        },
+        Jobs = {
+            Job = "Trabalho",
+            YouAreNotADoctor = "Você não é um doutor",
+            Nojoblabel = "O trabalho não tem uma etiqueta na configuração, por favor adicione uma",
+        },
+        Player = {
+            PlayerIsNotDead = "O jogador não está morto",
+            PlayerId = "ID do Jogador",
+            Confirm = "Confirmar",
+            OnlyNumbersAreAllowed = "Somente números são permitidos",
+            NoPlayerFound = "Jogador não encontrado. Você só pode contratar jogadores na sessão.",
+            PlayeAlreadyHired = "O jogador já é um ",
+            NotNear = "O jogador não está perto de você para ser contratado",
+            HireedPlayer = "Você foi contratado como ",
+            CantFirenotHired = "O jogador não é um doutor, você não pode demiti-lo",
+            FiredPlayer = "Você demitiu o jogador",
+            BeenFireed = "Você foi demitido",
+            NoPlayerFoundToRevive = "Nenhum jogador próximo para reviver",
+        },
+        Error = {
+            OnlyDoctorOpenMenu = "Você não tem permissão para abrir este menu",
+            PlayerNearbyCantOpenInventory = "Há um jogador próximo. Não é possível abrir o inventário",
+            AlreadyAlertedDoctors = "Você já alertou os doutores. Para cancelar, use /cancelalert",
+            NoDoctorsAvailable = "Não há doutores disponíveis neste momento",
+            NotDeadCantAlert = "Você não está morto para alertar os doutores",
+            NoAlertToCancel = "Você não alertou os doutores",
+            NotOnCall = "Você não está em chamada para cancelar um alerta",
+        },
+        Alert = {
+            PlayerNeedsHelp = "O jogador precisa de ajuda. Olhe no mapa para a localização dele",
+            DoctorsAlerted = "Os doutores foram alertados",
+            AlertCanceled = "Você cancelou o alerta",
+            AlertCanceledByPlayer = "O jogador cancelou o alerta",
+            AlertCanceledByDoctor = "O doutor cancelou o alerta",
+            PlayerDisconnectedAlertCanceled = "O jogador se desconectou, alerta cancelada",
+            ArrivedAtLocation = "Você chegou ao local",
+            playeralert = "alerta de jogador"
+        }
+    }
 }
 
 return {
