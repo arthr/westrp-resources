@@ -506,6 +506,8 @@
     craftDetailsTitle: document.getElementById('craft-details-title'),
     craftDetailsDesc: document.getElementById('craft-details-desc'),
     craftReqsList: document.getElementById('craft-reqs-list'),
+    queueView: document.getElementById('panel-queue-view'),
+    queueList: document.getElementById('queue-items-list'),
     footerInfo: document.getElementById('panel-footer-info'),
     selectedName: document.getElementById('panel-selected-name'),
     selectedDesc: document.getElementById('panel-selected-desc'),
@@ -549,6 +551,7 @@
 
   function closePanel(reason = 'escape') {
     if (!panelState.isOpen) return;
+    stopQueueTicker();
     panelState.isOpen = false;
     panelEl.container.style.display = 'none';
     playUiTick('back');
@@ -596,7 +599,9 @@
     panelEl.gridView.style.display = 'none';
     panelEl.tableView.style.display = 'none';
     panelEl.craftView.style.display = 'none';
+    panelEl.queueView.style.display = 'none';
 
+    stopQueueTicker();
     updateFooter();
 
     if (currentTab.viewType === 'grid') {
@@ -608,6 +613,10 @@
     } else if (currentTab.viewType === 'craft') {
       panelEl.craftView.style.display = 'flex';
       renderCraftView(currentTab);
+    } else if (currentTab.viewType === 'queue') {
+      panelEl.queueView.style.display = 'flex';
+      renderQueueView(currentTab);
+      startQueueTicker(currentTab);
     }
   }
 
@@ -840,6 +849,18 @@
   }
 
   function updateFooter() {
+    const currentTab = panelState.tabs[panelState.activeTab];
+    if (currentTab && currentTab.viewType === 'queue') {
+      const activeCount = (currentTab.items || []).filter(j => j.status === 'in_progress' || j.status === 'queued').length;
+      const readyCount = (currentTab.items || []).filter(j => j.status === 'completed').length;
+      panelEl.selectedName.textContent = 'Fila de Manufatura da Bancada';
+      panelEl.selectedDesc.textContent = `${activeCount} lote(s) em produção • ${readyCount} pronto(s) para retirada`;
+      panelEl.ctaBtn.disabled = true;
+      panelEl.ctaBtn.textContent = 'ACOMPANHAMENTO';
+      panelEl.stepper.style.display = 'none';
+      return;
+    }
+
     const sel = panelState.selectedItem;
     if (sel) {
       panelEl.selectedName.textContent = sel.title || sel.label || sel.name || 'Item Selecionado';
@@ -867,17 +888,279 @@
     }
   }
 
+  // --- MÓDULO FILA DE PRODUÇÃO (QUEUE TRACKER) ---
+  let queueTimer = null;
+
+  function stopQueueTicker() {
+    if (queueTimer) {
+      clearInterval(queueTimer);
+      queueTimer = null;
+    }
+  }
+
+  function startQueueTicker(tab) {
+    stopQueueTicker();
+    queueTimer = setInterval(() => {
+      if (!panelState.isOpen) {
+        stopQueueTicker();
+        return;
+      }
+      const currentTab = panelState.tabs[panelState.activeTab];
+      if (!currentTab || currentTab.viewType !== 'queue') {
+        stopQueueTicker();
+        return;
+      }
+
+      const items = currentTab.items || [];
+      let activeJob = items.find(j => j.status === 'in_progress');
+
+      if (!activeJob) {
+        // Se não há nenhum em progresso, inicia o próximo na fila
+        const nextJob = items.find(j => j.status === 'queued');
+        if (nextJob) {
+          nextJob.status = 'in_progress';
+          activeJob = nextJob;
+          playUiTick('nav');
+        }
+      }
+
+      if (activeJob) {
+        const totalQty = activeJob.totalQty || 1;
+        const durPerUnit = activeJob.durationPerUnit || 10;
+        const totalDur = activeJob.totalDuration || (durPerUnit * totalQty);
+
+        if (activeJob.remainingTime === undefined) {
+          activeJob.totalDuration = totalDur;
+          activeJob.remainingTime = totalDur;
+        }
+
+        activeJob.remainingTime = Math.max(0, activeJob.remainingTime - 1);
+        const elapsed = totalDur - activeJob.remainingTime;
+        activeJob.completedQty = Math.min(totalQty, Math.floor(elapsed / durPerUnit));
+
+        if (activeJob.remainingTime <= 0) {
+          activeJob.status = 'completed';
+          activeJob.completedQty = totalQty;
+          playUiTick('confirm');
+        }
+
+        renderQueueView(currentTab, false);
+      }
+    }, 1000);
+  }
+
+  function renderQueueView(tab) {
+    panelEl.queueList.innerHTML = '';
+    const jobs = (tab.items || []).filter(job => {
+      if (!panelState.searchQuery) return true;
+      const q = panelState.searchQuery.toLowerCase();
+      return (job.title && job.title.toLowerCase().includes(q)) ||
+             (job.subtitle && job.subtitle.toLowerCase().includes(q));
+    });
+
+    if (jobs.length === 0) {
+      panelEl.queueList.innerHTML = '<div class="dock-empty-msg" style="padding: 40px; text-align: center;">Nenhum item na fila de produção no momento.</div>';
+      return;
+    }
+
+    jobs.forEach(job => {
+      const card = document.createElement('div');
+      const st = job.status || 'in_progress';
+      card.className = `queue-item-card status-${st}`;
+
+      const totalQty = job.totalQty || 1;
+      const durPerUnit = job.durationPerUnit || 10;
+      const totalDur = job.totalDuration || (durPerUnit * totalQty);
+      const remaining = job.remainingTime !== undefined ? job.remainingTime : (st === 'completed' ? 0 : totalDur);
+      const elapsed = Math.max(0, totalDur - remaining);
+      const pct = Math.min(100, Math.max(0, (elapsed / totalDur) * 100));
+      const completedQty = st === 'completed' ? totalQty : (job.completedQty || 0);
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'queue-item-header';
+
+      const main = document.createElement('div');
+      main.className = 'queue-item-main';
+
+      const iconUrl = resolveItemIcon(job);
+      if (iconUrl) {
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'queue-item-icon-wrap';
+        const img = document.createElement('img');
+        img.className = 'queue-item-icon';
+        img.src = iconUrl;
+        img.alt = '';
+        iconWrap.appendChild(img);
+        main.appendChild(iconWrap);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'queue-item-info';
+
+      const title = document.createElement('span');
+      title.className = 'queue-item-title';
+      title.textContent = job.title || 'Manufatura';
+      info.appendChild(title);
+
+      if (job.subtitle) {
+        const sub = document.createElement('span');
+        sub.className = 'queue-item-subtitle';
+        sub.textContent = job.subtitle;
+        info.appendChild(sub);
+      }
+      main.appendChild(info);
+      header.appendChild(main);
+
+      const meta = document.createElement('div');
+      meta.className = 'queue-item-meta';
+
+      const counter = document.createElement('span');
+      counter.className = 'queue-item-counter';
+      counter.textContent = `${completedQty} / ${totalQty} UNIDADES`;
+      meta.appendChild(counter);
+
+      const pill = document.createElement('span');
+      if (st === 'in_progress') {
+        pill.className = 'status-pill gold';
+        pill.textContent = 'EM ANDAMENTO';
+      } else if (st === 'completed') {
+        pill.className = 'status-pill on';
+        pill.textContent = 'CONCLUÍDO';
+      } else if (st === 'queued') {
+        pill.className = 'status-pill off';
+        pill.textContent = 'NA FILA';
+      } else {
+        pill.className = 'status-pill danger';
+        pill.textContent = 'CANCELADO';
+      }
+      meta.appendChild(pill);
+      header.appendChild(meta);
+      card.appendChild(header);
+
+      // Barra de Progresso e Stats
+      const progressSec = document.createElement('div');
+      progressSec.className = 'queue-progress-section';
+
+      const barBg = document.createElement('div');
+      barBg.className = 'queue-progress-bar-bg';
+      const barFill = document.createElement('div');
+      barFill.className = 'queue-progress-bar-fill';
+      barFill.style.width = `${pct}%`;
+      barBg.appendChild(barFill);
+      progressSec.appendChild(barBg);
+
+      const stats = document.createElement('div');
+      stats.className = 'queue-progress-stats';
+
+      const timeText = document.createElement('span');
+      timeText.className = 'queue-time-remaining';
+      if (st === 'completed') {
+        timeText.textContent = `✓ Produção concluída (${totalQty} unidades prontas)`;
+      } else if (st === 'queued') {
+        timeText.textContent = `Aguardando liberação da bancada...`;
+      } else if (st === 'in_progress') {
+        timeText.textContent = `⏳ Restam ${remaining}s (Unidade ${Math.min(totalQty, completedQty + 1)} de ${totalQty})`;
+      } else {
+        timeText.textContent = `Lote cancelado`;
+      }
+      stats.appendChild(timeText);
+
+      const pctText = document.createElement('span');
+      pctText.className = 'queue-percentage';
+      pctText.textContent = `${Math.round(pct)}%`;
+      stats.appendChild(pctText);
+
+      progressSec.appendChild(stats);
+      card.appendChild(progressSec);
+
+      // Ações do Job
+      const actions = document.createElement('div');
+      actions.className = 'queue-item-actions';
+
+      if (st === 'completed') {
+        const btnCollect = document.createElement('button');
+        btnCollect.className = 'queue-btn collect';
+        btnCollect.textContent = `COLETAR (${totalQty} UNIDADES)`;
+        btnCollect.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playUiTick('confirm');
+          tab.items = (tab.items || []).filter(j => j.id !== job.id);
+          renderQueueView(tab);
+          updateFooter();
+          postData('westrp_ui:panelAction', {
+            panelId: panelState.id,
+            tabId: tab.id,
+            action: 'collect_job',
+            item: job,
+            quantity: totalQty
+          });
+        });
+        actions.appendChild(btnCollect);
+      } else if (st === 'in_progress' || st === 'queued') {
+        const btnCancel = document.createElement('button');
+        btnCancel.className = 'queue-btn cancel';
+        btnCancel.textContent = 'CANCELAR LOTE';
+        btnCancel.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playUiTick('back');
+          job.status = 'cancelled';
+          renderQueueView(tab);
+          updateFooter();
+          postData('westrp_ui:panelAction', {
+            panelId: panelState.id,
+            tabId: tab.id,
+            action: 'cancel_job',
+            item: job,
+            quantity: totalQty
+          });
+        });
+        actions.appendChild(btnCancel);
+      }
+
+      card.appendChild(actions);
+      panelEl.queueList.appendChild(card);
+    });
+  }
+
   function executePanelCta() {
     if (!panelState.selectedItem) return;
     playUiTick('confirm');
 
     const currentTab = panelState.tabs[panelState.activeTab];
+    const qty = panelState.quantity;
+    const selected = panelState.selectedItem;
+
+    // Se estiver na bancada de forja (craft), enfileira automaticamente na aba de produção
+    if (currentTab && currentTab.viewType === 'craft') {
+      const queueTab = panelState.tabs.find(t => t.viewType === 'queue');
+      if (queueTab) {
+        if (!queueTab.items) queueTab.items = [];
+        const hasInProgress = queueTab.items.some(j => j.status === 'in_progress');
+        const durPerUnit = 8;
+        const totalDur = durPerUnit * qty;
+        const newJob = {
+          id: 'job_' + Date.now(),
+          item: selected.id,
+          title: selected.title || 'Manufatura',
+          subtitle: selected.subtitle || 'Lote enviado da forja',
+          totalQty: qty,
+          completedQty: 0,
+          durationPerUnit: durPerUnit,
+          totalDuration: totalDur,
+          remainingTime: totalDur,
+          status: hasInProgress ? 'queued' : 'in_progress'
+        };
+        queueTab.items.push(newJob);
+      }
+    }
+
     postData('westrp_ui:panelAction', {
       panelId: panelState.id,
       tabId: currentTab ? currentTab.id : 'default',
-      action: 'confirm',
-      item: panelState.selectedItem,
-      quantity: panelState.quantity
+      action: (currentTab && currentTab.viewType === 'craft') ? 'craft' : 'confirm',
+      item: selected,
+      quantity: qty
     });
   }
 
@@ -895,6 +1178,7 @@
       if (currentTab.viewType === 'grid') renderGridView(currentTab);
       else if (currentTab.viewType === 'table') renderTableView(currentTab);
       else if (currentTab.viewType === 'craft') renderCraftView(currentTab);
+      else if (currentTab.viewType === 'queue') renderQueueView(currentTab);
     }
   });
 

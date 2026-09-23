@@ -540,8 +540,10 @@ body {
 .panel-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(6, 5, 4, 0.78);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease;
 }
 
 .panel-modal {
@@ -1049,6 +1051,241 @@ body {
 
 .craft-req-row.missing {
   border-left-color: var(--accent-danger);
+}
+
+/* --- MODO 4: FILA DE PRODUÇÃO (CRAFTING QUEUE) --- */
+.panel-queue-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.queue-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.queue-item-card {
+  background: var(--bg-row);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 3px solid transparent;
+  border-radius: 2px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.15s ease;
+}
+
+.queue-item-card:hover {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(212, 175, 55, 0.2);
+}
+
+.queue-item-card.status-in_progress {
+  border-left-color: var(--accent-gold);
+}
+
+.queue-item-card.status-queued {
+  border-left-color: rgba(255, 255, 255, 0.2);
+}
+
+.queue-item-card.status-completed {
+  border-left-color: var(--accent-green);
+  background: rgba(46, 125, 50, 0.06);
+}
+
+.queue-item-card.status-cancelled {
+  border-left-color: var(--accent-danger);
+  opacity: 0.5;
+}
+
+.queue-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.queue-item-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.queue-item-icon-wrap {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.queue-item-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.queue-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.queue-item-title {
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-item-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.queue-item-counter {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #e2d8c3;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+/* Barra de Progresso do Job */
+.queue-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.queue-progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.queue-progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #8a7028 0%, var(--accent-gold) 100%);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.queue-item-card.status-in_progress .queue-progress-bar-fill {
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+
+.queue-item-card.status-completed .queue-progress-bar-fill {
+  background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.queue-progress-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.queue-time-remaining {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.queue-percentage {
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-family: var(--font-sans);
+}
+
+.queue-item-card.status-completed .queue-percentage {
+  color: var(--accent-green);
+}
+
+/* Ações do Job */
+.queue-item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.queue-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.1s ease;
+}
+
+.queue-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.queue-btn.cancel:hover {
+  background: rgba(198, 40, 40, 0.2);
+  border-color: var(--accent-danger);
+  color: #ff8a80;
+}
+
+.queue-btn.collect {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: #111111;
+  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.3);
+}
+
+.queue-btn.collect:hover {
+  background: #f0c94d;
+  box-shadow: 0 3px 10px rgba(212, 175, 55, 0.5);
 }
 
 /* --- RODAPÉ / DRAWER DO PANEL --- */

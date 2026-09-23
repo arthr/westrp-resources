@@ -196,6 +196,50 @@ local function OpenWorkshopPanel()
                     { id = 'l5', code = '#205', date = '22/09', item = 'Reparo: Molinete Vara de Pesca', client = 'Hosea Matthews', amount = '$ 14.00', status = 'CONCLUÍDO', status_type = 'on' },
                     { id = 'l6', code = '#206', date = '21/09', item = 'Pedido Especial: Lote Querosene', client = 'Bill Williamson', amount = '$ 32.00', status = 'CANCELADO', status_type = 'danger' }
                 }
+            },
+            {
+                id = 'queue',
+                label = 'Fila de Produção',
+                badge = 'PRODUÇÃO',
+                viewType = 'queue',
+                items = {
+                    {
+                        id = 'job_1',
+                        item = 'tool_resource_knife',
+                        title = 'Faca de Caça Rústica',
+                        subtitle = 'Lote de ferramentas de corte em produção na forja',
+                        totalQty = 5,
+                        completedQty = 2,
+                        durationPerUnit = 8,
+                        remainingTime = 24,
+                        totalDuration = 40,
+                        status = 'in_progress'
+                    },
+                    {
+                        id = 'job_2',
+                        item = 'ammo_revolver_split_point',
+                        title = 'Munição .45 Dum-Dum (x12)',
+                        subtitle = 'Aguardando liberação do molde e resfriamento do chumbo',
+                        totalQty = 3,
+                        completedQty = 0,
+                        durationPerUnit = 6,
+                        remainingTime = 18,
+                        totalDuration = 18,
+                        status = 'queued'
+                    },
+                    {
+                        id = 'job_3',
+                        item = 'lockpick',
+                        title = 'Gazua Reforçada de Aço',
+                        subtitle = 'Lote finalizado pronto para retirada na bancada',
+                        totalQty = 2,
+                        completedQty = 2,
+                        durationPerUnit = 5,
+                        remainingTime = 0,
+                        totalDuration = 10,
+                        status = 'completed'
+                    }
+                }
             }
         },
         onAction = function(action, item, tabId, qty)
@@ -203,12 +247,18 @@ local function OpenWorkshopPanel()
             local itemName = item.title or item.label or item.item or item.desc or item.id or "Item"
             local totalPrice = (item.price and (item.price * count)) or 0
 
-            if tabId == 'weapons' or tabId == 'supplies' then
+            if action == 'collect_job' then
+                WestRP.Shared.Logger.Info("PANEL", "Coleta de Produção: %s (x%d) retirado da bancada!", itemName, count)
+                WestRP.Client.UI.ShowToast("PRODUÇÃO CONCLUÍDA", string.format("Você retirou da bancada: %s (x%d)!", itemName, count), "success", 4000)
+            elseif action == 'cancel_job' then
+                WestRP.Shared.Logger.Info("PANEL", "Cancelamento de Produção: Lote de %s cancelado.", itemName)
+                WestRP.Client.UI.ShowToast("PRODUÇÃO CANCELADA", string.format("Lote cancelado: %s", itemName), "alert", 3500)
+            elseif tabId == 'weapons' or tabId == 'supplies' then
                 WestRP.Shared.Logger.Info("PANEL", "Transação Comercial: Compra de %s (x%d) por $ %.2f", itemName, count, totalPrice)
                 WestRP.Client.UI.ShowToast("OFICINA VALENTINE", string.format("Compra realizada: %s (x%d) - Total: $ %.2f", itemName, count, totalPrice), "success", 4000)
-            elseif tabId == 'forge' then
-                WestRP.Shared.Logger.Info("PANEL", "Bancada de Forja: Fabricado %s (x%d)", itemName, count)
-                WestRP.Client.UI.ShowToast("BANCADA DE FORJA", string.format("Manufaturado com sucesso: %s (x%d)", itemName, count), "success", 4000)
+            elseif tabId == 'forge' or action == 'craft' then
+                WestRP.Shared.Logger.Info("PANEL", "Bancada de Forja: Enviado %s (x%d) para a fila de produção!", itemName, count)
+                WestRP.Client.UI.ShowToast("FILA DE PRODUÇÃO", string.format("Lote enviado para forja: %s (x%d)! Acompanhe na aba Fila de Produção.", itemName, count), "info", 4500)
             elseif tabId == 'ledger' then
                 WestRP.Shared.Logger.Info("PANEL", "Livro-Razão: Inspecionado %s (Cliente: %s)", item.code or "Item", item.client or "N/A")
                 WestRP.Client.UI.ShowToast("LIVRO-RAZÃO", string.format("Registro aberto: %s (%s)", item.code or "", item.item or ""), "info", 3500)
