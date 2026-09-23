@@ -9,30 +9,81 @@ local invis = false
 local T = Translation.Langs[Config.Lang]
 
 function GODmode()
-    local player = PlayerPedId()
     if not god then
-        TriggerEvent('vorp:TipRight', T.Notify.switchedOn, 3000)
-        SetEntityCanBeDamaged(player, false)
-        SetEntityInvincible(player, true)
-        SetPedConfigFlag(player, 2, true) -- No critical hits
-        SetPedCanRagdoll(player, false)
-        SetPedCanBeTargetted(player, false)
-        Citizen.InvokeNative(0x5240864E847C691C, player, false) -- Set ped can be incapacitaded
-        SetPlayerInvincible(player, true)
-        Citizen.InvokeNative(0xFD6943B6DF77E449, player, false) -- Set ped can be lassoed
-        TriggerServerEvent("vorp_admin:GodMode")                -- log
         god = true
+        TriggerEvent('vorp:TipRight', T.Notify.switchedOn, 3000)
+        TriggerServerEvent("vorp_admin:GodMode") -- log
+
+        CreateThread(function()
+            while god do
+                local ped = PlayerPedId()
+                local playerId = PlayerId()
+
+                -- Invulnerabilidade do jogador e da entidade
+                SetPlayerInvincible(playerId, true)
+                SetEntityInvincible(ped, true)
+                SetEntityCanBeDamaged(ped, false)
+                SetEntityProofs(ped, 511, true) -- Bitmask RDR3: 1=Bala, 2=Fogo, 4=Explosão, 8=Colisão, 16=Melee, 32=Vapor, 64=Fumaça, 128=Headshot, 256=Projétil
+
+                -- Prevenção de dano crítico, laço, incapacitação e ragdoll
+                SetPedConfigFlag(ped, 2, true) -- Sem acertos críticos (headshots)
+                SetPedCanRagdoll(ped, false)
+                SetPedCanBeTargetted(ped, false)
+                Citizen.InvokeNative(0x5240864E847C691C, ped, false) -- Não pode ser incapacitado
+                Citizen.InvokeNative(0xFD6943B6DF77E449, ped, false) -- Não pode ser laçado
+                SetPedDiesInWater(ped, false)
+                SetPedDiesInSinkingVehicle(ped, false)
+                ClearPedBloodDamage(ped)
+                if IsEntityOnFire(ped) then
+                    StopEntityFire(ped)
+                end
+
+                -- Restauração contínua de vida caso haja delta de dano da engine
+                local maxHealth = GetEntityMaxHealth(ped)
+                if GetEntityHealth(ped) < maxHealth then
+                    SetEntityHealth(ped, maxHealth, 0)
+                end
+
+                -- Manter o núcleo interno de vida em 100% (núcleo 0 = health)
+                Citizen.InvokeNative(0xC6258F41D86676E0, ped, 0, 100)
+
+                -- Proteção também para montaria ativa (se estiver montado em cavalo)
+                local mount = GetMount(ped)
+                if DoesEntityExist(mount) and not IsEntityDead(mount) then
+                    SetEntityInvincible(mount, true)
+                    SetEntityCanBeDamaged(mount, false)
+                    SetEntityProofs(mount, 511, true)
+                    if IsEntityOnFire(mount) then
+                        StopEntityFire(mount)
+                    end
+                end
+
+                Wait(0)
+            end
+        end)
     else
-        TriggerEvent('vorp:TipRight', T.Notify.switchedOff, 3000)
-        SetEntityCanBeDamaged(player, true)
-        SetEntityInvincible(player, false)
-        SetPedConfigFlag(player, 2, false)
-        SetPedCanRagdoll(player, true)
-        SetPedCanBeTargetted(player, true)
-        Citizen.InvokeNative(0x5240864E847C691C, player, true)
-        SetPlayerInvincible(PlayerId(), false)
-        Citizen.InvokeNative(0xFD6943B6DF77E449, player, true)
         god = false
+        TriggerEvent('vorp:TipRight', T.Notify.switchedOff, 3000)
+        local ped = PlayerPedId()
+        local playerId = PlayerId()
+        SetPlayerInvincible(playerId, false)
+        SetEntityInvincible(ped, false)
+        SetEntityCanBeDamaged(ped, true)
+        SetEntityProofs(ped, 0, false)
+        SetPedConfigFlag(ped, 2, false)
+        SetPedCanRagdoll(ped, true)
+        SetPedCanBeTargetted(ped, true)
+        Citizen.InvokeNative(0x5240864E847C691C, ped, true)
+        Citizen.InvokeNative(0xFD6943B6DF77E449, ped, true)
+        SetPedDiesInWater(ped, true)
+        SetPedDiesInSinkingVehicle(ped, true)
+
+        local mount = GetMount(ped)
+        if DoesEntityExist(mount) and not IsEntityDead(mount) then
+            SetEntityInvincible(mount, false)
+            SetEntityCanBeDamaged(mount, true)
+            SetEntityProofs(mount, 0, false)
+        end
     end
 end
 
