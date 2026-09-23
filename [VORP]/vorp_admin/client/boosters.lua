@@ -442,3 +442,46 @@ CreateThread(function()
         Wait(sleep)
     end
 end)
+
+function ToggleNoclipNUI()
+    local player = PlayerPedId()
+    local AdminAllowed = IsAdminAllowed("noclip")
+    if AdminAllowed then
+        if not NoClipActive then
+            EnableNoclip(player)
+            NoClipActive = true
+            VORP.NotifyObjective(T.Notify.switchedOn, -1)
+            TriggerServerEvent("vorp_admin:NoClip")
+        else
+            ResetNoclip(player)
+            DisableRagdollingWhileFall()
+            NoClipActive = false
+            VORP.NotifyObjective(T.Notify.switchedOff, 5000)
+        end
+    end
+    return NoClipActive
+end
+
+function ToggleInvisNUI()
+    local AdminAllowed = IsAdminAllowed("invisibility")
+    if AdminAllowed then
+        if not invis then
+            SetEntityVisible(PlayerPedId(), false)
+            invis = true
+        else
+            SetEntityVisible(PlayerPedId(), true)
+            invis = false
+        end
+    end
+    return invis
+end
+
+function GetBoosterStates()
+    return {
+        godmode = god,
+        noclip = NoClipActive,
+        goldencores = goldenCores,
+        infiammo = infiniteammo,
+        invis = invis
+    }
+end

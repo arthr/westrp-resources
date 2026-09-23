@@ -1,1 +1,475 @@
-<script src="index.js"></script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Frontier Gazette - VORP Administration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Estrutura Principal do Folhetim de Época -->
+  <div id="admin-newspaper-app">
+    <div class="gazette-frame"></div>
+
+    <!-- Cabeçalho de Imprensa (Masthead) -->
+    <header class="gazette-header">
+      <div class="masthead-meta">
+        <span>Edição Territorial Especial &bull; Imprensa Oficial de 1899</span>
+        <span id="header-realtime">Saint Denis &bull; Valentine &bull; Blackwater</span>
+        <span id="header-staff-tag">Gabinete do Marechal</span>
+      </div>
+
+      <div class="masthead-title">
+        <h1>The Frontier Gazette</h1>
+        <div class="sub-banner">Registro Oficial de Cidadãos &bull; Moderação &bull; VORP Core</div>
+      </div>
+
+      <button class="close-gazette-btn" id="btn-close-gazette" title="Fechar (ESC)">
+        Fechar [ESC]
+      </button>
+    </header>
+
+    <!-- Barra de Navegação Editorial (Abas) -->
+    <nav class="gazette-nav">
+      <button class="nav-tab-btn active" data-tab="tab-players">
+        <span>📰</span> Registro de Cidadãos
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-boosters">
+        <span>⚡</span> Poderes do Delegado
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-treasury">
+        <span>💰</span> Tesouro & Cargas
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-teleports">
+        <span>🗺️</span> Rotas & Expedições
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-devtools">
+        <span>🛠️</span> Oficina de Campo
+      </button>
+    </nav>
+
+    <!-- Corpo do Jornal (Conteúdo das Seções) -->
+    <main class="gazette-body">
+
+      <!-- ============================================================
+           SEÇÃO 1: REGISTRO DE CIDADÃOS (PLAYERS)
+           ============================================================ -->
+      <section id="tab-players" class="tab-pane active">
+        <div class="players-layout">
+          
+          <!-- Tabela de Cidadãos com Pesquisa em Tempo Real -->
+          <div class="players-table-wrapper">
+            <div class="search-toolbar">
+              <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="player-search-input" placeholder="Pesquisar por ID, Nome RP, Conta Steam ou Ocupação..." autofocus>
+              </div>
+              <div class="players-count-badge" id="players-count-text">
+                Cidadãos em Registro: 0
+              </div>
+            </div>
+
+            <div class="table-scroll">
+              <table class="gazette-table">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;">ID</th>
+                    <th>Cidadão (RP)</th>
+                    <th>Conta Steam</th>
+                    <th>Ocupação</th>
+                    <th>Patrimônio ($ / Ouro)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="players-table-body">
+                  <!-- Linhas injetadas dinamicamente via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Dossiê do Cidadão Selecionado (Painel Lateral de Ações) -->
+          <aside class="player-dossier" id="player-dossier-panel">
+            <div class="dossier-header">
+              <h3 id="dossier-name">Selecione um Cidadão</h3>
+              <div class="dossier-sub" id="dossier-subinfo">Clique em uma linha para inspecionar os registros</div>
+            </div>
+
+            <div class="dossier-meta-grid" id="dossier-meta-section" style="display: none;">
+              <div class="meta-item">
+                <strong>ID do Servidor</strong>
+                <span id="meta-server-id">-</span>
+              </div>
+              <div class="meta-item">
+                <strong>ID Estático</strong>
+                <span id="meta-static-id">-</span>
+              </div>
+              <div class="meta-item">
+                <strong>Grupo</strong>
+                <span id="meta-group">-</span>
+              </div>
+              <div class="meta-item">
+                <strong>Whitelist</strong>
+                <span id="meta-whitelist">-</span>
+              </div>
+              <div class="meta-item">
+                <strong>Dinheiro</strong>
+                <span id="meta-money">$ 0.00</span>
+              </div>
+              <div class="meta-item">
+                <strong>Barras de Ouro</strong>
+                <span id="meta-gold">0.00</span>
+              </div>
+            </div>
+
+            <!-- Grupo de Ações Frequentes -->
+            <div id="dossier-actions-container" style="display: none;">
+              <div class="dossier-section-title">Ações Diretas de Patrulha</div>
+              <div class="action-buttons-grid">
+                <button class="action-btn" id="act-goto">Ir Até (Goto)</button>
+                <button class="action-btn" id="act-bring">Trazer (Bring)</button>
+                <button class="action-btn" id="act-heal">Curar (Heal)</button>
+                <button class="action-btn" id="act-revive">Reviver</button>
+                <button class="action-btn" id="act-freeze">Congelar</button>
+                <button class="action-btn" id="act-spectate">Espectar</button>
+                <button class="action-btn" id="act-sendback">Devolver Origem</button>
+                <button class="action-btn" id="act-respawn">Forçar Respawn</button>
+              </div>
+
+              <div class="dossier-section-title">Sanções & Mandados</div>
+              <div class="action-buttons-grid">
+                <button class="action-btn danger" id="act-kick">Expulsar (Kick)</button>
+                <button class="action-btn danger" id="act-ban">Mandado de Prisão (Ban)</button>
+                <button class="action-btn" id="act-setjob">Alterar Cargo</button>
+                <button class="action-btn" id="act-setgroup">Alterar Grupo</button>
+                <button class="action-btn full-width" id="act-toggle-wl">Alternar Whitelist</button>
+              </div>
+
+              <div class="dossier-section-title">Punições Cênicas da Fronteira</div>
+              <div class="action-buttons-grid">
+                <button class="action-btn" id="act-troll-lightning">Raio dos Céus</button>
+                <button class="action-btn" id="act-troll-fire">Incendiar</button>
+                <button class="action-btn" id="act-troll-heaven">Nuvens (Heaven)</button>
+                <button class="action-btn" id="act-troll-handcuff">Algemar</button>
+                <button class="action-btn" id="act-troll-ragdoll">Desmaiar</button>
+                <button class="action-btn" id="act-troll-stam">Zerar Estamina</button>
+              </div>
+            </div>
+
+            <div id="dossier-empty-hint" style="text-align: center; color: var(--gazette-ink-muted); margin-top: 40px; font-style: italic;">
+              Nenhum registro selecionado. Clique em qualquer cidadão na tabela para habilitar os mandados e ações.
+            </div>
+          </aside>
+
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SEÇÃO 2: PODERES DO DELEGADO (BOOSTERS)
+           ============================================================ -->
+      <section id="tab-boosters" class="tab-pane">
+        <div class="boosters-grid">
+          
+          <div class="card-dispatch">
+            <div>
+              <h4>Modo Deus (Invulnerabilidade)</h4>
+              <p>Torna o corpo imune a chumbo grosso, quedas, fogo, laço e ataques de feras selvagens.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp stamp-wanted" id="status-godmode">INATIVO</span>
+              <button class="toggle-btn" id="btn-toggle-godmode">Alternar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Voo Livre (NoClip)</h4>
+              <p>Locomoção tridimensional pelas nuvens com controles suaves de altitude e velocidade regulável.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp stamp-wanted" id="status-noclip">INATIVO</span>
+              <button class="toggle-btn" id="btn-toggle-noclip">Alternar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Núcleos de Ouro (Golden Cores)</h4>
+              <p>Fortifica a vitalidade e vigor físico com auras douradas de resistência máxima contínua.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp stamp-gold" id="status-goldencores">INATIVO</span>
+              <button class="toggle-btn" id="btn-toggle-goldencores">Alternar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Munição Infinita</h4>
+              <p>Os tambores de revólveres e cartucheiras de fuzil nunca se esgotam durante os disparos.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp" id="status-infiammo">INATIVO</span>
+              <button class="toggle-btn" id="btn-toggle-infiammo">Alternar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Invisibilidade Espectral</h4>
+              <p>Desvanece a forma corpórea para fiscalização e patrulhamento discreto de cidades e estradas.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp" id="status-invis">INATIVO</span>
+              <button class="toggle-btn" id="btn-toggle-invis">Alternar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Auto-Restauração Completa</h4>
+              <p>Restaura ferimentos graves, sacia toda a fome e sede, e revigora o fôlego imediatamente.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp stamp-verified">PRONTO</span>
+              <button class="toggle-btn" id="btn-self-heal">Restaurar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Reanimação Instantânea</h4>
+              <p>Levanta o delegado caso tenha tombado em combate ou sofrido algum infortúnio fatal.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp stamp-verified">PRONTO</span>
+              <button class="toggle-btn" id="btn-self-revive">Reviver-se</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Invocar Montaria Rápida</h4>
+              <p>Chama um cavalo de sela para transporte imediato pelas redondezas do condado.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <span class="stamp">MONTARIA</span>
+              <button class="toggle-btn" id="btn-spawn-horse">Invocar</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SEÇÃO 3: TESOURO & CARGAS (DATABASE)
+           ============================================================ -->
+      <section id="tab-treasury" class="tab-pane">
+        <div class="treasury-columns">
+          
+          <!-- Painel de Concessão de Bens -->
+          <div class="treasury-box">
+            <h4>Concessão ao Cidadão Selecionado</h4>
+            <div id="treasury-selected-hint" style="font-size: 12px; margin-bottom: 12px; color: var(--gazette-ink-soft);">
+              Alvo: <strong id="treasury-target-name">Nenhum cidadão selecionado na aba Registro</strong>
+            </div>
+
+            <div class="form-group">
+              <label>Depósito de Moedas ($ Dólares ou Ouro)</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="number" id="input-money-amount" class="form-input" placeholder="Quantia (ex: 150)">
+                <button class="action-btn" id="btn-give-money">Dar Dólares ($)</button>
+                <button class="action-btn" id="btn-give-gold">Dar Ouro</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Entrega de Suprimentos (Item do Banco de Dados)</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-item-name" class="form-input" placeholder="Código do item (ex: apple)">
+                <input type="number" id="input-item-qty" class="form-input" style="width: 100px;" value="1" min="1">
+                <button class="action-btn" id="btn-give-item">Conceder</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Entrega de Armamento Regulamentar</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-weapon-hash" class="form-input" placeholder="Código da arma (ex: WEAPON_REVOLVER_CATTLEMAN)">
+                <button class="action-btn" id="btn-give-weapon">Entregar Arma</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Registro de Cavalo ou Carroça no Estábulo</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-mount-model" class="form-input" placeholder="Modelo (ex: A_C_Horse_AmericanPaint_Overo)">
+                <button class="action-btn" id="btn-give-horse">Cadastrar Montaria</button>
+                <button class="action-btn" id="btn-give-wagon">Carroça</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Painel de Confisco e Saneamento -->
+          <div class="treasury-box">
+            <h4>Mandados de Confisco & Saneamento</h4>
+            <p style="font-size: 12px; color: var(--gazette-ink-soft); margin-bottom: 14px;">
+              Ações administrativas diretas aplicadas à bolsa ou conta do cidadão selecionado.
+            </p>
+
+            <div class="form-group">
+              <label>Confisco Total de Inventário</label>
+              <button class="action-btn danger full-width" id="btn-clear-inventory">
+                Esvaziar Bolsa de Itens do Cidadão
+              </button>
+            </div>
+
+            <div class="form-group" style="margin-top: 18px;">
+              <label>Confisco de Valores em Carteira</label>
+              <div style="display: flex; gap: 8px;">
+                <button class="action-btn danger" style="flex: 1;" id="btn-clear-money">Zerar Dinheiro ($)</button>
+                <button class="action-btn danger" style="flex: 1;" id="btn-clear-gold">Zerar Ouro</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SEÇÃO 4: ROTAS & EXPEDIÇÕES (TELEPORTS)
+           ============================================================ -->
+      <section id="tab-teleports" class="tab-pane">
+        <div class="teleport-grid">
+          
+          <div class="card-dispatch">
+            <div>
+              <h4>Viagem ao Marcador (TPM)</h4>
+              <p>Transporta o delegado imediatamente para a coordenada indicada pelo marco no mapa de navegação.</p>
+            </div>
+            <button class="action-btn" id="btn-tp-marker">Viajar ao Marcador</button>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Teleporte Automático (Auto-TPM)</h4>
+              <p>Ativa deslocamento instantâneo a cada nova demarcação traçada no mapa territorial.</p>
+            </div>
+            <button class="toggle-btn" id="btn-toggle-autotpm">Ligar Auto-TPM</button>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Retorno à Posição Prévia</h4>
+              <p>Desfaz a última viagem, devolvendo o delegado às coordenadas exatas anteriores.</p>
+            </div>
+            <button class="action-btn" id="btn-admin-goback">Retornar Origem</button>
+          </div>
+
+          <div class="card-dispatch">
+            <div>
+              <h4>Expedição à Ilha de Guarma</h4>
+              <p>Abre travessia aos mares caribenhos de Guarma com ativação de maré e céu tropical.</p>
+            </div>
+            <button class="action-btn" id="btn-tp-guarma">Zarpar / Voltar de Guarma</button>
+          </div>
+
+          <div class="card-dispatch" style="grid-column: span 2;">
+            <div>
+              <h4>Deslocamento por Coordenadas Vetoriais</h4>
+              <p>Insira coordenadas manuais cartográficas (X, Y, Z) ou código vector3.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="input-custom-coords" class="form-input" placeholder="ex: -280.38, 817.81, 119.38">
+              <button class="action-btn" id="btn-tp-custom-coords">Teleportar</button>
+            </div>
+          </div>
+
+          <div class="card-dispatch" style="grid-column: span 3;">
+            <div>
+              <h4>Telegrama Territorial em Massa (Anúncio)</h4>
+              <p>Dispara um comunicado oficial no topo do telégrafo de todos os habitantes conectados.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="input-announce-text" class="form-input" placeholder="Escreva o comunicado oficial...">
+              <button class="action-btn" id="btn-send-announce">Transmitir Anúncio</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SEÇÃO 5: OFICINA DE CAMPO (DEV TOOLS)
+           ============================================================ -->
+      <section id="tab-devtools" class="tab-pane">
+        <div class="devtools-grid">
+          
+          <div class="treasury-box">
+            <h4>Instrumentos de Medição Cartográfica</h4>
+            <p style="font-size: 12px; margin-bottom: 12px; color: var(--gazette-ink-soft);">
+              Extrai posições geográficas e transfere diretamente para a área de transferência do Windows.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button class="action-btn" id="btn-copy-vector3">Copiar Coordenadas [vector3]</button>
+              <button class="action-btn" id="btn-copy-vector4">Copiar Coordenadas + Direção [vector4]</button>
+              <button class="action-btn" id="btn-copy-heading">Copiar Apenas Heading (Ângulo)</button>
+              <button class="action-btn" id="btn-get-interior">Inspecionar ID do Interior Atual</button>
+            </div>
+          </div>
+
+          <div class="treasury-box">
+            <h4>Mira Laser de Campo (Raycast Inspector)</h4>
+            <p style="font-size: 12px; margin-bottom: 12px; color: var(--gazette-ink-soft);">
+              Projeta um feixe de mira para capturar modelos, hashes e distâncias de qualquer objeto ou criatura no cenário.
+            </p>
+
+            <div class="toggle-switch-wrapper">
+              <span class="stamp" id="status-devlaser">DESLIGADO</span>
+              <button class="toggle-btn" id="btn-toggle-devlaser">Alternar Mira Laser</button>
+            </div>
+
+            <div style="margin-top: 18px;">
+              <label style="display: block; font-family: var(--font-serif); font-size: 11px; margin-bottom: 4px;">Invocação por Código de Ped / NPC</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-spawn-ped-name" class="form-input" placeholder="Hash do Ped (ex: A_M_M_ValFarmer_01)">
+                <button class="action-btn" id="btn-spawn-ped">Invocar</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal Dinâmico de Confirmação & Entrada -->
+    <div class="gazette-modal-backdrop" id="gazette-modal-backdrop">
+      <div class="gazette-modal">
+        <div class="modal-header">
+          <h3 id="modal-title">Título do Mandado</h3>
+        </div>
+        <div class="modal-body" id="modal-body-content">
+          <!-- Conteúdo inserido dinamicamente via JS -->
+        </div>
+        <div class="modal-footer">
+          <button class="action-btn" id="modal-cancel-btn">Cancelar</button>
+          <button class="action-btn danger" id="modal-confirm-btn">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container de Avisos Flutuantes (Toasts) -->
+    <div id="toast-container"></div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+</body>
+</html>

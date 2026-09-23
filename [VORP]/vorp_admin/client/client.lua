@@ -15,6 +15,7 @@ AddEventHandler("onResourceStop", function(resourceName)
     local player = PlayerPedId()
     ClearPedTasksImmediately(player, true, true) -- Clear tasks
     Closem()                                     -- Close menu
+    SetNuiFocus(false, false)
     AdminAllowed = false
 end)
 
@@ -38,9 +39,27 @@ local function CanOpenUsersMenu()
     end
 end
 
+local function OpenCustomAdminNUI()
+    VORP.Callback.TriggerAsync("vorp_admin:Callback:getplayersinfo", function(cb)
+        local playersList = cb or {}
+        local boosters = (type(GetBoosterStates) == "function") and GetBoosterStates() or {}
+        SetNuiFocus(true, true)
+        SendNUIMessage({
+            action = "open",
+            players = playersList,
+            boosters = boosters,
+            staffRole = LocalPlayer.state.Group or "Staff"
+        })
+    end, { search = "all" })
+end
+
 local function OpenAdminMenu()
     local AdminAllowed = IsAdminAllowed("open_menu")
     if AdminAllowed then
+        if Config.UseCustomNUI then
+            OpenCustomAdminNUI()
+            return true
+        end
         OpenMenu()
         return true
     end
@@ -226,3 +245,170 @@ RegisterNetEvent('vorp_admin:ClientTempHighPlayerHandler', function()
     Wait(15000)
     AnimpostfxStop('MP_BountyLagrasSwamp')
 end)
+
+-----------------------------------------------------------------------------
+-- NUI CALLBACKS (FRONTIER GAZETTE 1899)
+-----------------------------------------------------------------------------
+
+RegisterNUICallback('closeMenu', function(_, cb)
+    SetNuiFocus(false, false)
+    cb('ok')
+end)
+
+RegisterNUICallback('triggerAction', function(data, cb)
+    if not data or not data.actionType or not data.targetId then
+        return cb('error')
+    end
+
+    local action = data.actionType
+    local targetId = tonumber(data.targetId)
+    local targetName = data.targetName or "Player"
+    local targetCoords = GetEntityCoords(GetPlayerPed(GetPlayerFromServerId(targetId)))
+
+    if action == "goto" then
+        TriggerServerEvent("vorp_admin:TpToPlayer", targetId, targetCoords, targetName)
+    elseif action == "bring" then
+        local adminCoords = GetEntityCoords(PlayerPedId())
+        TriggerServerEvent("vorp_admin:Bring", targetId, adminCoords, targetName, nil, targetId)
+    elseif action == "heal" then
+        TriggerServerEvent("vorp_admin:heal", targetId, nil, targetName)
+    elseif action == "revive" then
+        TriggerServerEvent("vorp_admin:revive", targetId, nil, targetName)
+    elseif action == "freeze" then
+        TriggerServerEvent("vorp_admin:FreezePlayer", targetId, targetName)
+    elseif action == "spectate" then
+        TriggerServerEvent("vorp_admin:spectate", targetId, nil, targetName)
+    elseif action == "sendback" then
+        TriggerServerEvent("vorp_admin:TeleportPlayerBack", targetId)
+    elseif action == "respawn" then
+        TriggerServerEvent("vorp_admin:respawnPlayer", targetId, targetName)
+    elseif action == "kick" then
+        TriggerServerEvent("vorp_admin:kick", targetId, data.reason or "Kick by admin", targetName)
+    elseif action == "ban" then
+        TriggerServerEvent("vorp_admin:ban", targetId, tonumber(data.time) or 0, data.reason or "Ban by admin", targetName)
+    elseif action == "setJob" then
+        TriggerServerEvent("vorp_admin:setJob", targetId, data.job or "unemployed", tonumber(data.grade) or 0, data.jobLabel or data.job, data.staticId, targetName)
+    elseif action == "setGroup" then
+        TriggerServerEvent("vorp_admin:setGroup", targetId, data.group or "user", data.staticId, targetName)
+    elseif action == "whitelist" then
+        TriggerServerEvent("vorp_admin:Whitelist", targetId, data.steam, nil, data.staticId, targetName)
+    -- Trolls
+    elseif action == "troll_lightning" then
+        TriggerServerEvent('vorp_admin:ServerTrollLightningStrikePlayerHandler', targetId)
+    elseif action == "troll_fire" then
+        TriggerServerEvent('vorp_admin:ServerTrollSetPlayerOnFireHandler', targetId)
+    elseif action == "troll_heaven" then
+        TriggerServerEvent('vorp_admin:ServerTrollTpToHeavenHandler', targetId)
+    elseif action == "troll_handcuff" then
+        TriggerServerEvent('vorp_admin:ServerTrollHandcuffPlayerHandler', targetId)
+    elseif action == "troll_ragdoll" then
+        TriggerServerEvent('vorp_admin:ServerTrollRagdollPlayerHandler', targetId)
+    elseif action == "troll_stam" then
+        TriggerServerEvent('vorp_admin:ServerTrollDrainPlayerStamHandler', targetId)
+    end
+
+    cb('ok')
+end)
+
+RegisterNUICallback('toggleBooster', function(data, cb)
+    if not data or not data.booster then return cb('error') end
+    local booster = data.booster
+
+    if booster == "godmode" then
+        if type(GODmode) == "function" then GODmode() end
+    elseif booster == "noclip" then
+        if type(ToggleNoclipNUI) == "function" then ToggleNoclipNUI() end
+    elseif booster == "goldencores" then
+        if type(GoldenCores) == "function" then GoldenCores() end
+    elseif booster == "infiammo" then
+        if type(InfiAmmo) == "function" then InfiAmmo() end
+    elseif booster == "invis" then
+        if type(ToggleInvisNUI) == "function" then ToggleInvisNUI() end
+    elseif booster == "selfheal" then
+        TriggerServerEvent('vorp_admin:HealSelf', "selfheal")
+        if Config.Heal and Config.Heal.Players then Config.Heal.Players() end
+    elseif booster == "selfrevive" then
+        TriggerServerEvent('vorp_admin:ReviveSelf', "selfrevive")
+    elseif booster == "spawnhorse" then
+        if type(SpawnHorse) == "function" then SpawnHorse("A_C_Horse_AmericanPaint_Overo") end
+    end
+
+    cb('ok')
+end)
+
+RegisterNUICallback('databaseAction', function(data, cb)
+    if not data or not data.type or not data.targetId then return cb('error') end
+    local tId = tonumber(data.targetId)
+    local tName = data.targetName or "Player"
+
+    if data.type == "giveCurrency" then
+        TriggerServerEvent("vorp_admin:giveMoneyGold", tId, tonumber(data.currencyType) or 0, tonumber(data.amount) or 0, tName)
+    elseif data.type == "giveItem" then
+        TriggerServerEvent("vorp_admin:giveItem", tId, tostring(data.item), tonumber(data.qty) or 1, tName)
+    elseif data.type == "giveWeapon" then
+        TriggerServerEvent("vorp_admin:giveWeapon", tId, tostring(data.weapon), tName)
+    elseif data.type == "giveMount" then
+        if data.mountType == "horse" then
+            TriggerServerEvent("vorp_admin:giveHorse", tId, tostring(data.model), tName)
+        else
+            TriggerServerEvent("vorp_admin:giveWagon", tId, tostring(data.model), tName)
+        end
+    elseif data.type == "clearInventory" then
+        TriggerServerEvent("vorp_admin:clearInventory", tId, tName)
+    elseif data.type == "clearCurrency" then
+        TriggerServerEvent("vorp_admin:clearCurrency", tId, tostring(data.currencyType), tName)
+    end
+
+    cb('ok')
+end)
+
+RegisterNUICallback('teleportAction', function(data, cb)
+    if not data or not data.type then return cb('error') end
+
+    if data.type == "tpm" then
+        if type(TeleportToWaypointNUI) == "function" then TeleportToWaypointNUI() end
+    elseif data.type == "autotpm" then
+        if type(ToggleAutoTpmNUI) == "function" then ToggleAutoTpmNUI() end
+    elseif data.type == "goback" then
+        TriggerServerEvent("vorp_admin:sendAdminBack")
+    elseif data.type == "guarma" then
+        if type(ToggleGuarmaNUI) == "function" then ToggleGuarmaNUI() end
+    elseif data.type == "customCoords" then
+        if type(TeleportToCoordsNUI) == "function" then TeleportToCoordsNUI(data.coords) end
+    elseif data.type == "announce" then
+        TriggerServerEvent("vorp_admin:announce", tostring(data.message))
+    end
+
+    cb('ok')
+end)
+
+RegisterNUICallback('devtoolsAction', function(data, cb)
+    if not data or not data.type then return cb('error') end
+
+    if data.type == "laser" then
+        if type(ToggleDevLaser) == "function" then ToggleDevLaser() end
+    elseif data.type == "copyVector3" then
+        local c = GetEntityCoords(PlayerPedId())
+        local s = string.format("vector3(%.2f, %.2f, %.2f)", c.x, c.y, c.z)
+        SendNUIMessage({ string = s })
+    elseif data.type == "copyVector4" then
+        local c = GetEntityCoords(PlayerPedId())
+        local h = GetEntityHeading(PlayerPedId())
+        local s = string.format("vector4(%.2f, %.2f, %.2f, %.2f)", c.x, c.y, c.z, h)
+        SendNUIMessage({ string = s })
+    elseif data.type == "copyHeading" then
+        local h = GetEntityHeading(PlayerPedId())
+        local s = string.format("%.2f", h)
+        SendNUIMessage({ string = s })
+    elseif data.type == "interiorId" then
+        local intId = GetInteriorFromEntity(PlayerPedId())
+        local msg = "Interior ID: " .. tostring(intId)
+        VORP.NotifyObjective(msg, 5000)
+        SendNUIMessage({ string = tostring(intId) })
+    elseif data.type == "spawnPed" then
+        if type(SpawnPedFromNUI) == "function" then SpawnPedFromNUI(data.model) end
+    end
+
+    cb('ok')
+end)
+

@@ -19,7 +19,7 @@ local devAimEnabled = false
 local laserThreadRunning = false
 local StartDevLaserLoop -- forward declaration
 
-local function ToggleDevLaser()
+function ToggleDevLaser()
     devAimEnabled = not devAimEnabled
     if devAimEnabled then
         TriggerEvent("vorp:TipRight", "Dev Laser ON (aim at an entity)", 3000)
@@ -28,6 +28,18 @@ local function ToggleDevLaser()
         -- graceful stop: loop will exit on next tick
         TriggerEvent("vorp:TipRight", "Dev Laser OFF", 2500)
     end
+end
+
+function SpawnPedFromNUI(pedModel)
+    if not pedModel or pedModel == "" then return end
+    loadModel(pedModel)
+    local offset = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0, 3.0, 0.0)
+    local npc = CreatePed(joaat(pedModel), offset.x, offset.y, offset.z, 0.0, true, true, true, false)
+    repeat Wait(0) until DoesEntityExist(npc)
+    Citizen.InvokeNative(0x77FF8D35EEC6BBC4, npc, 1, 0)
+    SetModelAsNoLongerNeeded(pedModel)
+    SetEntityAsNoLongerNeeded(npc)
+    VORP.NotifyObjective("Ped invocado com sucesso!", 3000)
 end
 
 

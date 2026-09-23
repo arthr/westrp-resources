@@ -1,0 +1,727 @@
+/* ==========================================================================
+   THE FRONTIER GAZETTE & ADMINISTRATIVE REGISTRY - 1899
+   Aesthetic: 19th Century Frontier Newspaper & Broadside Editorial
+   Style: Clean, Minimalist, High Contrast & Ergonomic
+   ========================================================================== */
+
+:root {
+  --gazette-bg: #f4efe6;
+  --gazette-paper-dark: #ece5d8;
+  --gazette-paper-light: #faf7f2;
+  --gazette-ink: #191613;
+  --gazette-ink-soft: #38332c;
+  --gazette-ink-muted: #6b6357;
+  
+  --rule-hairline: rgba(25, 22, 19, 0.25);
+  --rule-solid: #191613;
+  --rule-double: 3px double #191613;
+  
+  --stamp-red: #8f2119;
+  --stamp-red-bg: rgba(143, 33, 25, 0.08);
+  --stamp-green: #295738;
+  --stamp-green-bg: rgba(41, 87, 56, 0.08);
+  --stamp-gold: #8c6a28;
+  --stamp-gold-bg: rgba(140, 106, 40, 0.08);
+  
+  --font-serif: "Cinzel", "Playfair Display", "Georgia", "Times New Roman", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Courier Prime", "SFMono-Regular", Consolas, monospace;
+  
+  --shadow-broadside: 0 15px 35px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  color: var(--gazette-ink);
+}
+
+/* ==========================================================================
+   CONTAINER PRINCIPAL DO JORNAL
+   ========================================================================== */
+#admin-newspaper-app {
+  display: none;
+  width: 94vw;
+  max-width: 1280px;
+  height: 90vh;
+  max-height: 880px;
+  background: var(--gazette-bg);
+  box-shadow: var(--shadow-broadside);
+  border: 1px solid var(--gazette-ink);
+  position: relative;
+  flex-direction: column;
+  border-radius: 2px;
+  animation: unfoldPaper 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes unfoldPaper {
+  0% {
+    opacity: 0;
+    transform: scale(0.97) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Moldura dupla vitoriana */
+.gazette-frame {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border: 1px solid rgba(25, 22, 19, 0.35);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ==========================================================================
+   MASTHEAD (CABEÇALHO DE JORNAL)
+   ========================================================================== */
+.gazette-header {
+  padding: 14px 24px 10px 24px;
+  background: var(--gazette-paper-light);
+  border-bottom: var(--rule-double);
+  position: relative;
+}
+
+.masthead-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  color: var(--gazette-ink-muted);
+  border-bottom: 1px solid var(--rule-hairline);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.masthead-title {
+  text-align: center;
+  position: relative;
+}
+
+.masthead-title h1 {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--gazette-ink);
+  margin-bottom: 4px;
+}
+
+.masthead-title .sub-banner {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gazette-ink-soft);
+}
+
+.close-gazette-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: transparent;
+  border: 1px solid var(--gazette-ink);
+  color: var(--gazette-ink);
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.15s ease;
+  z-index: 101;
+}
+
+.close-gazette-btn:hover {
+  background: var(--gazette-ink);
+  color: var(--gazette-bg);
+}
+
+/* ==========================================================================
+   NAVEGAÇÃO POR SEÇÕES (ABAS)
+   ========================================================================== */
+.gazette-nav {
+  display: flex;
+  background: var(--gazette-paper-dark);
+  border-bottom: 2px solid var(--rule-solid);
+  overflow-x: auto;
+}
+
+.nav-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--rule-hairline);
+  padding: 10px 14px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--gazette-ink-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.nav-tab-btn:last-child {
+  border-right: none;
+}
+
+.nav-tab-btn:hover {
+  background: rgba(25, 22, 19, 0.05);
+  color: var(--gazette-ink);
+}
+
+.nav-tab-btn.active {
+  background: var(--gazette-bg);
+  color: var(--gazette-ink);
+  border-bottom: 3px solid var(--gazette-ink);
+  font-weight: 900;
+}
+
+/* ==========================================================================
+   CORPO PRINCIPAL (CONTEÚDO DAS ABAS)
+   ========================================================================== */
+.gazette-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  background: var(--gazette-bg);
+}
+
+.tab-pane {
+  display: none;
+  width: 100%;
+  height: 100%;
+  padding: 18px 24px;
+  overflow-y: auto;
+}
+
+.tab-pane.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   ABA 1: REGISTRO DE CIDADÃOS (PLAYERS)
+   ========================================================================== */
+.players-layout {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.players-table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--gazette-paper-light);
+  border: 1px solid var(--rule-solid);
+}
+
+.search-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--gazette-paper-dark);
+  border-bottom: 1px solid var(--rule-solid);
+  gap: 12px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid var(--gazette-ink);
+  padding: 6px 12px;
+}
+
+.search-box span {
+  font-size: 13px;
+  margin-right: 8px;
+  color: var(--gazette-ink-muted);
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--gazette-ink);
+  width: 100%;
+}
+
+.search-box input::placeholder {
+  color: var(--gazette-ink-muted);
+  font-style: italic;
+}
+
+.players-count-badge {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--gazette-ink-soft);
+  white-space: nowrap;
+}
+
+/* Tabela de Cidadãos */
+.table-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.gazette-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.gazette-table th {
+  background: var(--gazette-paper-dark);
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--gazette-ink);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  color: var(--gazette-ink);
+}
+
+.gazette-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule-hairline);
+  font-variant-numeric: tabular-nums;
+  color: var(--gazette-ink);
+}
+
+.gazette-table tbody tr {
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.gazette-table tbody tr:hover {
+  background: rgba(25, 22, 19, 0.06);
+}
+
+.gazette-table tbody tr.selected {
+  background: rgba(25, 22, 19, 0.12);
+  font-weight: 600;
+}
+
+/* Carimbos e Selos (Stamps) */
+.stamp {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid currentColor;
+  letter-spacing: 0.5px;
+  border-radius: 1px;
+}
+
+.stamp-verified {
+  color: var(--stamp-green);
+  border-color: var(--stamp-green);
+  background: var(--stamp-green-bg);
+}
+
+.stamp-wanted {
+  color: var(--stamp-red);
+  border-color: var(--stamp-red);
+  background: var(--stamp-red-bg);
+}
+
+.stamp-gold {
+  color: var(--stamp-gold);
+  border-color: var(--stamp-gold);
+  background: var(--stamp-gold-bg);
+}
+
+/* Painel Lateral de Ações (Dossiê do Cidadão) */
+.player-dossier {
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  background: var(--gazette-paper-light);
+  border: 1px solid var(--gazette-ink);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.dossier-header {
+  border-bottom: var(--rule-double);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.dossier-header h3 {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gazette-ink);
+}
+
+.dossier-header .dossier-sub {
+  font-size: 11px;
+  color: var(--gazette-ink-muted);
+  font-style: italic;
+}
+
+.dossier-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule-hairline);
+}
+
+.meta-item strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--gazette-ink-muted);
+  letter-spacing: 0.5px;
+}
+
+.dossier-section-title {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--gazette-ink);
+  padding-bottom: 4px;
+  margin: 12px 0 8px 0;
+  color: var(--gazette-ink-soft);
+}
+
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.action-btn {
+  background: var(--gazette-paper-dark);
+  border: 1px solid var(--gazette-ink);
+  color: var(--gazette-ink);
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 7px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s ease;
+}
+
+.action-btn:hover {
+  background: var(--gazette-ink);
+  color: var(--gazette-paper-light);
+}
+
+.action-btn.danger {
+  border-color: var(--stamp-red);
+  color: var(--stamp-red);
+  background: var(--stamp-red-bg);
+}
+
+.action-btn.danger:hover {
+  background: var(--stamp-red);
+  color: #ffffff;
+}
+
+.action-btn.full-width {
+  grid-column: span 2;
+}
+
+/* ==========================================================================
+   ABA 2: BOOSTERS & PODERES
+   ========================================================================== */
+.boosters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card-dispatch {
+  background: var(--gazette-paper-light);
+  border: 1px solid var(--gazette-ink);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 2px 2px 0px rgba(25, 22, 19, 0.1);
+}
+
+.card-dispatch h4 {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--rule-hairline);
+  padding-bottom: 4px;
+}
+
+.card-dispatch p {
+  font-size: 12px;
+  color: var(--gazette-ink-soft);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.toggle-switch-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--rule-hairline);
+  padding-top: 10px;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: 1px solid var(--gazette-ink);
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s ease;
+}
+
+.toggle-btn.active {
+  background: var(--gazette-ink);
+  color: var(--gazette-paper-light);
+}
+
+/* ==========================================================================
+   ABA 3: TESOURO & CARGAS (DATABASE)
+   ========================================================================== */
+.treasury-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.treasury-box {
+  background: var(--gazette-paper-light);
+  border: 1px solid var(--gazette-ink);
+  padding: 16px;
+}
+
+.treasury-box h4 {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: var(--rule-double);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  color: var(--gazette-ink-soft);
+}
+
+.form-input {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid var(--gazette-ink);
+  padding: 7px 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--gazette-ink);
+  outline: none;
+}
+
+.form-input:focus {
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   ABA 4: ROTAS & TELEPORTES
+   ========================================================================== */
+.teleport-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* ==========================================================================
+   ABA 5: OFICINA & DEV TOOLS
+   ========================================================================== */
+.devtools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ==========================================================================
+   MODAL DE CONFIRMAÇÃO & ENTRADA
+   ========================================================================== */
+.gazette-modal-backdrop {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(25, 22, 19, 0.6);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.gazette-modal {
+  width: 440px;
+  background: var(--gazette-bg);
+  border: 2px solid var(--gazette-ink);
+  box-shadow: var(--shadow-broadside);
+  padding: 20px;
+  position: relative;
+}
+
+.modal-header {
+  border-bottom: var(--rule-double);
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+}
+
+.modal-header h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modal-body {
+  margin-bottom: 18px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--rule-hairline);
+  padding-top: 12px;
+}
+
+/* ==========================================================================
+   NOTIFICAÇÕES FLUTUANTES (TOASTS)
+   ========================================================================== */
+#toast-container {
+  position: absolute;
+  bottom: 18px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.gazette-toast {
+  background: var(--gazette-paper-light);
+  border: 1px solid var(--gazette-ink);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-family: var(--font-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-left: 4px solid var(--gazette-ink);
+  animation: toastFadeIn 0.2s ease forwards;
+}
+
+@keyframes toastFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   SCROLLBAR MINIMALISTA EDITORIAL
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gazette-paper-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gazette-ink-muted);
+  border-radius: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gazette-ink);
+}

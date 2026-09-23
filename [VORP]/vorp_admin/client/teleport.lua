@@ -170,3 +170,74 @@ function Teleport()
             menu.close()
         end)
 end
+
+function ToggleGuarmaNUI()
+    local AdminAllowed = IsAdminAllowed("teleport_to_guarma")
+    if AdminAllowed then
+        local admin = PlayerPedId()
+        if isPlayerInGuarma() then
+            local returnCoords = lastCoords or Config.GuamarmaCoords.MainLandCoords
+            setGuarmaWorldState(false)
+            teleportPedToCoords(admin, returnCoords)
+            lastCoords = nil
+            VORP.NotifyObjective("Retornando ao continente...", 4000)
+        else
+            lastCoords = GetEntityCoords(admin)
+            setGuarmaWorldState(true)
+            teleportPedToCoords(admin, Config.GuamarmaCoords.GuarmaCoords)
+            VORP.NotifyObjective("Zarpando para Guarma...", 4000)
+        end
+    end
+end
+
+function TeleportToWaypointNUI()
+    local coords = GetEntityCoords(PlayerPedId())
+    local waypointCoords = GetWaypointCoords()
+    local waypoint = IsWaypointActive()
+    if not waypoint then
+        return VORP.NotifyObjective("Nenhum marcador definido no mapa!", 5000)
+    end
+    TriggerServerEvent('vorp:teleportWayPoint', "", coords, waypointCoords)
+end
+
+function ToggleAutoTpmNUI()
+    if autotpm == false then
+        autotpm = true
+        VORP.NotifyObjective(T.Notify.switchedOn, 3000)
+        CreateThread(function()
+            while autotpm do
+                Wait(2000)
+                if IsWaypointActive() then
+                    TriggerServerEvent('vorp:teleportWayPoint')
+                end
+            end
+        end)
+    else
+        VORP.NotifyObjective(T.Notify.switchedOff, 3000)
+        autotpm = false
+    end
+    return autotpm
+end
+
+function TeleportToCoordsNUI(coordsInput)
+    local AdminAllowed = IsAdminAllowed("tp_to_coords")
+    if not AdminAllowed then return end
+    if not coordsInput or coordsInput == "" then return end
+
+    local oldCoords = GetEntityCoords(PlayerPedId())
+    local clean = string.gsub(coordsInput, "(vector[34])", "")
+    clean = string.gsub(clean, "[^%d%. -]", "")
+    local finalCoords = {}
+    for i in string.gmatch(clean, "%S+") do
+        finalCoords[#finalCoords + 1] = i
+    end
+
+    if #finalCoords >= 3 then
+        local x, y, z = tonumber(finalCoords[1]), tonumber(finalCoords[2]), tonumber(finalCoords[3])
+        if x and y and z then
+            teleportPedToCoords(PlayerPedId(), { x = x, y = y, z = z })
+            TriggerServerEvent("vorp_admin:tptocoords", oldCoords, x, y, z)
+            VORP.NotifyObjective("Teleportado para coordenadas!", 3000)
+        end
+    end
+end

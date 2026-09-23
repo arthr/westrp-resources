@@ -2,6 +2,8 @@ Config = {
     -- Add your language
     DevMode             = true,       -- Leave false
 
+    UseCustomNUI        = true,       -- Enable the clean 1899 Frontier Gazette NUI (false for legacy vorp_menu)
+
     UseCharactersAdmin  = false,      -- if false will use from users group, if true will use from characters group
 
     AlignMenu           = 'top-left', -- align menu

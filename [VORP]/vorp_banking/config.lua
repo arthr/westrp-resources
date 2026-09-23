@@ -1,14 +1,14 @@
-Config                    = {}
+Config              = {}
 
-Config.Lang               = "English"
+Config.Lang         = "Portuguese_BR"
 
-Config.Key                = 0x760A9C6F -- [G]
+Config.Key          = 0x760A9C6F       -- [G]
 
-Config.banktransfer       = true       -- If you want to use bank transfer
+Config.banktransfer = true             -- If you want to use bank transfer
 
-Config.feeamount          = 0.9        -- 0.9 is 10% of the transferred amount, 0.5 is 50% of the transferred amount, 0.7 is 30% of the transferred amount
+Config.feeamount    = 0.9              -- 0.9 is 10% of the transferred amount, 0.5 is 50% of the transferred amount, 0.7 is 30% of the transferred amount
 
-Config.banks              = {
+Config.banks        = {
 
     Valentine = {                                              -- Names must be the same in databse BANKS TABLE
         city = "Valentine",                                    -- Names must be the same in databse BANKS TABLE
