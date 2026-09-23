@@ -41,12 +41,52 @@ Translation.Langs = {
         },
 
         InputInfo = {
-            only_numbers_allowed    = "Only Numbers Are Allowed",
-            only_letters_allowed    = "Only Letters Are Allowed",
-            Added                   = "Added ID: ",
+            only_numbers_allowed = "Only Numbers Are Allowed",
+            only_letters_allowed = "Only Letters Are Allowed",
+            Added                = "Added ID: ",
         }
     },
-    -- Additional languages can be added here with the same structure.
+    Portuguese = {
+        MenuLabels = {
+            menu_title     = "Menu de Fatura",
+            submenu_text   = "SubMenu",
+            player_id      = "ID do Jogador",
+            player_id_desc = "O ID do jogador que você deseja faturar",
+            bill_reason    = "Motivo da Fatura",
+            reason_desc    = "O motivo da fatura",
+            bill_amount    = "Valor da Fatura",
+            amount_desc    = "O valor do dinheiro a ser faturado",
+            confirm        = "Confirmar",
+            confirm_desc   = "Enviar a fatura",
+            menu_input     = "Digite Aqui"
+        },
+        Notifications = {
+            fill_all_fields     = "Preencha todos os campos",
+            not_allowed_command = "Você não tem permissão para usar este comando",
+            not_on_duty         = "Você não está de serviço",
+            not_allowed_bill    = "Você não tem permissão para faturar",
+            self_billing_error  = "Você não pode faturar a si mesmo",
+            target_not_found    = "Alvo não encontrado, você não pode faturar jogadores que não estão online",
+            target_too_far      = "O alvo está muito longe de você",
+            max_bill_exceeded   = "Você não pode faturar mais do que ",
+            bill_successful     = "Você faturou com sucesso",
+            bill_received       = "Você foi faturado por ",
+            insufficient_funds  = "O jogador não tem dinheiro suficiente para pagar a fatura",
+            For                 = "por",
+        },
+        ReceiptInfo = {
+            receipt_description = "Esta é uma fatura que você recebeu",
+            billed_by           = "Faturado Por",
+            date                = "Data",
+            reason              = "Motivo",
+            Ammount             = "Valor",
+        },
+        InputInfo = {
+            only_numbers_allowed = "Somente Números São Permitidos",
+            only_letters_allowed = "Somente Letras São Permitidas",
+            Added                = "ID Adicionado: ",
+        }
+    }
 }
 
 return {

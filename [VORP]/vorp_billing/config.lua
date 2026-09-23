@@ -1,7 +1,7 @@
 ---@class vorp_billing
 local Billing = {}
 
-Billing.Lang = "English"            -- Language you want to use please make sure its in the translation.lua
+Billing.Lang = "Portuguese"         -- Language you want to use please make sure its in the translation.lua
 
 Billing.GiveMoneyToJob = true       -- If false the money wont be given to anyone if true the money will be given to the person who is billing
 
@@ -33,7 +33,7 @@ Billing.GetIsOnduty = function(source)
     -- add here your own logic for other jobs
     -- by default these will work for vorp_medic and vorp_police
     local isDuty = (Player(source).state.isMedicDuty or Player(source).state.isPoliceDuty) and true or false
-    return isDuty     -- do return true to remove the onduty check
+    return isDuty -- do return true to remove the onduty check
 end
 
 return {
