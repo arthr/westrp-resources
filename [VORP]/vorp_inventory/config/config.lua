@@ -1,17 +1,17 @@
 ---@class vorp_inventory_config
 CONFIG                     = CONFIG or {}
 
-CONFIG.LANGUAGE            = "English"
+CONFIG.LANGUAGE            = "Portugues_BR"
 
-CONFIG.DEV_MODE            = false   -- If your server is live set this to false
+CONFIG.DEV_MODE            = false     -- If your server is live set this to false
 
-CONFIG.PUSH_TO_TALK        = true    -- enable PTT while inventory is open
+CONFIG.PUSH_TO_TALK        = true      -- enable PTT while inventory is open
 
-CONFIG.INV_ORDER           = "items" -- "items" or "weapons" what displays at the top of the inventory
+CONFIG.INV_ORDER           = "weapons" -- "items" or "weapons" what displays at the top of the inventory
 
-CONFIG.WALK_WHILE_INV_OPEN = true    -- If true, the player can walk while the inventory is open as long they hold W key
+CONFIG.WALK_WHILE_INV_OPEN = true      -- If true, the player can walk while the inventory is open as long they hold W key
 
-CONFIG.SHOW_PLAYER_NAME    = false   -- When giving an item, show the character name of nearby players instead of their player ID
+CONFIG.SHOW_PLAYER_NAME    = false     -- When giving an item, show the character name of nearby players instead of their player ID
 
 
 -- WEAPON CONFIGURATION
@@ -51,13 +51,13 @@ CONFIG.EQUIP_WEAPONS                     = {
 -------------------------
 ----- if you have a weapons script you might have to modify it to work with vorp_inventory, or disable this feature
 ----- by default works will  with vorp weapons
-CONFIG.USE_WEAPON_COMPONENTS             = false                  -- if true inventory will allow you to use weapon attachements and will load attachements saved in the database
+CONFIG.USE_WEAPON_COMPONENTS             = true                   -- if true inventory will allow you to use weapon attachements and will load attachements saved in the database
 
 CONFIG.USE_WEAPON_DEGRADATION            = true                   -- If true, the weapon degradation will be used meaning you can inspect and clean it, and weapon stats will be saved across restarts
 
-CONFIG.DISABLE_WEAPON_FIRE_WHEN_DEGRADED = false                  -- If true, the weapon will be disabled when degraded and damaged
+CONFIG.DISABLE_WEAPON_FIRE_WHEN_DEGRADED = true                   -- If true, the weapon will be disabled when degraded and damaged
 
-CONFIG.RESTORE_WEAPON_DEGRADATION        = false                  -- if true degradation will be restored when cleaning it, if false it means weapon dont last forever.
+CONFIG.RESTORE_WEAPON_DEGRADATION        = true                   -- if true degradation will be restored when cleaning it, if false it means weapon dont last forever.
 
 CONFIG.CLEAN_WEAPON_ITEM                 = "gun_oil"              -- item to clean the weapon. this is not usable item
 
@@ -163,7 +163,7 @@ CONFIG.SFX          = {
 }
 
 
-CONFIG.PICKUPS      = {
+CONFIG.PICKUPS = {
 	USE_LIGHT = true,           -- If true, the pickup will have a light effect
 	KEY = `INPUT_INTERACT_ANIMAL`, -- G key PROMPT PICKUP
 
