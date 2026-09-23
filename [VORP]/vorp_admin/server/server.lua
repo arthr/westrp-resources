@@ -44,10 +44,37 @@ local function getUserData(User, _source)
     return data
 end
 
+local function populateAllPlayers()
+    local players = GetPlayers()
+    for _, playerId in ipairs(players) do
+        local _source = tonumber(playerId)
+        if _source then
+            local user = Core.getUser(_source)
+            if user and user.getUsedCharacter then
+                local user_group = Config.UseCharactersAdmin and user.getUsedCharacter.group or user.getGroup
+                if Config.AllowedActions[user_group] then
+                    stafftable[_source] = _source
+                end
+                local data = getUserData(user, _source)
+                PlayersTable[_source] = data
+            end
+        end
+    end
+end
+
+CreateThread(function()
+    Wait(1000)
+    populateAllPlayers()
+end)
+
 -- Register CallBack
 Core.Callback.Register("vorp_admin:Callback:getplayersinfo", function(_, cb, args)
+    if not next(PlayersTable) then
+        populateAllPlayers()
+    end
+
     if next(PlayersTable) then
-        if args.search == "search" then -- is for unique player
+        if args and args.search == "search" then -- is for unique player
             if PlayersTable[args.id] then
                 local User = Core.getUser(args.id)
                 if User then
@@ -70,7 +97,7 @@ Core.Callback.Register("vorp_admin:Callback:getplayersinfo", function(_, cb, arg
         end
         return cb(PlayersTable)
     end
-    return cb(false)
+    return cb({})
 end)
 
 
@@ -817,7 +844,7 @@ end)
 Core.Callback.Register('vorp_admin:CanOpenStaffMenu', function(source, CB, action)
     local _source = source
     local user <const> = Core.getUser(_source)
-    if not user then return end
+    if not user then return CB(false) end
 
     CB(AllowedToExecuteAction(_source, action))
 end)
@@ -959,21 +986,19 @@ AddEventHandler("vorp:SelectedCharacter", function(source)
     PlayersTable[_source] = data
 end)
 
-if Config.DevMode then
-    RegisterNetEvent("vorp_admin:getStaffInfo", function(source)
-        local _source = source
-        local user <const> = Core.getUser(_source)
-        if not user then return end
-        local user_group = Config.UseCharactersAdmin and user.getUsedCharacter.group or user.getGroup
+RegisterNetEvent("vorp_admin:getStaffInfo", function(source)
+    local _source = source
+    local user <const> = Core.getUser(_source)
+    if not user then return end
+    local user_group = Config.UseCharactersAdmin and user.getUsedCharacter.group or user.getGroup
 
-        if Config.AllowedActions[user_group] then
-            stafftable[_source] = _source
-        end
+    if Config.AllowedActions[user_group] then
+        stafftable[_source] = _source
+    end
 
-        local data = getUserData(user, _source)
-        PlayersTable[_source] = data
-    end)
-end
+    local data = getUserData(user, _source)
+    PlayersTable[_source] = data
+end)
 
 RegisterNetEvent("vorp_admin:requeststaff", function(type)
     local _source = source

@@ -236,7 +236,7 @@
 
     if (data.staffRole) {
       const tag = document.getElementById('header-staff-tag');
-      if (tag) tag.textContent = 'Marechal: ' + data.staffRole;
+      if (tag) tag.textContent = 'CARGO: ' + String(data.staffRole).toUpperCase();
     }
   }
 

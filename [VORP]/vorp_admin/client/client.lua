@@ -24,11 +24,8 @@ AddEventHandler("onClientResourceStart", function(resourceName)
         return
     end
 
-    if not Config.DevMode then return end
-
-    AdminAllowed = false
     local player = GetPlayerServerId(tonumber(PlayerId()))
-    Wait(100)
+    Wait(200)
     TriggerServerEvent("vorp_admin:getStaffInfo", player)
 end)
 
@@ -40,15 +37,25 @@ local function CanOpenUsersMenu()
 end
 
 local function OpenCustomAdminNUI()
+    local boosters = (type(GetBoosterStates) == "function") and GetBoosterStates() or {}
+    local staffRole = "Staff"
+    if LocalPlayer.state and LocalPlayer.state.Character and LocalPlayer.state.Character.Group then
+        staffRole = tostring(LocalPlayer.state.Character.Group)
+    end
+
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = "open",
+        players = {},
+        boosters = boosters,
+        staffRole = staffRole
+    })
+
     VORP.Callback.TriggerAsync("vorp_admin:Callback:getplayersinfo", function(cb)
         local playersList = cb or {}
-        local boosters = (type(GetBoosterStates) == "function") and GetBoosterStates() or {}
-        SetNuiFocus(true, true)
         SendNUIMessage({
-            action = "open",
-            players = playersList,
-            boosters = boosters,
-            staffRole = LocalPlayer.state.Group or "Staff"
+            action = "updatePlayers",
+            players = playersList
         })
     end, { search = "all" })
 end
@@ -73,11 +80,7 @@ CreateThread(function()
     if Config.useAdminCommand then
         TriggerEvent('chat:addSuggestion', '/' .. Config.commandAdmin, 'Open admin menu or use pagedown', { {} })
         RegisterCommand(Config.commandAdmin, function()
-            local AdminAllowed = IsAdminAllowed("open_menu")
-            if AdminAllowed then
-                OpenMenu()
-                return true
-            end
+            OpenAdminMenu()
         end, false)
     end
 

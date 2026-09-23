@@ -1,6 +1,6 @@
 Config = {
     -- Add your language
-    DevMode             = true,       -- Leave false
+    DevMode             = false,      -- Leave false
 
     UseCustomNUI        = true,       -- Enable the clean 1899 Frontier Gazette NUI (false for legacy vorp_menu)
 

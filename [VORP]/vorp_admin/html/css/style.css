@@ -1,33 +1,26 @@
 /* ==========================================================================
-   THE FRONTIER GAZETTE & ADMINISTRATIVE REGISTRY - 1899
-   Aesthetic: 19th Century Frontier Newspaper & Broadside Editorial
-   Style: Clean, Minimalist, High Contrast & Ergonomic
+   DIRETRIZ DE REFATORAÇÃO VISUAL DA NUI (REDM) - TEMA MINIMALISTA TRANSLÚCIDO
+   Estilo: Glassmorphism Fumê, Linhas Finas Douradas/Bronze, Zero Texturas
    ========================================================================== */
 
 :root {
-  --gazette-bg: #f4efe6;
-  --gazette-paper-dark: #ece5d8;
-  --gazette-paper-light: #faf7f2;
-  --gazette-ink: #191613;
-  --gazette-ink-soft: #38332c;
-  --gazette-ink-muted: #6b6357;
+  /* Paleta de Cores e Transparências */
+  --bg-panel: rgba(16, 15, 14, 0.82);
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-input: rgba(0, 0, 0, 0.45);
   
-  --rule-hairline: rgba(25, 22, 19, 0.25);
-  --rule-solid: #191613;
-  --rule-double: 3px double #191613;
+  --border-subtle: rgba(212, 175, 55, 0.2);
+  --border-focus: rgba(212, 175, 55, 0.65);
+  --border-danger: rgba(195, 55, 55, 0.4);
   
-  --stamp-red: #8f2119;
-  --stamp-red-bg: rgba(143, 33, 25, 0.08);
-  --stamp-green: #295738;
-  --stamp-green-bg: rgba(41, 87, 56, 0.08);
-  --stamp-gold: #8c6a28;
-  --stamp-gold-bg: rgba(140, 106, 40, 0.08);
+  --text-title: #f2e9d8;
+  --text-body: #c7bea9;
+  --text-muted: #7d776b;
+  --accent-gold: #d4af37;
+  --accent-danger: #e55353;
   
-  --font-serif: "Cinzel", "Playfair Display", "Georgia", "Times New Roman", serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "Courier Prime", "SFMono-Regular", Consolas, monospace;
-  
-  --shadow-broadside: 0 15px 35px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --font-serif: 'Cinzel', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * {
@@ -45,32 +38,39 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-body);
-  color: var(--gazette-ink);
+  font-family: var(--font-sans);
+  color: var(--text-body);
 }
 
 /* ==========================================================================
-   CONTAINER PRINCIPAL DO JORNAL
+   PAINEL CENTRAL TRANSLÚCIDO DESFOCADO (GLASSMORPHISM)
    ========================================================================== */
-#admin-newspaper-app {
+#admin-newspaper-app,
+.admin-container {
   display: none;
-  width: 94vw;
-  max-width: 1280px;
-  height: 90vh;
-  max-height: 880px;
-  background: var(--gazette-bg);
-  box-shadow: var(--shadow-broadside);
-  border: 1px solid var(--gazette-ink);
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  padding: 24px 28px;
+  width: 95vw;
+  max-width: 1120px;
+  height: 88vh;
+  max-height: 840px;
+  margin: auto;
   position: relative;
   flex-direction: column;
-  border-radius: 2px;
-  animation: unfoldPaper 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInPanel 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes unfoldPaper {
+@keyframes fadeInPanel {
   0% {
     opacity: 0;
-    transform: scale(0.97) translateY(10px);
+    transform: scale(0.98) translateY(6px);
   }
   100% {
     opacity: 1;
@@ -78,152 +78,128 @@ body {
   }
 }
 
-/* Moldura dupla vitoriana */
-.gazette-frame {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  right: 5px;
-  bottom: 5px;
-  border: 1px solid rgba(25, 22, 19, 0.35);
-  pointer-events: none;
-  z-index: 100;
-}
-
 /* ==========================================================================
-   MASTHEAD (CABEÇALHO DE JORNAL)
+   CABEÇALHO
    ========================================================================== */
-.gazette-header {
-  padding: 14px 24px 10px 24px;
-  background: var(--gazette-paper-light);
-  border-bottom: var(--rule-double);
-  position: relative;
-}
-
-.masthead-meta {
+.header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.header-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
   font-weight: 600;
-  color: var(--gazette-ink-muted);
-  border-bottom: 1px solid var(--rule-hairline);
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-}
-
-.masthead-title {
-  text-align: center;
-  position: relative;
-}
-
-.masthead-title h1 {
-  font-family: var(--font-serif);
-  font-size: 34px;
-  font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
+  color: var(--text-title);
   line-height: 1;
-  color: var(--gazette-ink);
-  margin-bottom: 4px;
 }
 
-.masthead-title .sub-banner {
-  font-family: var(--font-serif);
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--gazette-ink-soft);
+.header-sub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  letter-spacing: 1.5px;
 }
 
-.close-gazette-btn {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  background: transparent;
-  border: 1px solid var(--gazette-ink);
-  color: var(--gazette-ink);
-  font-family: var(--font-serif);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 5px 12px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.15s ease;
-  z-index: 101;
-}
-
-.close-gazette-btn:hover {
-  background: var(--gazette-ink);
-  color: var(--gazette-bg);
-}
-
-/* ==========================================================================
-   NAVEGAÇÃO POR SEÇÕES (ABAS)
-   ========================================================================== */
-.gazette-nav {
-  display: flex;
-  background: var(--gazette-paper-dark);
-  border-bottom: 2px solid var(--rule-solid);
-  overflow-x: auto;
-}
-
-.nav-tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-right: 1px solid var(--rule-hairline);
-  padding: 10px 14px;
-  font-family: var(--font-serif);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: var(--gazette-ink-soft);
-  cursor: pointer;
-  transition: all 0.15s ease;
+.header-meta {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 16px;
 }
 
-.nav-tab-btn:last-child {
-  border-right: none;
+.staff-tag {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.nav-tab-btn:hover {
-  background: rgba(25, 22, 19, 0.05);
-  color: var(--gazette-ink);
+.close-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-title);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  padding: 6px 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
 }
 
-.nav-tab-btn.active {
-  background: var(--gazette-bg);
-  color: var(--gazette-ink);
-  border-bottom: 3px solid var(--gazette-ink);
-  font-weight: 900;
+.close-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--accent-gold);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
 }
 
 /* ==========================================================================
-   CORPO PRINCIPAL (CONTEÚDO DAS ABAS)
+   ABAS MINIMALISTAS
    ========================================================================== */
-.gazette-body {
+.tabs-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  letter-spacing: 1.8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+  text-transform: uppercase;
+}
+
+.tab-btn:hover {
+  color: var(--text-title);
+}
+
+.tab-btn.active {
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent-gold);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* ==========================================================================
+   CORPO PRINCIPAL & SEÇÕES
+   ========================================================================== */
+.admin-content {
   flex: 1;
   display: flex;
   overflow: hidden;
   position: relative;
-  background: var(--gazette-bg);
 }
 
 .tab-pane {
   display: none;
   width: 100%;
   height: 100%;
-  padding: 18px 24px;
   overflow-y: auto;
 }
 
@@ -232,390 +208,416 @@ body {
   flex-direction: column;
 }
 
+/* Containers de Conteúdo / Cards */
+.content-section {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  padding: 18px 20px;
+}
+
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-title);
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.35;
+}
+
+.section-subtitle strong {
+  color: var(--text-title);
+  font-weight: 500;
+}
+
 /* ==========================================================================
-   ABA 1: REGISTRO DE CIDADÃOS (PLAYERS)
+   INPUTS & FORMULÁRIOS CLEAN
+   ========================================================================== */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-label {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  color: var(--text-title);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  height: 36px;
+}
+
+input::placeholder {
+  color: #555047;
+}
+
+input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
+}
+
+/* ==========================================================================
+   BOTÕES: ESTILO HAIRLINE LIMPO E ELEGANTE
+   ========================================================================== */
+.btn-action,
+.action-btn {
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-title);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-action:hover,
+.action-btn:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: var(--accent-gold);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
+/* Ações Críticas / Confisco / Reset */
+.btn-danger,
+.action-btn.danger {
+  background: rgba(195, 55, 55, 0.06);
+  border: 1px solid var(--border-danger);
+  color: #ff9999;
+}
+
+.btn-danger:hover,
+.action-btn.danger:hover {
+  background: rgba(195, 55, 55, 0.2);
+  border-color: var(--accent-danger);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(229, 83, 83, 0.25);
+}
+
+.full-width {
+  width: 100% !important;
+}
+
+/* ==========================================================================
+   ABA 1: REGISTRO DE CIDADÃOS
    ========================================================================== */
 .players-layout {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   height: 100%;
-  overflow: hidden;
+  width: 100%;
 }
 
 .players-table-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 0;
   overflow: hidden;
-  background: var(--gazette-paper-light);
-  border: 1px solid var(--rule-solid);
 }
 
 .search-toolbar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 10px 14px;
-  background: var(--gazette-paper-dark);
-  border-bottom: 1px solid var(--rule-solid);
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.2);
   gap: 12px;
 }
 
 .search-box {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex: 1;
-  background: #ffffff;
-  border: 1px solid var(--gazette-ink);
-  padding: 6px 12px;
 }
 
-.search-box span {
-  font-size: 13px;
-  margin-right: 8px;
-  color: var(--gazette-ink-muted);
-}
-
-.search-box input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--gazette-ink);
-  width: 100%;
-}
-
-.search-box input::placeholder {
-  color: var(--gazette-ink-muted);
-  font-style: italic;
+.search-label {
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
 }
 
 .players-count-badge {
-  font-family: var(--font-serif);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--gazette-ink-soft);
+  font-size: 0.75rem;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
-/* Tabela de Cidadãos */
 .table-scroll {
   flex: 1;
   overflow-y: auto;
 }
 
-.gazette-table {
+.ledger-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
   text-align: left;
+  font-size: 0.8rem;
 }
 
-.gazette-table th {
-  background: var(--gazette-paper-dark);
-  font-family: var(--font-serif);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 8px 12px;
-  border-bottom: 2px solid var(--gazette-ink);
+.ledger-table thead {
   position: sticky;
   top: 0;
-  z-index: 10;
-  color: var(--gazette-ink);
+  background: rgba(18, 16, 14, 0.95);
+  z-index: 5;
 }
 
-.gazette-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--rule-hairline);
-  font-variant-numeric: tabular-nums;
-  color: var(--gazette-ink);
-}
-
-.gazette-table tbody tr {
-  cursor: pointer;
-  transition: background 0.1s ease;
-}
-
-.gazette-table tbody tr:hover {
-  background: rgba(25, 22, 19, 0.06);
-}
-
-.gazette-table tbody tr.selected {
-  background: rgba(25, 22, 19, 0.12);
+.ledger-table th {
+  padding: 9px 12px;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
   font-weight: 600;
 }
 
-/* Carimbos e Selos (Stamps) */
-.stamp {
-  display: inline-block;
-  font-family: var(--font-serif);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border: 1px solid currentColor;
-  letter-spacing: 0.5px;
-  border-radius: 1px;
+.ledger-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--text-body);
+  vertical-align: middle;
 }
 
-.stamp-verified {
-  color: var(--stamp-green);
-  border-color: var(--stamp-green);
-  background: var(--stamp-green-bg);
+.ledger-table tbody tr {
+  transition: background 0.12s ease;
+  cursor: pointer;
 }
 
-.stamp-wanted {
-  color: var(--stamp-red);
-  border-color: var(--stamp-red);
-  background: var(--stamp-red-bg);
+.ledger-table tbody tr:hover {
+  background: rgba(212, 175, 55, 0.06);
 }
 
-.stamp-gold {
-  color: var(--stamp-gold);
-  border-color: var(--stamp-gold);
-  background: var(--stamp-gold-bg);
+.ledger-table tbody tr.selected {
+  background: rgba(212, 175, 55, 0.14) !important;
+  outline: 1px solid var(--border-focus);
 }
 
-/* Painel Lateral de Ações (Dossiê do Cidadão) */
+/* Dossiê Lateral */
 .player-dossier {
-  width: 380px;
+  width: 360px;
   display: flex;
   flex-direction: column;
-  background: var(--gazette-paper-light);
-  border: 1px solid var(--gazette-ink);
   overflow-y: auto;
-  padding: 16px;
 }
 
 .dossier-header {
-  border-bottom: var(--rule-double);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .dossier-header h3 {
   font-family: var(--font-serif);
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 1.5px;
+  color: var(--text-title);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--gazette-ink);
 }
 
-.dossier-header .dossier-sub {
-  font-size: 11px;
-  color: var(--gazette-ink-muted);
-  font-style: italic;
+.dossier-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.empty-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 40px;
+  line-height: 1.5;
 }
 
 .dossier-meta-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  font-size: 12px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--rule-hairline);
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
-.meta-item strong {
+.meta-item {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  padding: 5px 8px;
+  border-radius: 2px;
+}
+
+.meta-lbl {
   display: block;
   font-family: var(--font-serif);
-  font-size: 10px;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--gazette-ink-muted);
-  letter-spacing: 0.5px;
+  color: var(--text-muted);
 }
 
-.dossier-section-title {
+.meta-val {
+  font-size: 0.85rem;
+  color: var(--text-title);
+  font-weight: 500;
+}
+
+.gold-text {
+  color: var(--accent-gold);
+}
+
+.dossier-group-title {
   font-family: var(--font-serif);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid var(--gazette-ink);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 4px;
   margin: 12px 0 8px 0;
-  color: var(--gazette-ink-soft);
 }
 
 .action-buttons-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  margin-bottom: 8px;
 }
 
-.action-btn {
-  background: var(--gazette-paper-dark);
-  border: 1px solid var(--gazette-ink);
-  color: var(--gazette-ink);
-  font-family: var(--font-serif);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 7px 10px;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.12s ease;
-}
-
-.action-btn:hover {
-  background: var(--gazette-ink);
-  color: var(--gazette-paper-light);
-}
-
-.action-btn.danger {
-  border-color: var(--stamp-red);
-  color: var(--stamp-red);
-  background: var(--stamp-red-bg);
-}
-
-.action-btn.danger:hover {
-  background: var(--stamp-red);
-  color: #ffffff;
-}
-
-.action-btn.full-width {
+.action-buttons-grid .full-width {
   grid-column: span 2;
 }
 
-/* ==========================================================================
-   ABA 2: BOOSTERS & PODERES
-   ========================================================================== */
-.boosters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.card-dispatch {
-  background: var(--gazette-paper-light);
-  border: 1px solid var(--gazette-ink);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 2px 2px 0px rgba(25, 22, 19, 0.1);
-}
-
-.card-dispatch h4 {
+/* Badges e Carimbos */
+.stamp {
+  display: inline-block;
   font-family: var(--font-serif);
-  font-size: 15px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 0.68rem;
   letter-spacing: 1px;
-  margin-bottom: 6px;
-  border-bottom: 1px solid var(--rule-hairline);
-  padding-bottom: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.card-dispatch p {
-  font-size: 12px;
-  color: var(--gazette-ink-soft);
-  line-height: 1.4;
-  margin-bottom: 14px;
+.stamp.stamp-verified {
+  border-color: rgba(65, 180, 100, 0.4);
+  color: #7de8a0;
+  background: rgba(65, 180, 100, 0.08);
 }
 
-.toggle-switch-wrapper {
+.stamp.stamp-wanted {
+  border-color: var(--border-danger);
+  color: #ff9999;
+  background: rgba(195, 55, 55, 0.08);
+}
+
+.stamp.stamp-gold {
+  border-color: var(--border-subtle);
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+/* ==========================================================================
+   ABA 2 & 4: CARDS (BOOSTERS & TELEPORT)
+   ========================================================================== */
+.grid-cards,
+.teleport-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 12px;
+}
+
+.card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-item.full-row {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.card-info h4 {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  letter-spacing: 1.2px;
+  color: var(--text-title);
+  text-transform: uppercase;
+}
+
+.card-info p {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.card-action {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid var(--rule-hairline);
-  padding-top: 10px;
-}
-
-.toggle-btn {
-  background: transparent;
-  border: 1px solid var(--gazette-ink);
-  font-family: var(--font-serif);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 5px 14px;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: all 0.15s ease;
-}
-
-.toggle-btn.active {
-  background: var(--gazette-ink);
-  color: var(--gazette-paper-light);
+  gap: 8px;
+  white-space: nowrap;
 }
 
 /* ==========================================================================
-   ABA 3: TESOURO & CARGAS (DATABASE)
+   ABA 3: PATRIMÔNIO (DATABASE) - LAYOUT DO MOCKUP
    ========================================================================== */
 .treasury-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 28px;
 }
 
-.treasury-box {
-  background: var(--gazette-paper-light);
-  border: 1px solid var(--gazette-ink);
-  padding: 16px;
-}
-
-.treasury-box h4 {
-  font-family: var(--font-serif);
-  font-size: 15px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: var(--rule-double);
-  padding-bottom: 6px;
-  margin-bottom: 14px;
-}
-
-.form-group {
-  margin-bottom: 12px;
-}
-
-.form-group label {
-  display: block;
-  font-family: var(--font-serif);
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-  color: var(--gazette-ink-soft);
-}
-
-.form-input {
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid var(--gazette-ink);
-  padding: 7px 10px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--gazette-ink);
-  outline: none;
-}
-
-.form-input:focus {
-  border-width: 2px;
+.column-panel {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ==========================================================================
-   ABA 4: ROTAS & TELEPORTES
-   ========================================================================== */
-.teleport-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-/* ==========================================================================
-   ABA 5: OFICINA & DEV TOOLS
+   ABA 5: OFICINA DE CAMPO (DEV TOOLS)
    ========================================================================== */
 .devtools-grid {
   display: grid;
@@ -623,62 +625,89 @@ body {
   gap: 20px;
 }
 
+.stack-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
 /* ==========================================================================
-   MODAL DE CONFIRMAÇÃO & ENTRADA
+   MODAL DINÂMICO
    ========================================================================== */
 .gazette-modal-backdrop {
   display: none;
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(25, 22, 19, 0.6);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 200;
   align-items: center;
   justify-content: center;
 }
 
 .gazette-modal {
-  width: 440px;
-  background: var(--gazette-bg);
-  border: 2px solid var(--gazette-ink);
-  box-shadow: var(--shadow-broadside);
+  width: 420px;
+  background: rgba(18, 16, 14, 0.94);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
   padding: 20px;
-  position: relative;
 }
 
 .modal-header {
-  border-bottom: var(--rule-double);
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
   margin-bottom: 14px;
 }
 
 .modal-header h3 {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 0.95rem;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  color: var(--text-title);
 }
 
 .modal-body {
   margin-bottom: 18px;
+  font-size: 0.82rem;
+  color: var(--text-body);
+}
+
+.modal-body label {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.modal-body input,
+.modal-body select {
+  margin-bottom: 12px;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid var(--rule-hairline);
-  padding-top: 12px;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 14px;
 }
 
 /* ==========================================================================
-   NOTIFICAÇÕES FLUTUANTES (TOASTS)
+   TOASTS (AVISOS FLUTUANTES)
    ========================================================================== */
 #toast-container {
   position: absolute;
-  bottom: 18px;
+  bottom: 20px;
   right: 24px;
   display: flex;
   flex-direction: column;
@@ -687,41 +716,54 @@ body {
   pointer-events: none;
 }
 
-.gazette-toast {
-  background: var(--gazette-paper-light);
-  border: 1px solid var(--gazette-ink);
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+.toast-msg {
+  background: rgba(18, 16, 14, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
   padding: 8px 14px;
-  font-size: 12px;
   font-family: var(--font-serif);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-left: 4px solid var(--gazette-ink);
-  animation: toastFadeIn 0.2s ease forwards;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  color: var(--text-title);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  border-radius: 2px;
+  animation: slideToast 0.15s ease-out forwards;
 }
 
-@keyframes toastFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+.toast-msg.alert {
+  border-color: var(--border-danger);
+  color: #ff9999;
+}
+
+@keyframes slideToast {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ==========================================================================
-   SCROLLBAR MINIMALISTA EDITORIAL
+   SCROLLBAR MINIMALISTA
    ========================================================================== */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--gazette-paper-dark);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gazette-ink-muted);
-  border-radius: 1px;
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gazette-ink);
+  background: rgba(212, 175, 55, 0.5);
 }
