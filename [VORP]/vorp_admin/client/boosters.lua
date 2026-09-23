@@ -31,8 +31,11 @@ function GODmode()
                 SetPedCanBeTargetted(ped, false)
                 Citizen.InvokeNative(0x5240864E847C691C, ped, false) -- Não pode ser incapacitado
                 Citizen.InvokeNative(0xFD6943B6DF77E449, ped, false) -- Não pode ser laçado
-                SetPedDiesInWater(ped, false)
-                SetPedDiesInSinkingVehicle(ped, false)
+                -- Proteção contra afogamento (no RDR2 afogamento ocorre por esgotamento de estamina na água)
+                if IsEntityInWater(ped) then
+                    Citizen.InvokeNative(0xC3D4B754C0E86B9E, ped, 1000.0) -- Estamina externa cheia
+                    Citizen.InvokeNative(0xC6258F41D86676E0, ped, 1, 100) -- Núcleo interno de estamina em 100%
+                end
                 ClearPedBloodDamage(ped)
                 if IsEntityOnFire(ped) then
                     StopEntityFire(ped)
@@ -75,8 +78,6 @@ function GODmode()
         SetPedCanBeTargetted(ped, true)
         Citizen.InvokeNative(0x5240864E847C691C, ped, true)
         Citizen.InvokeNative(0xFD6943B6DF77E449, ped, true)
-        SetPedDiesInWater(ped, true)
-        SetPedDiesInSinkingVehicle(ped, true)
 
         local mount = GetMount(ped)
         if DoesEntityExist(mount) and not IsEntityDead(mount) then
