@@ -164,7 +164,7 @@ Config = {
     --            MAP CONFIGURATIONS             --
     --=============================================
 
-    mapTypeOnFoot            = 3,    -- Radar type when on foot. 0 = Off, 1 = Regular, 2 = Expanded, 3 = Simple (compass).
+    mapTypeOnFoot            = 1,    -- Radar type when on foot. 0 = Off, 1 = Regular, 2 = Expanded, 3 = Simple (compass).
 
     mapTypeOnMount           = 2,    -- Radar type when on horse. Same options as on foot.
 

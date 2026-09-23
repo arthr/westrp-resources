@@ -25,51 +25,63 @@ body {
 .pb-vorp-water {
     display: flex;
     position: absolute;
-    bottom: 0;
-    padding-bottom: 300px; /* 270px */
-    padding-left: 57px; /* 205px */
+    bottom: 195px;
+    left: 45px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
 }
 
 .pb-vorp-food {
     display: flex;
     position: absolute;
-    bottom: 0;
-    padding-bottom: 318px; /* 270px */
-    padding-left: 105px; /* 155px */
+    bottom: 195px;
+    left: 95px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
 }
 
 .water {
     display: flex;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     z-index: 1;
 }
 
 .water-icon {
     display: flex;
     position: absolute;
-    top: 21px; /* 21px */
-    left: 78px; /* 176px */
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2;
-    width: 2.08vw; /* 40px */
-    height: 2.08vw; /* 40px */
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
 }
 
 .food {
     display: flex;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     z-index: 1;
 }
 
 .food-icon {
     display: flex;
     position: absolute;
-    top: 21px; /* 21px */
-    left: 126px; /* 227px */
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2;
-    width: 2.08vw; /* 40px */
-    height: 2.08vw; /* 40px */
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
 }
 
 /* Hud redesigned by Z-eus */
