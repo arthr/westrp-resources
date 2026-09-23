@@ -626,7 +626,9 @@
       if (!panelState.searchQuery) return true;
       const q = panelState.searchQuery.toLowerCase();
       return (item.title && item.title.toLowerCase().includes(q)) ||
-             (item.subtitle && item.subtitle.toLowerCase().includes(q));
+             (item.subtitle && item.subtitle.toLowerCase().includes(q)) ||
+             (item.id && item.id.toLowerCase().includes(q)) ||
+             (item.category && item.category.toLowerCase().includes(q));
     });
 
     if (items.length === 0) {

@@ -169,14 +169,26 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 end
             elseif tabId == "weapons_tab" then
                 if action == "confirm" and item and item.id then
-                    TriggerServerEvent("westrp_admin:server:executeAction", {
-                        action = "give_weapon",
-                        targetId = destId,
-                        payload = {
-                            weapon = item.id
-                        }
-                    })
-                    WestRP.Client.UI.ShowToast("ARMAMENTO", string.format("Enviando arma '%s' para %s", item.title or item.id, destName), "success")
+                    if item.isAmmo or string.sub(item.id, 1, 4) == "ammo" then
+                        TriggerServerEvent("westrp_admin:server:executeAction", {
+                            action = "give_item",
+                            targetId = destId,
+                            payload = {
+                                item = item.id,
+                                qty = count
+                            }
+                        })
+                        WestRP.Client.UI.ShowToast("MUNIÇÃO", string.format("Enviando %sx de '%s' para %s", count, item.title or item.id, destName), "success")
+                    else
+                        TriggerServerEvent("westrp_admin:server:executeAction", {
+                            action = "give_weapon",
+                            targetId = destId,
+                            payload = {
+                                weapon = item.id
+                            }
+                        })
+                        WestRP.Client.UI.ShowToast("ARMAMENTO", string.format("Enviando arma '%s' para %s", item.title or item.id, destName), "success")
+                    end
                 end
             elseif tabId == "bans_tab" then
                 if action == "confirm" and item and item.rawIdentifier then
