@@ -2,7 +2,7 @@
 --            VORP SHARED CONFIG             --
 --=============================================
 
-Lang = "English"
+Lang = "Portugues_PT"
 Config = Config or {}
 
 Config = {
@@ -20,7 +20,7 @@ Config = {
 
     autoUpdateDB             = true,  -- Enables automatic database updates.
 
-    ReportCrashes            = true,  -- Reports crashes to https://monitor.polycode.pl login in here to create your API KEY , by doing this you will help the community to improve the server stability and fix crashes faster
+    ReportCrashes            = false, -- Reports crashes to https://monitor.polycode.pl login in here to create your API KEY , by doing this you will help the community to improve the server stability and fix crashes faster
 
     API_KEY                  = "",    -- API key for crash reporting. Get your API key at https://monitor.polycode.pl to allow more requests make a donation in the website
 
@@ -89,7 +89,7 @@ Config = {
 
     SaveDiscordId     = true, -- Saves Discord ID in the character/user database upon joining/leaving.
 
-    MaxCharacters     = 5,    -- Maximum number of characters a player can create. when first join, for old users go to users table and change the number of characters there
+    MaxCharacters     = 3,    -- Maximum number of characters a player can create. when first join, for old users go to users table and change the number of characters there
 
     MaxCharacterJobs  = 5,    -- Maximum number of jobs a player can have. for multijob system, this is for new players, for old change in database column max_jobs
 
