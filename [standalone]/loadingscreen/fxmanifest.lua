@@ -5,19 +5,16 @@ rdr3_warning "I acknowledge that this is a prerelease build of RedM, and I am aw
 
 lua54 'yes'
 
-author 'Nevera Development'
-description 'Loading Screen'
-version '1.2'
+author 'West RP'
+description 'Tela de carregamento oficial do West RP'
+version '2.0.0'
 
 loadscreen_manual_shutdown "yes"
 loadscreen 'html/index.html'
-loadscreen_cursor "yes"
 
 client_script "client.lua"
 
 files {
-    'html/audio.mp3',
-    'html/video.webm',
     'html/index.html',
     'html/config.js',
     'html/assets/js/**',
