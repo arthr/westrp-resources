@@ -105,6 +105,9 @@
 
         <!-- Viewport Principal de Conteúdo -->
         <main class="panel-content" id="panel-content">
+          <!-- Barra de Filtros por Chips (Sub-aba) -->
+          <div class="panel-filter-bar" id="panel-filter-bar" style="display: none;"></div>
+
           <!-- Viewport do Grid (Cards/Vitrine) -->
           <div class="panel-grid-view" id="panel-grid-view" style="display: none;"></div>
 
@@ -132,6 +135,16 @@
           <!-- Viewport da Fila de Produção (Queue / Crafting Tracker) -->
           <div class="panel-queue-view" id="panel-queue-view" style="display: none;">
             <div class="queue-items-list" id="queue-items-list"></div>
+          </div>
+
+          <!-- Barra Universal de Paginação -->
+          <div class="panel-pagination-bar" id="panel-pagination-bar" style="display: none;">
+            <span class="pagination-summary" id="pagination-summary">Exibindo 0 registros</span>
+            <div class="pagination-controls">
+              <button class="pagination-btn" id="btn-page-prev" title="Página Anterior (◄)">◄</button>
+              <span class="pagination-page-indicator" id="pagination-page-indicator">Página 1 / 1</span>
+              <button class="pagination-btn" id="btn-page-next" title="Próxima Página (►)">►</button>
+            </div>
           </div>
 
         </main>

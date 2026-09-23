@@ -88,10 +88,25 @@ O Panel suporta 4 modos de visualização intercambiáveis via schema Lua:
 
 ---
 
-## 4. Sistema Universal de Busca e Filtros
+## 4. Sistema Universal de Busca, Filtros e Paginação
 
-* **Campo de Busca Rápida:** Presente no topo do Panel, filtra instantaneamente os itens do viewport ativo conforme o jogador digita, sem recarregar a tela (Live Client Filter).
-* **Filtros por Categoria:** As abas verticais da barra lateral (`sidebar`) dividem os dados em grupos lógicos com contadores visuais.
+### 4.1 Busca Textual em Tempo Real (Live Client Filter)
+* **Campo de Busca Global:** Presente no cabeçalho do Panel. Filtra instantaneamente os itens do viewport ativo conforme o operador digita (`title`, `subtitle`, `id`, `category`), com debounce de 60 FPS e sem recarregar a tela.
+
+### 4.2 Sistema Modular de Filtros Categóricos (Filter Chips)
+* **Barra de Chips Sub-Aba:** Exibida no topo do viewport principal quando a aba ativa define opções de filtro.
+* **Modo Declarativo (`filters`):** Permite configurar filtros pontuais com correspondência por chave (`key`) e valor (`value` ou lista de valores), além de contadores dinâmicos.
+* **Modo Automático (`filterCategory = true`):** A UI extrai automaticamente todas as categorias distintas presentes no conjunto de dados (`items` ou `rows`), gerando os chips ordenados com contadores e o chip padrão "Todos".
+* **Comportamento Reativo:** Clicar em um chip aplica o filtro visual instantaneamente, toca o áudio procedural de navegação (`playUiTick('nav')`) e redefine a página ativa para 1.
+
+### 4.3 Sistema Universal de Paginação (Dynamic Paginator)
+* **Configuração Granular (`pageSize` / `pagination`):** Suportado nativamente nas visões `grid` e `table`.
+* **Cálculo de Slices:** O motor calcula em memória `(currentPage - 1) * pageSize` até `currentPage * pageSize` a partir dos dados já filtrados (pela busca textual e pelos chips).
+* **Controles Integrados:**
+  * Botões Anterior (`◄`) e Próximo (`►`) com desativação nos limites.
+  * Indicador de página atual e total (`Página X de Y`).
+  * Resumo numérico (`Exibindo 1-12 de 48 registros`).
+* **Zero Overhead:** Se `pageSize` não for especificado ou for nulo, a visualização opera em scroll contínuo nativo.
 
 ---
 
@@ -119,14 +134,30 @@ O Panel suporta 4 modos de visualização intercambiáveis via schema Lua:
 ---@field public align? "left"|"center"|"right"
 ---@field public width? string Ex: "20%", "150px"
 
+---@class PanelFilterOption
+---@field public id string Identificador único do filtro (ex: "all", "revolver", "ammo")
+---@field public label string Texto exibido no chip (ex: "Todos", "Revólveres")
+---@field public key? string Chave do objeto para filtrar (default: "category")
+---@field public value? string|string[] Valor ou lista de valores aceitos
+---@field public badge? string|number Tag opcional ou contador
+---@field public default? boolean Se é o filtro ativo inicial
+
+---@class PanelPagination
+---@field public pageSize number Quantidade de registros por página
+---@field public showSummary? boolean Se exibe resumo "Exibindo X-Y de Z" (default: true)
+
 ---@class PanelTab
 ---@field public id string Identificador da aba
 ---@field public label string Nome da aba
 ---@field public icon? string Ícone decorativo (ex: "fa-hammer")
----@field public viewType "grid"|"table"|"craft"|"form"
+---@field public viewType "grid"|"table"|"craft"|"queue"|"form"
 ---@field public items? PanelCardItem[] (Se for grid ou craft)
 ---@field public columns? PanelTableColumn[] (Se for table)
 ---@field public rows? table[] (Se for table)
+---@field public filters? PanelFilterOption[] Lista explícita de filtros por chips
+---@field public filterCategory? boolean Se verdadeiro, extrai categorias automaticamente
+---@field public pageSize? number Atalho para paginação simples (ex: 12)
+---@field public pagination? PanelPagination Configuração avançada de paginação
 
 ---@class PanelOptions
 ---@field public id string Identificador único do painel
@@ -135,7 +166,7 @@ O Panel suporta 4 modos de visualização intercambiáveis via schema Lua:
 ---@field public subtitle? string Saldo do jogador ou informação complementar
 ---@field public showSearch? boolean Se exibe a barra de busca (default: true)
 ---@field public tabs PanelTab[] Abas verticais
----@field public onAction? fun(action: string, data: table, tabId: string)
+---@field public onAction? fun(action: string, data: table, tabId: string, qty?: number)
 ---@field public onClose? fun()
 ```
 

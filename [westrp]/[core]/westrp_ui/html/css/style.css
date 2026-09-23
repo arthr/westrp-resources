@@ -804,6 +804,123 @@ body {
   background: var(--accent-gold);
 }
 
+/* --- BARRA DE FILTROS POR CHIPS (SUB-ABA) --- */
+.panel-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 0 12px 0;
+  border-bottom: 1px solid var(--border-separator);
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-separator);
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  padding: 5px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-transform: uppercase;
+}
+
+.filter-chip:hover {
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--text-title);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+.filter-chip.active {
+  background: var(--bg-row-selected);
+  color: #ffffff;
+  border-color: var(--border-gold);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
+}
+
+.filter-chip-badge {
+  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--accent-gold);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.filter-chip.active .filter-chip-badge {
+  background: rgba(212, 175, 55, 0.25);
+  color: #ffffff;
+}
+
+/* --- BARRA UNIVERSAL DE PAGINAÇÃO --- */
+.panel-pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px 2px 4px;
+  border-top: 1px solid var(--border-separator);
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.pagination-summary {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  letter-spacing: 0.3px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-separator);
+  color: var(--text-title);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.12s;
+  font-size: 0.75rem;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--border-gold);
+  background: var(--bg-row-selected);
+  color: #ffffff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.pagination-page-indicator {
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  letter-spacing: 1px;
+  color: var(--accent-gold);
+  font-weight: 600;
+  padding: 0 4px;
+}
+
 /* --- MODO 1: VITRINE / GRID DE CARDS --- */
 .panel-grid-view {
   display: grid;

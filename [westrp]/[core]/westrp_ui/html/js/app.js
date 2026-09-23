@@ -483,7 +483,9 @@
     searchQuery: '',
     selectedItem: null,
     quantity: 1,
-    ctaLabel: 'CONFIRMAR'
+    ctaLabel: 'CONFIRMAR',
+    activeFilter: 'all',
+    currentPage: 1
   };
 
   const panelEl = {
@@ -497,6 +499,12 @@
     searchWrap: document.getElementById('panel-search-wrap'),
     closeBtn: document.getElementById('panel-close-btn'),
     tabsList: document.getElementById('panel-tabs-list'),
+    filterBar: document.getElementById('panel-filter-bar'),
+    paginationBar: document.getElementById('panel-pagination-bar'),
+    paginationSummary: document.getElementById('pagination-summary'),
+    btnPagePrev: document.getElementById('btn-page-prev'),
+    btnPageNext: document.getElementById('btn-page-next'),
+    pageIndicator: document.getElementById('pagination-page-indicator'),
     gridView: document.getElementById('panel-grid-view'),
     tableView: document.getElementById('panel-table-view'),
     tableHead: document.getElementById('panel-table-head'),
@@ -530,6 +538,8 @@
     panelState.selectedItem = null;
     panelState.quantity = 1;
     panelState.ctaLabel = options.ctaLabel || 'CONFIRMAR';
+    panelState.activeFilter = 'all';
+    panelState.currentPage = 1;
 
     panelEl.tag.textContent = panelState.tag;
     panelEl.title.textContent = panelState.title;
@@ -581,6 +591,8 @@
           panelState.selectedItem = null;
           panelState.quantity = 1;
           panelState.searchQuery = '';
+          panelState.activeFilter = 'all';
+          panelState.currentPage = 1;
           panelEl.searchInput.value = '';
           playUiTick('nav');
           renderPanelTabs();
@@ -590,6 +602,166 @@
 
       panelEl.tabsList.appendChild(btn);
     });
+  }
+
+  function matchItemFilter(item, filter) {
+    if (!filter || filter.id === 'all') return true;
+    const key = filter.key || 'category';
+    const targetVal = filter.value !== undefined ? filter.value : filter.id;
+    const itemVal = item[key];
+    if (Array.isArray(targetVal)) {
+      return targetVal.some(tv => String(tv).toLowerCase() === String(itemVal).toLowerCase());
+    }
+    if (typeof itemVal === 'string' && typeof targetVal === 'string') {
+      return itemVal.toLowerCase() === targetVal.toLowerCase();
+    }
+    return itemVal == targetVal;
+  }
+
+  function getTabFilterOptions(tab) {
+    const rawItems = (tab.viewType === 'table') ? (tab.rows || []) : (tab.items || []);
+    if (tab.filters && Array.isArray(tab.filters) && tab.filters.length > 0) {
+      return tab.filters.map(f => {
+        const badge = f.badge !== undefined ? f.badge : (f.id === 'all' ? rawItems.length : rawItems.filter(it => matchItemFilter(it, f)).length);
+        return {
+          id: f.id,
+          label: f.label || f.id,
+          key: f.key || 'category',
+          value: f.value,
+          badge: badge
+        };
+      });
+    }
+
+    if (tab.filterCategory) {
+      const counts = {};
+      rawItems.forEach(it => {
+        const cat = it.category || 'Geral';
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+      const categories = Object.keys(counts).sort();
+      const options = [{ id: 'all', label: 'Todos', badge: rawItems.length }];
+      categories.forEach(cat => {
+        options.push({
+          id: cat,
+          label: cat,
+          key: 'category',
+          value: cat,
+          badge: counts[cat]
+        });
+      });
+      return options;
+    }
+
+    return null;
+  }
+
+  function renderPanelFilters(tab) {
+    const filterOptions = getTabFilterOptions(tab);
+    if (!filterOptions || filterOptions.length === 0) {
+      panelEl.filterBar.style.display = 'none';
+      panelEl.filterBar.innerHTML = '';
+      return null;
+    }
+
+    if (panelState.activeFilter !== 'all' && !filterOptions.some(f => f.id === panelState.activeFilter)) {
+      panelState.activeFilter = 'all';
+    }
+
+    panelEl.filterBar.innerHTML = '';
+    filterOptions.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = `filter-chip ${panelState.activeFilter === f.id ? 'active' : ''}`;
+
+      const lbl = document.createElement('span');
+      lbl.textContent = f.label;
+      btn.appendChild(lbl);
+
+      if (f.badge !== undefined && f.badge !== null) {
+        const badge = document.createElement('span');
+        badge.className = 'filter-chip-badge';
+        badge.textContent = f.badge;
+        btn.appendChild(badge);
+      }
+
+      btn.addEventListener('click', () => {
+        if (panelState.activeFilter !== f.id) {
+          panelState.activeFilter = f.id;
+          panelState.currentPage = 1;
+          playUiTick('nav');
+          renderPanelContent();
+        }
+      });
+
+      panelEl.filterBar.appendChild(btn);
+    });
+
+    panelEl.filterBar.style.display = 'flex';
+    return filterOptions;
+  }
+
+  function getFilteredItems(tab, filterOptions) {
+    const rawItems = (tab.viewType === 'table') ? (tab.rows || []) : (tab.items || []);
+    const q = panelState.searchQuery ? panelState.searchQuery.toLowerCase() : '';
+
+    return rawItems.filter(item => {
+      // 1. Filtro textual
+      if (q) {
+        let match = false;
+        if (tab.viewType === 'table') {
+          match = Object.values(item).some(val => String(val).toLowerCase().includes(q));
+        } else {
+          match = (item.title && item.title.toLowerCase().includes(q)) ||
+                  (item.subtitle && item.subtitle.toLowerCase().includes(q)) ||
+                  (item.id && item.id.toLowerCase().includes(q)) ||
+                  (item.category && item.category.toLowerCase().includes(q));
+        }
+        if (!match) return false;
+      }
+
+      // 2. Filtro por chip categórico
+      if (filterOptions && panelState.activeFilter !== 'all') {
+        const activeOpt = filterOptions.find(f => f.id === panelState.activeFilter);
+        if (activeOpt && !matchItemFilter(item, activeOpt)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  function paginateItems(tab, filteredItems) {
+    const pageSize = tab.pageSize || (tab.pagination && tab.pagination.pageSize);
+    if (!pageSize || pageSize <= 0) {
+      panelEl.paginationBar.style.display = 'none';
+      return filteredItems;
+    }
+
+    const total = filteredItems.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    if (panelState.currentPage > totalPages) {
+      panelState.currentPage = totalPages;
+    }
+    if (panelState.currentPage < 1) {
+      panelState.currentPage = 1;
+    }
+
+    const start = (panelState.currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const paged = filteredItems.slice(start, end);
+
+    panelEl.paginationBar.style.display = 'flex';
+    const startDisplay = total === 0 ? 0 : start + 1;
+    const endDisplay = Math.min(end, total);
+    panelEl.paginationSummary.textContent = `Exibindo ${startDisplay}-${endDisplay} de ${total} registros`;
+    panelEl.pageIndicator.textContent = `Página ${panelState.currentPage} / ${totalPages}`;
+
+    panelEl.btnPagePrev.disabled = (panelState.currentPage <= 1);
+    panelEl.btnPageNext.disabled = (panelState.currentPage >= totalPages);
+
+    return paged;
   }
 
   function renderPanelContent() {
@@ -606,14 +778,20 @@
 
     if (currentTab.viewType === 'grid') {
       panelEl.gridView.style.display = 'grid';
+      renderPanelFilters(currentTab);
       renderGridView(currentTab);
     } else if (currentTab.viewType === 'table') {
       panelEl.tableView.style.display = 'block';
+      renderPanelFilters(currentTab);
       renderTableView(currentTab);
     } else if (currentTab.viewType === 'craft') {
+      panelEl.filterBar.style.display = 'none';
+      panelEl.paginationBar.style.display = 'none';
       panelEl.craftView.style.display = 'flex';
       renderCraftView(currentTab);
     } else if (currentTab.viewType === 'queue') {
+      panelEl.filterBar.style.display = 'none';
+      panelEl.paginationBar.style.display = 'none';
       panelEl.queueView.style.display = 'flex';
       renderQueueView(currentTab);
       startQueueTicker(currentTab);
@@ -622,21 +800,16 @@
 
   function renderGridView(tab) {
     panelEl.gridView.innerHTML = '';
-    const items = (tab.items || []).filter(item => {
-      if (!panelState.searchQuery) return true;
-      const q = panelState.searchQuery.toLowerCase();
-      return (item.title && item.title.toLowerCase().includes(q)) ||
-             (item.subtitle && item.subtitle.toLowerCase().includes(q)) ||
-             (item.id && item.id.toLowerCase().includes(q)) ||
-             (item.category && item.category.toLowerCase().includes(q));
-    });
+    const filterOptions = getTabFilterOptions(tab);
+    const filtered = getFilteredItems(tab, filterOptions);
+    const paged = paginateItems(tab, filtered);
 
-    if (items.length === 0) {
+    if (paged.length === 0) {
       panelEl.gridView.innerHTML = '<div class="dock-empty-msg" style="grid-column: 1 / -1;">Nenhum item encontrado.</div>';
       return;
     }
 
-    items.forEach(item => {
+    paged.forEach(item => {
       const card = document.createElement('div');
       card.className = `grid-card ${panelState.selectedItem && panelState.selectedItem.id === item.id ? 'selected' : ''}`;
 
@@ -721,20 +894,18 @@
     });
     panelEl.tableHead.appendChild(headerRow);
 
-    const rows = (tab.rows || []).filter(row => {
-      if (!panelState.searchQuery) return true;
-      const q = panelState.searchQuery.toLowerCase();
-      return Object.values(row).some(val => String(val).toLowerCase().includes(q));
-    });
+    const filterOptions = getTabFilterOptions(tab);
+    const filtered = getFilteredItems(tab, filterOptions);
+    const paged = paginateItems(tab, filtered);
 
-    if (rows.length === 0) {
+    if (paged.length === 0) {
       const tr = document.createElement('tr');
       tr.innerHTML = `<td colspan="${cols.length}" style="text-align: center; padding: 30px; color: var(--text-muted);">Nenhum registro encontrado.</td>`;
       panelEl.tableBody.appendChild(tr);
       return;
     }
 
-    rows.forEach(row => {
+    paged.forEach(row => {
       const tr = document.createElement('tr');
       if (panelState.selectedItem && panelState.selectedItem.id === row.id) {
         tr.classList.add('selected');
@@ -1173,15 +1344,24 @@
   panelEl.btnPlus.addEventListener('click', () => setPanelQuantity(panelState.quantity + 1));
   panelEl.ctaBtn.addEventListener('click', () => executePanelCta());
 
+  panelEl.btnPagePrev.addEventListener('click', () => {
+    if (panelState.currentPage > 1) {
+      panelState.currentPage--;
+      playUiTick('nav');
+      renderPanelContent();
+    }
+  });
+
+  panelEl.btnPageNext.addEventListener('click', () => {
+    panelState.currentPage++;
+    playUiTick('nav');
+    renderPanelContent();
+  });
+
   panelEl.searchInput.addEventListener('input', (e) => {
     panelState.searchQuery = e.target.value.trim();
-    const currentTab = panelState.tabs[panelState.activeTab];
-    if (currentTab) {
-      if (currentTab.viewType === 'grid') renderGridView(currentTab);
-      else if (currentTab.viewType === 'table') renderTableView(currentTab);
-      else if (currentTab.viewType === 'craft') renderCraftView(currentTab);
-      else if (currentTab.viewType === 'queue') renderQueueView(currentTab);
-    }
+    panelState.currentPage = 1;
+    renderPanelContent();
   });
 
 

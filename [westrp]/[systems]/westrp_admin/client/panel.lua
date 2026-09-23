@@ -103,6 +103,7 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 label = "Jogadores Online",
                 badge = tostring(#players),
                 viewType = "table",
+                pageSize = 10,
                 columns = {
                     { key = "code", label = "ID", width = "8%", align = "center" },
                     { key = "charName", label = "PERSONAGEM", width = "24%" },
@@ -120,6 +121,8 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 label = "Item Spawner",
                 badge = "ITENS",
                 viewType = "grid",
+                filterCategory = true,
+                pageSize = 24,
                 items = catalog
             },
             -- Aba 3: Catálogo de Armamento & Munições (Grid)
@@ -128,6 +131,8 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 label = "Armamento & Munições",
                 badge = tostring(#weapons),
                 viewType = "grid",
+                filterCategory = true,
+                pageSize = 18,
                 items = weapons
             },
             -- Aba 4: Banimentos Ativos (Table)
@@ -136,6 +141,7 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 label = "Punições & Bans",
                 badge = tostring(#banRows),
                 viewType = "table",
+                pageSize = 10,
                 columns = {
                     { key = "identifier", label = "IDENTIFICADOR (STEAM/LICENÇA)", width = "36%" },
                     { key = "reason", label = "MOTIVO DO BANIMENTO", width = "30%" },

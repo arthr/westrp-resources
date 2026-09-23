@@ -253,6 +253,24 @@ Todas as visões internas possuem scrollbars estilizadas de 5px em tom dourado e
 
 ---
 
+### Propriedades das Abas (`PanelTab`)
+
+| Campo | Tipo | Padrão | Descrição |
+| :--- | :--- | :---: | :--- |
+| `id` | `string` | **Obrigatório** | Identificador único da aba. |
+| `label` | `string` | **Obrigatório** | Nome visível na sidebar de abas. |
+| `viewType` | `'grid' \| 'table' \| 'craft' \| 'queue'` | `'grid'` | Modo de renderização da viewport. |
+| `badge` | `string \| number` | `nil` | Rótulo/contador decorativo na aba. |
+| `items` | `table[]` | `nil` | Lista de cards para `grid` ou receitas para `craft`. |
+| `columns` | `table[]` | `nil` | Definição de colunas para `table`. |
+| `rows` | `table[]` | `nil` | Registros de dados para `table`. |
+| `filters` | `table[]` | `nil` | Lista declarativa de chips de filtro (ex: `{{ id = 'all', label = 'Todos' }, ...}`). |
+| `filterCategory` | `boolean` | `false` | Se `true`, extrai categorias automaticamente de `items` ou `rows` e cria os chips. |
+| `pageSize` | `number` | `nil` | Ativa paginação dinâmica com X itens por página (ex: `12`, `20`). Sem limite se omitido. |
+| `pagination` | `table` | `nil` | Configuração avançada `{ pageSize = 12, showSummary = true }`. |
+
+---
+
 ### Visão 1: `grid` (Vitrine Comercial)
 Ideal para lojas de armas, vestuário, armazéns e vitrines de produtos.
 
@@ -285,7 +303,9 @@ Ideal para lojas de armas, vestuário, armazéns e vitrines de produtos.
 }
 ```
 * **Recursos Integrados:**
-  * Busca em tempo real por título ou subtítulo.
+  * Busca em tempo real por título, subtítulo, ID ou categoria.
+  * **Barra de Filtros por Chips:** Filtragem instantânea por sub-categoria com contadores.
+  * **Paginação Dinâmica:** Controle visual por páginas (`pageSize`) com botões `◄` e `►`.
   * Seletor de quantidade no rodapé (`-` e `+`) com cálculo do preço total.
   * O clique seleciona o card e atualiza os detalhes no rodapé.
 
@@ -394,6 +414,11 @@ Ideal para extratos contábeis, livros de registros do xerife, histórico de ven
     }
 }
 ```
+* **Recursos Integrados:**
+  * Busca instantânea por qualquer coluna da tabela.
+  * **Barra de Filtros por Chips:** Filtragem dinâmica de linhas por status ou categoria (ex: Todos, Pagos, Pendentes).
+  * **Paginação Dinâmica:** Controle por páginas (`pageSize = 10`) com navegação rápida `◄` e `►`.
+  * Status Pills coloridas personalizadas com suporte a clique e seleção de linha.
 
 ---
 
