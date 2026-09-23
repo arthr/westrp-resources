@@ -119,6 +119,25 @@ end
 -- 3. PANEL / WORKSPACE (CANVAS CENTRAL / MOUSE LIBERADO)
 -- ============================================================================
 
+local SCREEN_BLUR_FILTER = 'OJDominoBlur'
+
+---Aplica o efeito nativo de desfoque de tela do RedM (Rockstar PostFX)
+local function ApplyScreenBlur()
+    if AnimpostfxIsRunning and AnimpostfxIsRunning(SCREEN_BLUR_FILTER) then
+        AnimpostfxStop(SCREEN_BLUR_FILTER)
+    end
+    if AnimpostfxPlay then
+        AnimpostfxPlay(SCREEN_BLUR_FILTER)
+    end
+end
+
+---Remove o efeito nativo de desfoque de tela do RedM
+local function ClearScreenBlur()
+    if AnimpostfxStop then
+        AnimpostfxStop(SCREEN_BLUR_FILTER)
+    end
+end
+
 ---Abre o Panel Centralizado com cursor do mouse liberado
 ---@param options PanelOptions
 function OpenPanel(options)
@@ -141,6 +160,9 @@ function OpenPanel(options)
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
 
+    -- Ativa o desfoque de tela nativo no motor 3D do RedM
+    ApplyScreenBlur()
+
     SendNUIMessage({
         action = 'westrp_ui:openPanel',
         options = {
@@ -161,6 +183,9 @@ function ClosePanel()
 
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
+
+    -- Desativa o desfoque nativo de tela
+    ClearScreenBlur()
 
     SendNUIMessage({
         action = 'westrp_ui:closePanel'
@@ -244,6 +269,7 @@ RegisterNUICallback('westrp_ui:panelClosed', function(data, cb)
     isPanelOpen = false
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
+    ClearScreenBlur()
 
     if currentActivePanel and currentActivePanel.onClose then
         currentActivePanel.onClose()
@@ -258,6 +284,7 @@ AddEventHandler('onResourceStop', function(resName)
         if isDockOpen or isPanelOpen then
             SetNuiFocus(false, false)
             SetNuiFocusKeepInput(false)
+            ClearScreenBlur()
         end
     end
 end)

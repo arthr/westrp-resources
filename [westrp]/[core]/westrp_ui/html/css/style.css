@@ -540,10 +540,7 @@ body {
 .panel-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  transition: opacity 0.2s ease;
+  background: transparent;
 }
 
 .panel-modal {
@@ -746,6 +743,65 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+/* ==========================================================================
+   CUSTOM MINIMAL GOLD SCROLLBARS (IDENTIDADE VISUAL WESTRP — PANEL & MODAL)
+   ========================================================================== */
+.panel-modal * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.4) rgba(0, 0, 0, 0.45);
+}
+
+.panel-sidebar::-webkit-scrollbar,
+.panel-content::-webkit-scrollbar,
+.panel-queue-view::-webkit-scrollbar,
+.craft-recipe-list::-webkit-scrollbar,
+.panel-table-view::-webkit-scrollbar,
+.panel-modal *::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.panel-sidebar::-webkit-scrollbar-track,
+.panel-content::-webkit-scrollbar-track,
+.panel-queue-view::-webkit-scrollbar-track,
+.craft-recipe-list::-webkit-scrollbar-track,
+.panel-table-view::-webkit-scrollbar-track,
+.panel-modal *::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+}
+
+.panel-sidebar::-webkit-scrollbar-thumb,
+.panel-content::-webkit-scrollbar-thumb,
+.panel-queue-view::-webkit-scrollbar-thumb,
+.craft-recipe-list::-webkit-scrollbar-thumb,
+.panel-table-view::-webkit-scrollbar-thumb,
+.panel-modal *::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.panel-sidebar::-webkit-scrollbar-thumb:hover,
+.panel-content::-webkit-scrollbar-thumb:hover,
+.panel-queue-view::-webkit-scrollbar-thumb:hover,
+.craft-recipe-list::-webkit-scrollbar-thumb:hover,
+.panel-table-view::-webkit-scrollbar-thumb:hover,
+.panel-modal *::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.75);
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
+}
+
+.panel-sidebar::-webkit-scrollbar-thumb:active,
+.panel-content::-webkit-scrollbar-thumb:active,
+.panel-queue-view::-webkit-scrollbar-thumb:active,
+.craft-recipe-list::-webkit-scrollbar-thumb:active,
+.panel-table-view::-webkit-scrollbar-thumb:active,
+.panel-modal *::-webkit-scrollbar-thumb:active {
+  background: var(--accent-gold);
 }
 
 /* --- MODO 1: VITRINE / GRID DE CARDS --- */

@@ -4,11 +4,13 @@ Bem-vindo ao repositório do **[westrp]**, uma solução de engenharia modular, 
 
 ---
 
-## 📖 Documentação e Especificação Mestra
+## 📖 Documentação e Especificações Mestras
 Todo o desenvolvimento deste ecossistema segue rigorosamente a abordagem de **Spec-Driven Development (SDD)**.
 
-Antes de desenvolver ou modificar qualquer recurso, consulte a especificação completa em:
-👉 **[SPECIFICATION.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/SPECIFICATION.md)**
+Antes de desenvolver ou modificar qualquer recurso, consulte as documentações específicas:
+* 📜 **[SPECIFICATION.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/SPECIFICATION.md)** — Arquitetura Mestra, Contratos e Regras Inegociáveis.
+* 🎨 **[Manual do Motor de UI (`westrp_ui`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/README.md)** — Guia Completo do Desenvolvedor para Dock, Panel, Toasts e Web Audio.
+* 🖼️ **[Manual da Central de Assets (`westrp_assets`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[assets]/westrp_assets/README.md)** — Guia do Acervo de 2.100+ Ícones e Resolução Automática.
 
 ---
 
@@ -19,12 +21,16 @@ Antes de desenvolver ou modificar qualquer recurso, consulte a especificação c
 ├── SPECIFICATION.md          # 📜 Especificação arquitetural, contratos de API e regras inegociáveis
 ├── README.md                 # 📄 Este arquivo
 │
-├── [core]/                   # ⚙️ Núcleo compartilhado / SDK
-│   └── westrp_core/          # Ponto de entrada (Bridges, TickManager, RPC, Security)
+├── [assets]/                 # 🖼️ Recursos Estáticos & Repositório de Mídias
+│   └── westrp_assets/        # Central de 2.122 ícones e índice de resolução automática
+│
+├── [core]/                   # ⚙️ Núcleo compartilhado / SDK e Motores
+│   ├── westrp_core/          # Ponto de entrada (Bridges, TickManager, RPC, Security)
+│   └── westrp_ui/            # Motor NUI Central (Dock Lateral, Panel Central, Toasts)
 │
 └── [systems]/                # 🎮 Módulos e Funcionalidades de Gameplay
     ├── westrp_template/      # 📋 Boilerplate oficial para clonagem de novos resources
-    └── westrp_interaction/   # 🎯 Sistema de Interações e Pontos de Interesse (Validação)
+    └── westrp_interaction/   # 🎯 Interações Espaciais, Prompts e Comandos de Demonstração
 ```
 
 ---

@@ -255,7 +255,7 @@
           label: 'Nenhum cidadão na fronteira',
           desc: 'Aguardando sincronização ou jogadores conectados.',
           type: 'info',
-          action: () => {}
+          action: () => { }
         }
       ];
     }
@@ -573,7 +573,7 @@
           ? 'As transações de tesouraria serão creditadas diretamente no seu próprio inventário.'
           : `As transações de tesouraria serão creditadas no cidadão ${targetDisplay}.`,
         type: 'info',
-        action: () => {}
+        action: () => { }
       }
     ];
 
