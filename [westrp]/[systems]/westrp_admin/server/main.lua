@@ -30,6 +30,15 @@ WestRP.Server.Callback.Register("westrp_admin:server:getItemsCatalog", function(
     cb(catalog)
 end)
 
+-- Obtenção do catálogo de armas para o Spawner
+WestRP.Server.Callback.Register("westrp_admin:server:getWeaponsCatalog", function(source, cb)
+    if not WestRP.Server.Admin.Security.CanExecute(source, "give_weapon") then
+        return cb({})
+    end
+    local weapons = WestRP.Server.Admin.Items.GetWeaponsCatalog()
+    cb(weapons)
+end)
+
 -- Obtenção da lista de banimentos ativos
 WestRP.Server.Callback.Register("westrp_admin:server:getBansList", function(source, cb)
     if not WestRP.Server.Admin.Security.CanExecute(source, "ban_player") then

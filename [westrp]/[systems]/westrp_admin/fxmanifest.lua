@@ -17,6 +17,7 @@ shared_scripts {
 client_scripts {
     'client/data/datapeds.lua',
     'client/data/dataprops.lua',
+    'client/data/dataweapons.lua',
     'client/boosters.lua',
     'client/teleport.lua',
     'client/devtools.lua',

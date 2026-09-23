@@ -47,10 +47,23 @@ function WestRP.Server.Admin.Security.CanExecute(source, action, targetSource)
     -- Validação de hierarquia sobre o alvo
     if targetSource and targetSource > 0 and targetSource ~= source then
         local targetRole = WestRP.Server.Admin.Security.GetPlayerRole(targetSource)
-        if not WestRP.Admin.Permissions.CanTargetPlayer(operatorRole, targetRole) then
-            WestRP.Shared.Logger.Warn("ADMIN_SECURITY", "Jogador %s tentou agir sobre staff de hierarquia superior ou igual (%s)", source, targetSource)
-            WestRP.Shared.Bridge.Player.Notify(source, "Você não pode executar esta ação em um membro da staff de cargo igual ou superior!", 5000)
-            return false
+        local isPunitive = (action == "kick" or action == "ban" or action == "ban_offline" or action == "freeze" or action == "troll" or action == "clear_inventory" or action == "set_group")
+
+        if isPunitive then
+            if not WestRP.Admin.Permissions.CanTargetPlayer(operatorRole, targetRole) then
+                WestRP.Shared.Logger.Warn("ADMIN_SECURITY", "Jogador %s tentou punir staff de hierarquia superior ou igual (%s)", source, targetSource)
+                WestRP.Shared.Bridge.Player.Notify(source, "Você não pode executar esta ação punitiva em um membro da staff de cargo igual ou superior!", 5000)
+                return false
+            end
+        else
+            -- Ações cooperativas/suporte (heal, revive, give_item, give_weapon, goto, bring)
+            local opHierarchy = WestRP.Admin.Permissions.GetHierarchy(operatorRole)
+            local targetHierarchy = WestRP.Admin.Permissions.GetHierarchy(targetRole)
+            if targetHierarchy > 0 and opHierarchy < targetHierarchy then
+                WestRP.Shared.Logger.Warn("ADMIN_SECURITY", "Jogador %s tentou agir sobre staff de hierarquia superior (%s)", source, targetSource)
+                WestRP.Shared.Bridge.Player.Notify(source, "Você não pode executar esta ação em um membro da staff de cargo superior!", 5000)
+                return false
+            end
         end
     end
 

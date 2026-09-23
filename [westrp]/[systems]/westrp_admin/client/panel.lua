@@ -65,24 +65,36 @@ local function BuildBanRows(bansList)
     return rows
 end
 
+local currentTarget = nil
+
 ---Abre o Painel Central multimodal
-function WestRP.Admin.Panel.Open()
+---@param targetOverride? table { serverId: number, name: string }
+function WestRP.Admin.Panel.Open(targetOverride)
     local myServerId = GetPlayerServerId(PlayerId())
     local myName = GetPlayerName(PlayerId())
+
+    if targetOverride then
+        currentTarget = targetOverride
+    elseif not currentTarget then
+        currentTarget = { serverId = myServerId, name = myName .. " (Você)" }
+    end
 
     -- Carregamento de dados via RPC assíncrono
     local players = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getPlayers", "all") or {}
     local catalog = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getItemsCatalog") or {}
     local bans = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getBansList") or {}
+    local weapons = WestRP.Admin.DataWeapons or {}
 
     local playerRows = BuildPlayerRows(players)
     local banRows = BuildBanRows(bans)
+
+    local targetDisplay = (currentTarget.serverId == myServerId) and "Você (Operador)" or string.format("%s [ID %s]", currentTarget.name, currentTarget.serverId)
 
     local panelSchema = {
         id = "admin_central_panel",
         title = "MESA DE COMANDO & AUDITORIA",
         tag = "WESTRP • CENTRAL ADMINISTRATIVA",
-        subtitle = string.format("Operador: %s [ID %s] • Total Online: %s", myName, myServerId, #players),
+        subtitle = string.format("Operador: %s [ID %s] • Alvo do Spawner: %s • Online: %s", myName, myServerId, targetDisplay, #players),
         ctaLabel = "EXECUTAR AÇÃO",
         tabs = {
             -- Aba 1: Jogadores Online (Table)
@@ -106,11 +118,19 @@ function WestRP.Admin.Panel.Open()
             {
                 id = "spawner_tab",
                 label = "Item Spawner",
-                badge = "VITRINE",
+                badge = "ITENS",
                 viewType = "grid",
                 items = catalog
             },
-            -- Aba 3: Banimentos Ativos (Table)
+            -- Aba 3: Catálogo de Armamento & Munições (Grid)
+            {
+                id = "weapons_tab",
+                label = "Armamento & Munições",
+                badge = tostring(#weapons),
+                viewType = "grid",
+                items = weapons
+            },
+            -- Aba 4: Banimentos Ativos (Table)
             {
                 id = "bans_tab",
                 label = "Punições & Bans",
@@ -127,6 +147,8 @@ function WestRP.Admin.Panel.Open()
         },
         onAction = function(action, item, tabId, qty)
             local count = tonumber(qty) or 1
+            local destId = currentTarget and currentTarget.serverId or myServerId
+            local destName = currentTarget and currentTarget.name or "Você mesmo"
 
             if tabId == "players_tab" then
                 if action == "confirm" and item and item.serverId then
@@ -135,16 +157,26 @@ function WestRP.Admin.Panel.Open()
                 end
             elseif tabId == "spawner_tab" then
                 if action == "confirm" and item and item.id then
-                    -- Concede o item selecionado para o operador por padrão
                     TriggerServerEvent("westrp_admin:server:executeAction", {
                         action = "give_item",
-                        targetId = myServerId,
+                        targetId = destId,
                         payload = {
                             item = item.id,
                             qty = count
                         }
                     })
-                    WestRP.Client.UI.ShowToast("SPAWNER", string.format("Solicitado %sx de '%s'", count, item.title or item.id), "success")
+                    WestRP.Client.UI.ShowToast("SPAWNER", string.format("Enviando %sx de '%s' para %s", count, item.title or item.id, destName), "success")
+                end
+            elseif tabId == "weapons_tab" then
+                if action == "confirm" and item and item.id then
+                    TriggerServerEvent("westrp_admin:server:executeAction", {
+                        action = "give_weapon",
+                        targetId = destId,
+                        payload = {
+                            weapon = item.id
+                        }
+                    })
+                    WestRP.Client.UI.ShowToast("ARMAMENTO", string.format("Enviando arma '%s' para %s", item.title or item.id, destName), "success")
                 end
             elseif tabId == "bans_tab" then
                 if action == "confirm" and item and item.rawIdentifier then
@@ -192,9 +224,39 @@ end
 function WestRP.Admin.Panel.OpenPlayerActionModal(playerRow)
     local targetId = playerRow.serverId
     local targetName = playerRow.charName or playerRow.steam or ("ID " .. targetId)
+    local myServerId = GetPlayerServerId(PlayerId())
 
     WestRP.Admin.Panel.Close()
     Wait(200)
+
+    local targetOptions = {
+        {
+            id = "set_as_spawner_target",
+            label = "Definir como Alvo do Spawner",
+            badge = "ALVO",
+            badgeType = "gold",
+            description = "Define " .. targetName .. " como destinatário para entrega de itens e armas no Spawner."
+        }
+    }
+
+    if currentTarget and currentTarget.serverId ~= myServerId then
+        targetOptions[#targetOptions + 1] = {
+            id = "reset_spawner_target",
+            label = "Redefinir Alvo para Mim Mesmo",
+            badge = "EU",
+            badgeType = "off",
+            description = "Retorna o destinatário do Spawner para o seu próprio personagem."
+        }
+    end
+
+    targetOptions[#targetOptions + 1] = {
+        id = "clear_inventory",
+        label = "Limpar Todo Inventário (Wipe)",
+        badge = "WIPE",
+        badgeType = "danger",
+        danger = true,
+        description = "Remove todos os itens, armas e munições da bolsa deste jogador."
+    }
 
     -- Abre o dock lateral focado exclusivamente no jogador selecionado
     WestRP.Client.UI.OpenDock({
@@ -203,6 +265,11 @@ function WestRP.Admin.Panel.OpenPlayerActionModal(playerRow)
         tag = string.format("ALVO: %s [ID %s]", string.upper(targetName), targetId),
         keepInput = true,
         tabs = {
+            {
+                id = "spawner_targets",
+                name = "SPAWNER & ITENS",
+                items = targetOptions
+            },
             {
                 id = "teleport_actions",
                 name = "DESLOCAMENTO",
@@ -245,7 +312,22 @@ function WestRP.Admin.Panel.OpenPlayerActionModal(playerRow)
             }
         },
         onSelect = function(item, tabId)
-            if item.id == "goto" then
+            if item.id == "set_as_spawner_target" then
+                WestRP.Client.UI.CloseDock()
+                Wait(150)
+                WestRP.Admin.Panel.Open({ serverId = targetId, name = targetName })
+                WestRP.Client.UI.ShowToast("SPAWNER", "Alvo selecionado: " .. targetName, "info")
+                return
+            elseif item.id == "reset_spawner_target" then
+                local myName = GetPlayerName(PlayerId())
+                WestRP.Client.UI.CloseDock()
+                Wait(150)
+                WestRP.Admin.Panel.Open({ serverId = myServerId, name = myName .. " (Você)" })
+                WestRP.Client.UI.ShowToast("SPAWNER", "Alvo redefinido para você mesmo", "info")
+                return
+            elseif item.id == "clear_inventory" then
+                TriggerServerEvent("westrp_admin:server:executeAction", { action = "clear_inventory", targetId = targetId })
+            elseif item.id == "goto" then
                 TriggerServerEvent("westrp_admin:server:executeAction", { action = "goto", targetId = targetId })
             elseif item.id == "bring" then
                 TriggerServerEvent("westrp_admin:server:executeAction", { action = "bring", targetId = targetId })
