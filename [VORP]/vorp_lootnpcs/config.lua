@@ -2,13 +2,13 @@
 local Config = {}
 
 -- Language setting - English | Portuguese_PT | Portuguese_BR | French | German | Spanish
-Config.Lang = "English"
+Config.Lang = "Portuguese_BR"
 
 -- NPC Looting Settings
 Config.timeout = 5 -- default is 5 minutes, Time in milliseconds for how long this NPC/netid can be looted
 
 -- Notification display settings
-Config.useNotifyRight = false -- Set to 'true' for displaying notifications on the right (standard); 'false' for left side display (modern look)
+Config.useNotifyRight = true -- Set to 'true' for displaying notifications on the right (standard); 'false' for left side display (modern look)
 
 -- Item receiving settings
 -- Enable or disable the chance to receive ITEMS
@@ -17,14 +17,14 @@ Config.receiveItem = 35        -- Threshold number; receive item if random numbe
 Config.chanceGettingItem = 100 -- Chance of getting an item, as a percentage
 -- List of possible items to receive
 Config.items = {
-    { name = "water",              label = "Water",                amount = 1 },
-    { name = "ammorepeaternormal", label = "Normal Ammo Repeater", amount = 1 },
-    { name = "ammoriflenormal",    label = "Normal Ammo Rifle",    amount = 1 },
+    { name = "water", label = "Water", amount = 1 },
+    -- { name = "ammorepeaternormal", label = "Normal Ammo Repeater", amount = 1 },
+    -- { name = "ammoriflenormal",    label = "Normal Ammo Rifle",    amount = 1 },
 }
 
 -- Money receiving settings
 -- Enable or disable the chance to receive MONEY
-Config.canReceiveMoney = false  -- Set to 'true' to enable, 'false' to disable money receiving
+Config.canReceiveMoney = true   -- Set to 'true' to enable, 'false' to disable money receiving
 Config.receiveMoney = 50        -- Threshold number; receive money if random number is below this
 Config.chanceGettingMoney = 100 -- Chance of getting money, as a percentage
 -- List of possible money values to receive
@@ -32,7 +32,7 @@ Config.money = { 0.5, 1, 1.5 }
 
 -- Gold receiving settings
 -- Enable or disable the chance to receive GOLD
-Config.canReceiveGold = false -- Set to 'true' to enable, 'false' to disable gold receiving
+Config.canReceiveGold = true  -- Set to 'true' to enable, 'false' to disable gold receiving
 Config.receiveGold = 5        -- Threshold number; receive gold if random number is below this
 Config.chanceGettingGold = 10 -- Chance of getting gold, as a percentage
 -- List of possible gold values to receive
