@@ -293,8 +293,8 @@ Config = {
             value = 0.0
         },
         VehicleDensity        = {
-            enable = false,
-            value = 0.0
+            enable = true,
+            value = 0.3
         },
         ScenarioAnimalDensity = {
             enable = false,
