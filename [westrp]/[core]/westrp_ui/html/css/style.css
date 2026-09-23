@@ -1,0 +1,490 @@
+/* ==========================================================================
+   WESTRP UI DOCK ENGINE — DESIGN SYSTEM ROCKSTAR NATIVE (RDR2 1899-1910)
+   100% Teclado / Mouse | Procedural Web Audio | Zero Dependências Externas
+   ========================================================================== */
+
+:root {
+  --bg-dock: rgba(13, 12, 11, 0.94);
+  --bg-header: rgba(8, 7, 6, 0.98);
+  --bg-row: rgba(255, 255, 255, 0.025);
+  --bg-row-selected: rgba(212, 175, 55, 0.18);
+  --bg-row-danger-selected: rgba(220, 53, 69, 0.22);
+  --bg-info-box: rgba(6, 6, 5, 0.75);
+
+  --border-dock: rgba(212, 175, 55, 0.28);
+  --border-separator: rgba(212, 175, 55, 0.12);
+  --border-gold: #d4af37;
+  --border-danger: #dc3545;
+
+  --text-title: #f5eedf;
+  --text-main: #d8cebc;
+  --text-selected: #ffffff;
+  --text-muted: #8c8474;
+  --accent-gold: #cba332;
+  --accent-green: #50c878;
+  --accent-danger: #e04545;
+
+  --font-serif: 'Cinzel', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  font-family: var(--font-sans);
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   CONTAINER DO HUD DOCK LATERAL (COMPACTO 350px)
+   ========================================================================== */
+.dock-container {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 36px;
+  top: 48px;
+  width: 350px;
+  background: var(--bg-dock);
+  border: 1px solid var(--border-dock);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 1px rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  z-index: 999;
+  animation: dockSlideIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dockSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+   CABEÇALHO ROCKSTAR (TÍTULO + CONTADOR)
+   ========================================================================== */
+.dock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-dock);
+}
+
+.dock-header-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dock-category-tag {
+  font-family: var(--font-serif);
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.dock-title {
+  font-family: var(--font-serif);
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text-title);
+  text-transform: uppercase;
+}
+
+.dock-counter-pill {
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 2px;
+  padding: 3px 8px;
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   BARRA DE ABAS HORIZONTAIS COM SETAS (◄ NOME DA ABA ►)
+   ========================================================================== */
+.dock-tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid var(--border-separator);
+}
+
+.tab-arrow-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-gold);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: opacity 0.1s, transform 0.1s;
+}
+
+.tab-arrow-btn:active {
+  transform: scale(0.9);
+}
+
+.tab-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tab-index-badge {
+  font-family: var(--font-serif);
+  font-size: 0.58rem;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.current-tab-name {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-title);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   BREADCRUMB / RETORNO DE SUBMENU (◂ BACKSPACE)
+   ========================================================================== */
+.dock-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(212, 175, 55, 0.08);
+  border-bottom: 1px solid var(--border-separator);
+}
+
+.breadcrumb-back-key {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+  font-family: var(--font-sans);
+}
+
+.breadcrumb-title {
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-title);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   VIEWPORT DA LISTA VERTICAL (.dock-viewport)
+   ========================================================================== */
+.dock-viewport {
+  max-height: 380px;
+  min-height: 140px;
+  overflow-y: auto;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Minimal Gold Scrollbar */
+.dock-viewport::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dock-viewport::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dock-viewport::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+}
+
+.dock-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.65);
+}
+
+/* ==========================================================================
+   ITEM DA LISTA (.dock-item)
+   ========================================================================== */
+.dock-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  min-height: 38px;
+  background: var(--bg-row);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.08s ease;
+}
+
+.dock-item:last-child {
+  border-bottom: none;
+}
+
+.dock-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.dock-item-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  letter-spacing: 0.3px;
+}
+
+.dock-item-sublabel {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.dock-item-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+/* Estado Selecionado (Navegação Ativa por Setas) */
+.dock-item.selected {
+  border-left: 3px solid var(--border-gold) !important;
+  background: var(--bg-row-selected) !important;
+}
+
+.dock-item.selected .dock-item-label {
+  color: var(--text-selected);
+  font-weight: 600;
+}
+
+.dock-item.selected .dock-item-sublabel {
+  color: #e2d8c3;
+}
+
+/* Estado Desabilitado */
+.dock-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Estado de Perigo Selecionado */
+.dock-item.danger.selected {
+  border-left: 3px solid var(--border-danger) !important;
+  background: var(--bg-row-danger-selected) !important;
+}
+
+.dock-item.danger .dock-item-label {
+  color: #ff9999;
+}
+
+.dock-item.danger.selected .dock-item-label {
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   PILLS DE STATUS & CONTROLES (TOGGLES, SLIDERS, BADGES)
+   ========================================================================== */
+.status-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.status-pill.on {
+  color: var(--accent-green);
+  background: rgba(80, 200, 120, 0.14);
+  border: 1px solid rgba(80, 200, 120, 0.35);
+}
+
+.status-pill.off {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-pill.gold {
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.status-pill.danger {
+  color: var(--accent-danger);
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-title);
+  font-weight: 600;
+}
+
+.slider-arrow {
+  color: var(--accent-gold);
+  font-size: 0.7rem;
+}
+
+.submenu-arrow {
+  color: var(--accent-gold);
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   CAIXA DE CONTEXTO / DESCRIÇÃO ROCKSTAR (#dock-info-box)
+   ========================================================================== */
+.dock-info-box {
+  padding: 8px 12px;
+  background: var(--bg-info-box);
+  border-top: 1px solid var(--border-separator);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.dock-info-box p {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   LEGENDA DE TECLAS NO RODAPÉ (.dock-footer-keys)
+   ========================================================================== */
+.dock-footer-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border-dock);
+}
+
+.k-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.k-box {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+  padding: 1px 4px;
+  letter-spacing: 0.5px;
+}
+
+.k-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   MENSAGENS VAZIAS
+   ========================================================================== */
+.dock-empty-msg {
+  padding: 30px 16px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   NOTIFICAÇÕES TOASTS (#toast-container)
+   ========================================================================== */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 36px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.toast-msg {
+  background: rgba(14, 13, 11, 0.95);
+  border: 1px solid var(--border-dock);
+  border-left: 3px solid var(--accent-gold);
+  color: var(--text-title);
+  font-size: 0.76rem;
+  padding: 8px 14px;
+  border-radius: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
+  animation: toastFade 0.2s ease-out;
+  max-width: 320px;
+}
+
+.toast-msg.alert, .toast-msg.error {
+  border-left-color: var(--accent-danger);
+}
+
+.toast-msg.success {
+  border-left-color: var(--accent-green);
+}
+
+@keyframes toastFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
