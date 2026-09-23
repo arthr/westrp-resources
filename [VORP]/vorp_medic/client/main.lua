@@ -34,8 +34,16 @@ local function getClosestPlayer()
 end
 
 local function getPlayerJob()
-    local job <const> = LocalPlayer.state.Character.Job
-    return Config.DoctorJobs[job]
+    local char <const> = LocalPlayer.state.Character
+    local job = char and char.Job
+    if not job then return nil end
+    local userJob = string.lower(job)
+    for jobKey, jobData in pairs(Config.DoctorJobs) do
+        if string.lower(jobKey) == userJob then
+            return jobData
+        end
+    end
+    return nil
 end
 
 local function isOnDuty()
@@ -322,7 +330,7 @@ local function OpenMedicMenu()
             label = label .. "<br><span style='opacity:0.6;'>" .. dutyLabel .. "</span>",
             value = "duty",
             desc = desc,
-            footerText = T.PressEnter,
+            footerText = T.Menu.PressEnter,
         }
     }
 
@@ -331,7 +339,7 @@ local function OpenMedicMenu()
             label = T.Teleport.TeleportTo .. "<br><span style='opacity:0.6;'>" .. "teleport options" .. "</span>",
             value = "teleports",
             desc = T.Teleport.TeleportToDifferentLocations,
-            footerText = T.PressEnter,
+            footerText = T.Menu.PressEnter,
         })
     end
 

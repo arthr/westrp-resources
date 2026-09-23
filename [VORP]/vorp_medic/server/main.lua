@@ -39,7 +39,14 @@ end
 
 local function hasJob(user)
     local Character <const> = user.getUsedCharacter
-    return Config.DoctorJobs[Character.job]
+    if not Character or not Character.job then return nil end
+    local userJob = string.lower(Character.job)
+    for jobKey, jobData in pairs(Config.DoctorJobs) do
+        if string.lower(jobKey) == userJob then
+            return jobData
+        end
+    end
+    return nil
 end
 
 local function isOnDuty(source)
@@ -57,11 +64,34 @@ local function openDoctorMenu(source)
     local user <const> = Core.getUser(source)
     if not user then return end
 
-    if not hasJob(user) then
+    local character <const> = user.getUsedCharacter
+    local jobData = hasJob(user)
+    if not jobData then
+        print(string.format("^3[vorp_medic] ID %s usou /doctormenu, mas seu job atual no personagem é '%s' (grade: %s) e não confere com Config.DoctorJobs.^7", tostring(source), tostring(character and character.job), tostring(character and character.jobGrade)))
         return Core.NotifyObjective(source, T.Jobs.YouAreNotADoctor, 5000)
     end
     TriggerClientEvent('vorp_medic:Client:OpenMedicMenu', source)
 end
+
+RegisterCommand(Config.DoctorMenuCommand, openDoctorMenu, false)
+
+RegisterCommand("setmedic", function(source, args)
+    local target = tonumber(args[1]) or (source ~= 0 and source or nil)
+    if not target then
+        return print("^1[vorp_medic] Uso: setmedic <id_do_jogador>^7")
+    end
+    local user = Core.getUser(target)
+    if not user then
+        return print(("^1[vorp_medic] Jogador ID %s não encontrado ou offline!^7"):format(target))
+    end
+    local char = user.getUsedCharacter
+    char.setJob("doctor")
+    char.setJobGrade(0)
+    char.setJobLabel("Doctor")
+    TriggerClientEvent("vorp_medic:Client:JobUpdate", target)
+    print(("^2[vorp_medic] SUCESSO: Jogador ID %s setado como médico ('doctor', grade 0)!^7"):format(target))
+    Core.NotifyObjective(target, "Você agora é um Médico (doctor)!", 5000)
+end, true)
 
 local function getSourceInfo(user, _source)
     local sourceCharacter <const> = user.getUsedCharacter
@@ -126,18 +156,13 @@ AddEventHandler("onResourceStart", function(resource)
         end
         registerStorage(prefix, value.Name, value.Limit)
     end
-    if Config.DevMode then
-        TriggerClientEvent("chat:addSuggestion", -1, "/" .. Config.DoctorMenuCommand, T.Menu.OpenDoctorMenu, {})
-        RegisterCommand(Config.DoctorMenuCommand, openDoctorMenu, false)
-    end
+    TriggerClientEvent("chat:addSuggestion", -1, "/" .. Config.DoctorMenuCommand, T.Menu.OpenDoctorMenu, {})
 end)
 
 --* ON PLAYER SPAWN
 AddEventHandler("vorp:SelectedCharacter", function(source, char)
-    if Config.DevMode then return end
     if not Config.DoctorJobs[char.job] then return end
     TriggerClientEvent("chat:addSuggestion", source, "/" .. Config.DoctorMenuCommand, T.Menu.OpenDoctorMenu, {})
-    RegisterCommand(Config.DoctorMenuCommand, openDoctorMenu, false)
 end)
 
 --* HIRE PLAYER
@@ -177,8 +202,7 @@ RegisterNetEvent("vorp_medic:server:hirePlayer", function(id, job, grade)
     Core.NotifyObjective(target, T.Player.HireedPlayer .. label, 5000)
     Core.NotifyObjective(_source, T.Menu.HirePlayer, 5000)
 
-    TriggerClientEvent("chat:addSuggestion", _source, "/" .. Config.DoctorMenuCommand, T.Menu.OpenDoctorMenu, {})
-    RegisterCommand(Config.DoctorMenuCommand, openDoctorMenu, false)
+    TriggerClientEvent("chat:addSuggestion", target, "/" .. Config.DoctorMenuCommand, T.Menu.OpenDoctorMenu, {})
 
     TriggerClientEvent("vorp_medic:Client:JobUpdate", target)
     local sourcename <const>, identifier <const>, steamname <const> = getSourceInfo(user, _source)

@@ -88,13 +88,13 @@ Config.Teleports = {
 Config.Blips = {
     Color = "COLOR_WHITE",
     Style = "BLIP_STYLE_FRIENDLY_ON_RADAR",
-    Sprite = "blip_mp_travelling_saleswoman"
+    Sprite = "blip_shop_doctor"
 }
 
 Config.AlertBlips = {
     Color = "COLOR_RED",
     Style = "BLIP_STYLE_CHALLENGE_OBJECTIVE",
-    Sprite = "blip_mp_travelling_saleswoman"
+    Sprite = "blip_shop_doctor"
 }
 
 -- doctor stations  boss menu locations
