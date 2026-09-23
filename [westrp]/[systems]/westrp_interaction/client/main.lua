@@ -80,10 +80,10 @@ local function OpenWorkshopPanel()
                 badge = 'NOVO',
                 viewType = 'grid',
                 items = {
-                    { id = 'colt', title = 'Revólver Cattleman', subtitle = 'Arma confiável e rápida de empunhadura.', price = 45.0, stock = 12, badge = 'POPULAR', badgeType = 'gold' },
-                    { id = 'schofield', title = 'Revólver Schofield', subtitle = 'Alta precisão e grande poder de parada.', price = 85.0, stock = 4, badge = 'DESTAQUE', badgeType = 'gold' },
-                    { id = 'repeater', title = 'Carabina de Repetição', subtitle = 'Excelente cadência de tiros a média distância.', price = 120.0, stock = 6 },
-                    { id = 'shotgun', title = 'Espingarda de Cano Duplo', subtitle = 'Devastadora em combates a curta distância.', price = 95.0, stock = 2, badge = 'LETAL', badgeType = 'danger' }
+                    { id = 'weapon_thrown_tomahawk', title = 'Tomahawk de Caça', subtitle = 'Arma de arremesso forjada e balanceada.', price = 35.0, stock = 8, badge = 'POPULAR', badgeType = 'gold' },
+                    { id = 'weapon_melee_hammer', title = 'Martelo Pesado de Combate', subtitle = 'Ferramenta e arma de impacto demolidora.', price = 45.0, stock = 4, badge = 'ROBUSTO', badgeType = 'gold' },
+                    { id = 'weapon_thrown_molotov', title = 'Coquetel Molotov Incendiário', subtitle = 'Garrafa inflamável com pavio embebido em querosene.', price = 25.0, stock = 12, badge = 'PERIGO', badgeType = 'danger' },
+                    { id = 'weapon_lasso_reinforced', title = 'Laço Reforçado de Couro', subtitle = 'Corda trançada de alta resistência para captura.', price = 50.0, stock = 5 }
                 }
             },
             {
@@ -93,30 +93,30 @@ local function OpenWorkshopPanel()
                 viewType = 'craft',
                 items = {
                     {
-                        id = 'craft_knife',
+                        id = 'tool_resource_knife',
                         title = 'Faca de Caça Rústica',
                         subtitle = 'Lâmina de aço afiada para esfolar animais e combate corporal.',
                         requirements = {
-                            { item = 'iron', label = 'Barra de Ferro', current = 5, required = 2 },
-                            { item = 'wood', label = 'Madeira Tratada', current = 10, required = 1 }
+                            { item = 'tool_pickaxe_iron', label = 'Ferro Bruto', current = 5, required = 2 },
+                            { item = 'campfire', label = 'Carvão Vegetal', current = 10, required = 1 }
                         }
                     },
                     {
-                        id = 'craft_ammo',
+                        id = 'ammo_revolver',
                         title = 'Munição Regular de Revólver (x12)',
                         subtitle = 'Cartuchos padrão calibre .45.',
                         requirements = {
-                            { item = 'lead', label = 'Chumbo', current = 8, required = 2 },
-                            { item = 'gunpowder', label = 'Pólvora', current = 3, required = 4 }
+                            { item = 'gunpowder', label = 'Pólvora Seca', current = 8, required = 2 },
+                            { item = 'brick', label = 'Chumbo Fundido', current = 3, required = 4 }
                         }
                     },
                     {
-                        id = 'craft_lockpick',
+                        id = 'lockpick',
                         title = 'Gazua de Aço Reforçado',
                         subtitle = 'Ferramenta fina para destrancar fechaduras resistentes.',
                         requirements = {
-                            { item = 'steel_wire', label = 'Fio de Aço', current = 4, required = 2 },
-                            { item = 'oil', label = 'Óleo Lubrificante', current = 1, required = 1 }
+                            { item = 'tool_hammer', label = 'Ferro Moldado', current = 4, required = 2 },
+                            { item = 'tool_chisel', label = 'Pino Guia', current = 1, required = 1 }
                         }
                     }
                 }

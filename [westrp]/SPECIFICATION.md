@@ -101,36 +101,22 @@ ESTADO ATUAL (Baseline)                    ESTADO ALVO (WestRP North Star)
 resources/[westrp]/
 │
 ├── SPECIFICATION.md                  # Este documento (Contrato Geral)
+├── UI_SPECIFICATION.md               # Especificação de UI (Dock Lateral)
+├── PANEL_SPECIFICATION.md            # Especificação de Painéis (Workspaces / Alta Interatividade)
 ├── README.md                         # Resumo executivo do repositório
 │
-├── [core]/                           # Camada de Infraestrutura e SDK
-│   └── westrp_core/                  # Núcleo Central
+├── [assets]/                         # 🖼️ Camada Central de Mídias e Recursos Estáticos
+│   └── westrp_assets/                # Repositório de 2.122 ícones e índice index.json
 │       ├── fxmanifest.lua
-│       ├── init.lua                  # Importador universal (@westrp_core/init.lua)
-│       │
-│       ├── shared/                   # Código executado em Client e Server
-│       │   ├── config.lua            # Parâmetros de infraestrutura
-│       │   ├── logger.lua            # Sistema de log estruturado colorido
-│       │   ├── utils.lua             # Helpers matemáticos, tabelas e strings
-│       │   ├── callback.lua          # Sistema RPC assíncrono (Client <-> Server)
-│       │   └── bridge/               # Abstração de Frameworks
-│       │       ├── bridge.lua        # Fachada única
-│       │       └── vorp/             # Conectores com o VORP Core e Inventory
-│       │           ├── player.lua
-│       │           └── inventory.lua
-│       │
-│       ├── client/                   # Ferramental exclusivo do Cliente
-│       │   ├── main.lua              # Bootstrap do cliente
-│       │   ├── tick_manager.lua      # Agendador dinâmico de loops (0.00ms)
-│       │   ├── prompt_manager.lua    # Criador e gerenciador de Prompts RDR3
-│       │   └── zone_manager.lua      # Detector de áreas (PolyZone/Círculos)
-│       │
-│       └── server/                   # Ferramental exclusivo do Servidor
-│           ├── main.lua              # Bootstrap do servidor
-│           ├── security.lua          # Validação de distância, ped e rate-limiter
-│           └── database.lua          # Wrapper transacional seguro para oxmysql
+│       └── html/
+│           ├── index.json            # Mapeamento automático de resolução itemId -> URL
+│           └── icons/                # 34 categorias limpas de ícones PNG do RDR2
 │
-└── [systems]/                        # Módulos de Gameplay / Features
+├── [core]/                           # ⚙️ Camada de Infraestrutura, SDK e UI Engine
+│   ├── westrp_core/                  # Núcleo Central (Bridges, TickManager, RPC, Security)
+│   └── westrp_ui/                    # Motor NUI Centralizado (Dock Lateral + Panel Workspace)
+│
+└── [systems]/                        # 🎮 Módulos de Gameplay / Features
     ├── westrp_template/              # Molde oficial para novos recursos
     ├── westrp_interaction/           # Sistema de pontos de interação no mundo
     └── [futuros_recursos]/           # Economia, caça, trabalhos, moradia...

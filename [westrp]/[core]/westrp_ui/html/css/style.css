@@ -738,6 +738,56 @@ body {
   transform: translateY(-2px);
 }
 
+.grid-card-icon-wrap {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-separator);
+  border-radius: 2px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.grid-card-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.craft-recipe-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.craft-recipe-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.craft-details-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.craft-details-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-gold);
+  border-radius: 2px;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
 .grid-card.selected {
   border-color: var(--border-gold);
   background: var(--bg-row-selected);

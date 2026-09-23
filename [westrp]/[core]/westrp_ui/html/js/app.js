@@ -76,6 +76,34 @@
     }).catch(() => {});
   }
 
+  // --- ÍNDICE CENTRAL DE ASSETS (westrp_assets) ---
+  let iconIndex = null;
+
+  async function loadIconIndex() {
+    try {
+      const res = await fetch('https://cfx-nui-westrp_assets/html/index.json');
+      if (res.ok) {
+        iconIndex = await res.json();
+      }
+    } catch (e) {
+      // Ignora silenciosamente se o resource de assets não estiver iniciado
+    }
+  }
+  loadIconIndex();
+
+  function resolveItemIcon(item) {
+    if (!item) return null;
+    if (item.icon && (item.icon.startsWith('http') || item.icon.startsWith('nui://'))) {
+      return item.icon;
+    }
+    const idKey = (item.icon || item.id || '').toLowerCase();
+    if (iconIndex && iconIndex[idKey]) {
+      return `https://cfx-nui-westrp_assets/html/${iconIndex[idKey]}`;
+    }
+    return null;
+  }
+
+
   // ==========================================================================
   // 2. MÓDULO A: DOCK LATERAL (ROCKSTAR 350px / TECLADO & CÂMERA LIVRE)
   // ==========================================================================
@@ -600,6 +628,19 @@
       }
       card.appendChild(header);
 
+      const iconUrl = resolveItemIcon(item);
+      if (iconUrl) {
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'grid-card-icon-wrap';
+        const img = document.createElement('img');
+        img.className = 'grid-card-img';
+        img.src = iconUrl;
+        img.alt = item.title || '';
+        img.onerror = () => { iconWrap.style.display = 'none'; };
+        iconWrap.appendChild(img);
+        card.appendChild(iconWrap);
+      }
+
       if (item.subtitle) {
         const desc = document.createElement('span');
         desc.className = 'grid-card-desc';
@@ -720,6 +761,15 @@
       const itemEl = document.createElement('div');
       itemEl.className = `craft-recipe-item ${panelState.selectedItem && panelState.selectedItem.id === recipe.id ? 'selected' : ''}`;
 
+      const iconUrl = resolveItemIcon(recipe);
+      if (iconUrl) {
+        const img = document.createElement('img');
+        img.className = 'craft-recipe-img';
+        img.src = iconUrl;
+        img.alt = '';
+        itemEl.appendChild(img);
+      }
+
       const title = document.createElement('span');
       title.className = 'craft-recipe-title';
       title.textContent = recipe.title;
@@ -742,7 +792,12 @@
   }
 
   function updateCraftDetails(recipe) {
-    panelEl.craftDetailsTitle.textContent = recipe.title || 'Receita';
+    const iconUrl = resolveItemIcon(recipe);
+    if (iconUrl) {
+      panelEl.craftDetailsTitle.innerHTML = `<div class="craft-details-header"><img class="craft-details-img" src="${iconUrl}" alt=""> <span>${recipe.title || 'Receita'}</span></div>`;
+    } else {
+      panelEl.craftDetailsTitle.textContent = recipe.title || 'Receita';
+    }
     panelEl.craftDetailsDesc.textContent = recipe.subtitle || 'Fabricação manual de ferramenta ou consumível.';
     panelEl.craftReqsList.innerHTML = '';
 

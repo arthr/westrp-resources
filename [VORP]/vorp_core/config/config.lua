@@ -164,17 +164,17 @@ Config = {
     --            MAP CONFIGURATIONS             --
     --=============================================
 
-    mapTypeOnFoot            = 3,     -- Radar type when on foot. 0 = Off, 1 = Regular, 2 = Expanded, 3 = Simple (compass).
+    mapTypeOnFoot            = 3,    -- Radar type when on foot. 0 = Off, 1 = Regular, 2 = Expanded, 3 = Simple (compass).
 
-    mapTypeOnMount           = 3,     -- Radar type when on horse. Same options as on foot.
+    mapTypeOnMount           = 3,    -- Radar type when on horse. Same options as on foot.
 
-    enableTypeRadar          = false, -- Enables custom radar types if true, otherwise players use game settings.
+    enableTypeRadar          = true, -- Enables custom radar types if true, otherwise players use game settings.
 
     --=============================================
     --            LOADING SCREEN CONFIGURATIONS    --
     --=============================================
 
-    UseInnitialLoadingScreen = true,  -- Enables the use of the initial game loading screen usually if you have a custom loading screen you could add this to false
+    UseInnitialLoadingScreen = false, -- Enables the use of the initial game loading screen usually if you have a custom loading screen you could add this to false
     -- USING THIS LOADING SCREEN WILL AFFECT HOW FAST THE PLAYER SPAWNS
     Loadinscreen             = false, -- Enables loading screens during spawn this is the second loading screen after player choose a character
 
