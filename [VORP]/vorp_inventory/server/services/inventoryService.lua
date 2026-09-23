@@ -2197,6 +2197,7 @@ local InventoryService <const> = {
 
 		local weaponsToDelete <const> = { -- only has one use cant be picked up
 			[`WEAPON_THROWN_MOLOTOV`] = true,
+			[`WEAPON_THROWN_MOLOTOV_VOLATILE`] = true,
 			[`WEAPON_THROWN_POISONBOTTLE`] = true,
 			[`WEAPON_THROWN_DYNAMITE`] = true,
 			[`WEAPON_MOONSHINEJUG_MP`] = true,

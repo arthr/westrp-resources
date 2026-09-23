@@ -311,11 +311,75 @@ WestRP.Admin.DataWeapons = {
         badge = "MELEE",
         badgeType = "gold"
     },
+    -- Arremesso & Explosivos
+    {
+        id = "WEAPON_THROWN_DYNAMITE",
+        title = "Dinamite",
+        subtitle = "Explosivo clássico com pavio detonador",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_thrown_dynamite.png",
+        badge = "EXPLOSIVO",
+        badgeType = "danger"
+    },
+    {
+        id = "WEAPON_THROWN_MOLOTOV",
+        title = "Coquetel Molotov",
+        subtitle = "Garrafa com querosene inflamável",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_thrown_molotov.png",
+        badge = "INCÊNDIO",
+        badgeType = "danger"
+    },
+    {
+        id = "WEAPON_THROWN_MOLOTOV_VOLATILE",
+        title = "Molotov Volátil",
+        subtitle = "Combustível de alta intensidade e raio expandido",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_volatile_fire_bottle.png",
+        badge = "VOLÁTIL",
+        badgeType = "danger"
+    },
+    {
+        id = "WEAPON_THROWN_POISONBOTTLE",
+        title = "Frasco de Moonshine Tóxico",
+        subtitle = "Frasco que liberta névoa venenosa no impacto",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_thrown_poisonbottle.png",
+        badge = "TÓXICO",
+        badgeType = "danger"
+    },
+    {
+        id = "WEAPON_MOONSHINEJUG_MP",
+        title = "Galão de Moonshine (Despejo)",
+        subtitle = "Galão para criar trilhas contínuas de fogo",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_moonshinejug_mp.png",
+        badge = "GALÃO",
+        badgeType = "gold"
+    },
+    {
+        id = "WEAPON_THROWN_BOLAS",
+        title = "Boleadeiras de Caçador",
+        subtitle = "Arma arremessável para laçar e derrubar alvos",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_thrown_bolas.png",
+        badge = "CAPTURA",
+        badgeType = "gold"
+    },
+    {
+        id = "WEAPON_THROWN_THROWING_KNIVES",
+        title = "Facas de Arremesso",
+        subtitle = "Lâminas balanceadas para combate silencioso",
+        category = "Arremesso & Explosivos",
+        icon = "nui://vorp_inventory/html/img/items/weapon_thrown_throwing_knives.png",
+        badge = "LÂMINA",
+        badgeType = "gold"
+    },
     {
         id = "WEAPON_THROWN_TOMAHAWK",
         title = "Tomahawk Indígena",
         subtitle = "Machadinha leve de arremesso veloz",
-        category = "Armas Brancas",
+        category = "Arremesso & Explosivos",
         icon = "nui://vorp_inventory/html/img/items/weapon_thrown_tomahawk.png",
         badge = "ARREMESSO",
         badgeType = "gold"

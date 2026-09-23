@@ -1244,6 +1244,17 @@ SHARED_DATA.WEAPONS                      = {
         NoAmmo = true,        -- this weapon does not need ammo to be used
         IsThrowable = true,
     },
+    WEAPON_THROWN_MOLOTOV_VOLATILE = {
+        Name = "Volatile Molotov",
+        Desc = "An intensely destructive fire bomb",
+        AttachPoint = "",
+        HashName = "WEAPON_THROWN_MOLOTOV_VOLATILE",
+        Weight = 0.50,
+        NoSerialNumber = true,
+        NoDegradation = true,
+        NoAmmo = true,
+        IsThrowable = true,
+    },
     WEAPON_BOW_IMPROVED = {
         Name = "Improved Bow",
         Desc = "a bow with better accuracy",
