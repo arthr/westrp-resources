@@ -23,9 +23,8 @@ server_scripts {
 
 ui_page 'html/index.html'
 
-files { -- Credits to https://github.com/LVRP-BEN/bl_coords for clipboard copy method
+files {
     'html/index.html',
-    'html/index.js',
     'html/css/style.css',
     'html/js/app.js'
 }

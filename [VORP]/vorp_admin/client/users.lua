@@ -120,8 +120,7 @@ end
 
 ------ REQUEST STAFF ---------------------------------
 
-local cooldown = false
-local timer = Config.AlertCooldown
+local nextAlertTime = 0
 
 function RequestStaff()
     MenuData.CloseAll()
@@ -143,32 +142,41 @@ function RequestStaff()
             if data.current == "backup" then
                 _G[data.trigger]()
             end
-            if data.current.value == "new" and not cooldown then
+
+            local now = GetGameTimer()
+            if now < nextAlertTime then
+                local remainingSeconds = math.ceil((nextAlertTime - now) / 1000)
+                VORP.NotifyRightTip(T.Notify.waitToReportAgain .. " " .. remainingSeconds, 5000)
+                return
+            end
+
+            local val = data.current.value
+            local cooldownMs = (Config.AlertCooldown or 60) * 1000
+
+            if val == "new" then
                 TriggerServerEvent("vorp_admin:requeststaff", "new")
                 VORP.NotifyRightTip(T.Notify.requestSent, 4000)
                 TriggerServerEvent("vorp_admin:logs", Config.ReportLogs.RequestStaff, T.Webhooks.ActionScoreBoard.title,
                     T.Webhooks.ActionScoreBoard.requeststaff_disc)
-                cooldown = true
-            elseif data.current.value == "bug" and not cooldown then
+                nextAlertTime = now + cooldownMs
+            elseif val == "bug" then
                 TriggerServerEvent("vorp_admin:requeststaff", "bug")
                 VORP.NotifyRightTip(T.Notify.requestSent, 4000)
                 TriggerServerEvent("vorp_admin:logs", Config.ReportLogs.BugReport, T.Webhooks.ActionScoreBoard.title,
                     T.Webhooks.ActionScoreBoard.requeststaff_bug)
-                cooldown = true
-            elseif data.current.value == "rules" and not cooldown then
+                nextAlertTime = now + cooldownMs
+            elseif val == "rules" then
                 TriggerServerEvent("vorp_admin:requeststaff", "rules")
                 VORP.NotifyRightTip(T.Notify.requestSent, 4000)
                 TriggerServerEvent("vorp_admin:logs", Config.ReportLogs.RulesBroken, T.Webhooks.ActionScoreBoard.title,
                     T.Webhooks.ActionScoreBoard.requeststaff_rulesbroke)
-                cooldown = true
-            elseif data.current.value == "cheating" and not cooldown then
+                nextAlertTime = now + cooldownMs
+            elseif val == "cheating" then
                 TriggerServerEvent("vorp_admin:requeststaff", "cheating")
                 VORP.NotifyRightTip(T.Notify.requestSent, 4000)
                 TriggerServerEvent("vorp_admin:logs", Config.ReportLogs.Cheating, T.Webhooks.ActionScoreBoard.title,
                     T.Webhooks.ActionScoreBoard.requeststaff_cheating)
-                cooldown = true
-            elseif cooldown then
-                VORP.NotifyRightTip(T.Notify.waitToReportAgain .. " " .. timer, 5000)
+                nextAlertTime = now + cooldownMs
             end
         end,
 
@@ -176,23 +184,6 @@ function RequestStaff()
             menu.close()
         end)
 end
-
-CreateThread(function()
-    repeat Wait(1000) until LocalPlayer.state.IsInSession
-    while true do
-        Wait(10)
-        if timer >= 0 and cooldown then
-            Wait(1000)
-            if timer > 0 then
-                timer = timer - 1
-            end
-            if 0 >= timer and cooldown then
-                cooldown = false
-                timer = Config.AlertCooldown
-            end
-        end
-    end
-end)
 
 ---------------------------------------------------------------------------------------------------------
 

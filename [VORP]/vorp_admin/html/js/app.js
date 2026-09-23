@@ -175,8 +175,7 @@
   function showToast(message, isAlert = false) {
     if (!el.toastContainer) return;
     const toast = document.createElement('div');
-    toast.className = 'gazette-toast';
-    if (isAlert) toast.style.borderLeftColor = 'var(--stamp-red)';
+    toast.className = isAlert ? 'toast-msg alert' : 'toast-msg';
     toast.textContent = message;
     el.toastContainer.appendChild(toast);
     setTimeout(() => {
@@ -271,8 +270,24 @@
   }
 
   // --- Renderização da Tabela de Cidadãos & Live Search ---
+  // --- Renderização da Tabela de Cidadãos & Live Search ---
   function updatePlayersData(playersList) {
-    state.players = Array.isArray(playersList) ? playersList : Object.values(playersList || {});
+    const rawList = Array.isArray(playersList) ? playersList : Object.values(playersList || {});
+    // Higienização completa contra arrays esparsos gerados pelo JSON do CitizenFX
+    state.players = rawList.filter(p => p && typeof p === 'object' && p.serverId != null);
+
+    // Se o cidadão selecionado não estiver mais online, reseta dossiê
+    if (state.selectedPlayer) {
+      const stillOnline = state.players.some(p => p.serverId === state.selectedPlayer.serverId);
+      if (!stillOnline) {
+        state.selectedPlayer = null;
+        if (el.dossierEmptyHint) el.dossierEmptyHint.style.display = 'block';
+        if (el.dossierMetaSection) el.dossierMetaSection.style.display = 'none';
+        if (el.dossierActionsContainer) el.dossierActionsContainer.style.display = 'none';
+        if (el.treasuryTargetName) el.treasuryTargetName.textContent = 'Nenhum Selecionado';
+      }
+    }
+
     applySearchFilter();
   }
 
@@ -283,11 +298,12 @@
       state.filteredPlayers = [...state.players];
     } else {
       state.filteredPlayers = state.players.filter(p => {
-        const idStr = String(p.serverId || '');
-        const rpName = String(p.PlayerName || '').toLowerCase();
-        const steamName = String(p.name || '').toLowerCase();
-        const job = String(p.Job || '').toLowerCase();
-        const steamId = String(p.SteamId || '').toLowerCase();
+        if (!p) return false;
+        const idStr = String(p.serverId ?? '');
+        const rpName = String(p.PlayerName ?? '').toLowerCase();
+        const steamName = String(p.name ?? '').toLowerCase();
+        const job = String(p.Job ?? '').toLowerCase();
+        const steamId = String(p.SteamId ?? '').toLowerCase();
         return idStr.includes(query) || rpName.includes(query) || steamName.includes(query) || job.includes(query) || steamId.includes(query);
       });
     }
@@ -301,26 +317,29 @@
 
     if (state.filteredPlayers.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="6" style="text-align: center; color: var(--gazette-ink-muted); padding: 24px; font-style: italic;">Nenhum registro encontrado para a busca especificada.</td>`;
+      row.innerHTML = `<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px; font-style: italic;">Nenhum registro encontrado para a busca especificada.</td>`;
       el.playersTableBody.appendChild(row);
       return;
     }
 
     state.filteredPlayers.forEach(p => {
+      if (!p) return;
       const tr = document.createElement('tr');
       if (state.selectedPlayer && state.selectedPlayer.serverId === p.serverId) {
         tr.classList.add('selected');
       }
 
-      const wlClass = (p.WLstatus === 'true' || p.WLstatus === '1' || p.WLstatus === true) ? 'stamp-verified' : 'stamp-wanted';
-      const wlText = (p.WLstatus === 'true' || p.WLstatus === '1' || p.WLstatus === true) ? 'VERIFICADO' : 'PENDENTE';
+      const wlVal = p.WLstatus;
+      const isVerified = (wlVal === 'true' || wlVal === '1' || wlVal === true);
+      const wlClass = isVerified ? 'stamp-verified' : 'stamp-wanted';
+      const wlText = isVerified ? 'VERIFICADO' : 'PENDENTE';
 
       tr.innerHTML = `
-        <td style="font-weight: 700;">#${p.serverId}</td>
+        <td style="font-weight: 700;">#${p.serverId ?? 'N/A'}</td>
         <td><strong>${escapeHtml(p.PlayerName || 'Desconhecido')}</strong></td>
-        <td style="color: var(--gazette-ink-soft);">${escapeHtml(p.name || '')}</td>
-        <td>${escapeHtml(p.Job || 'Desempregado')} <span style="font-size: 10px; color: var(--gazette-ink-muted);">(${p.Grade ?? 0})</span></td>
-        <td>$ ${(Number(p.Money || 0)).toFixed(2)} / <span style="color: var(--stamp-gold); font-weight: 600;">${(Number(p.Gold || 0)).toFixed(2)}g</span></td>
+        <td style="color: var(--text-muted);">${escapeHtml(p.name || '')}</td>
+        <td>${escapeHtml(p.Job || 'Desempregado')} <span style="font-size: 10px; color: var(--text-muted);">(${p.Grade ?? 0})</span></td>
+        <td>$ ${(Number(p.Money || 0)).toFixed(2)} / <span style="color: var(--accent-gold); font-weight: 600;">${(Number(p.Gold || 0)).toFixed(2)}g</span></td>
         <td><span class="stamp ${wlClass}">${wlText}</span></td>
       `;
 
@@ -340,6 +359,7 @@
 
   // --- Seleção de Cidadão e Atualização do Dossiê ---
   function selectPlayer(player) {
+    if (!player) return;
     state.selectedPlayer = player;
     
     // Atualiza destaque na tabela
@@ -356,7 +376,7 @@
     el.dossierName.textContent = player.PlayerName || 'Cidadão';
     el.dossierSubinfo.textContent = `Conta Steam: ${player.name || 'N/A'} | Ocupação: ${player.Job || 'N/A'}`;
 
-    el.metaServerId.textContent = `#${player.serverId}`;
+    el.metaServerId.textContent = `#${player.serverId ?? 'N/A'}`;
     el.metaStaticId.textContent = player.staticID || 'N/A';
     el.metaGroup.textContent = player.Group || 'user';
     el.metaWhitelist.textContent = (player.WLstatus === 'true' || player.WLstatus === '1' || player.WLstatus === true) ? 'Sim' : 'Não';

@@ -12,30 +12,36 @@ function Closem()
 end
 
 function GetPlayers()
-    TriggerServerEvent("vorp_admin:GetPlayers")
-    local playersData = {}
-    RegisterNetEvent("vorp_admin:SendPlayers", function(result)
-        playersData = result
-    end)
-    while next(playersData) == nil do
-        Wait(10)
-    end
-    return playersData
+    local result = VORP.Callback.TriggerAwait("vorp_admin:Callback:getplayersinfo", { search = "all" })
+    return result or {}
 end
 
 function GetPlayersClient(player)
-    local players = GetActivePlayers()
-    for i = 1, #players, 1 do
-        local server = GetPlayerServerId(players[i])
-        if tonumber(server) == tonumber(player) then
-            local ped = 0
-            while ped == 0 do
-                ped = GetPlayerPed(players[i])
-                Wait(10)
-            end
-            return ped
-        end
+    local serverId = tonumber(player)
+    if not serverId then return 0 end
+
+    local clientPlayer = GetPlayerFromServerId(serverId)
+    if not clientPlayer or clientPlayer == -1 then
+        return 0
     end
+
+    local ped = GetPlayerPed(clientPlayer)
+    if ped and ped ~= 0 and DoesEntityExist(ped) then
+        return ped
+    end
+
+    -- Timeout de segurança (máximo 500ms) para aguardar entidade carregar
+    local timeout = 10
+    while (not ped or ped == 0 or not DoesEntityExist(ped)) and timeout > 0 do
+        Wait(50)
+        clientPlayer = GetPlayerFromServerId(serverId)
+        if clientPlayer and clientPlayer ~= -1 then
+            ped = GetPlayerPed(clientPlayer)
+        end
+        timeout = timeout - 1
+    end
+
+    return (ped and ped ~= 0 and DoesEntityExist(ped)) and ped or 0
 end
 
 function Inputs(input, button, placeholder, header, type, errormsg, pattern)

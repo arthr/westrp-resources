@@ -76,10 +76,7 @@ function Teleport()
                 if autotpm == false then
                     autotpm = true
                     TriggerEvent('vorp:TipRight', T.Notify.switchedOn, 3000)
-                    while autotpm do
-                        Wait(2000)
-                        TriggerServerEvent('vorp:teleportWayPoint')
-                    end
+                    runAutoTpmWorker()
                 else
                     TriggerEvent('vorp:TipRight', T.Notify.switchedOff, 3000)
                     autotpm = false
@@ -200,24 +197,38 @@ function TeleportToWaypointNUI()
     TriggerServerEvent('vorp:teleportWayPoint', "", coords, waypointCoords)
 end
 
+local autoTpmRunning = false
+
+local function runAutoTpmWorker()
+    if autoTpmRunning then return end
+    autoTpmRunning = true
+    CreateThread(function()
+        while autotpm do
+            Wait(2000)
+            if autotpm and IsWaypointActive() then
+                TriggerServerEvent('vorp:teleportWayPoint')
+            end
+        end
+        autoTpmRunning = false
+    end)
+end
+
 function ToggleAutoTpmNUI()
     if autotpm == false then
         autotpm = true
         VORP.NotifyObjective(T.Notify.switchedOn, 3000)
-        CreateThread(function()
-            while autotpm do
-                Wait(2000)
-                if IsWaypointActive() then
-                    TriggerServerEvent('vorp:teleportWayPoint')
-                end
-            end
-        end)
+        runAutoTpmWorker()
     else
         VORP.NotifyObjective(T.Notify.switchedOff, 3000)
         autotpm = false
     end
     return autotpm
 end
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() ~= resourceName then return end
+    autotpm = false
+end)
 
 function TeleportToCoordsNUI(coordsInput)
     local AdminAllowed = IsAdminAllowed("tp_to_coords")

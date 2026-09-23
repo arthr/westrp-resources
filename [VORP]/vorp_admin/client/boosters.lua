@@ -418,14 +418,8 @@ CreateThread(function()
 
             if IsDisabledControlPressed(0, Config.Controls.goUp) then
                 zoff = Config.Offsets.z
-                local newPos = GetOffsetFromEntityInWorldCoords(player, 0.0, yoff * (CurrentSpeed + 0.3), zoff * (CurrentSpeed + 0.3))
-                SetEntityCoordsNoOffset(player, newPos.x, newPos.y, newPos.z, NoClipActive, NoClipActive, NoClipActive)
-            end
-
-            if IsDisabledControlPressed(0, Config.Controls.goDown) then
+            elseif IsDisabledControlPressed(0, Config.Controls.goDown) then
                 zoff = -Config.Offsets.z
-                local newPos = GetOffsetFromEntityInWorldCoords(player, 0.0, yoff * (CurrentSpeed + 0.3), zoff * (CurrentSpeed + 0.3))
-                SetEntityCoordsNoOffset(player, newPos.x, newPos.y, newPos.z, NoClipActive, NoClipActive, NoClipActive)
             end
 
             if IsDisabledControlPressed(0, Config.Controls.Cancel) then
@@ -435,11 +429,38 @@ CreateThread(function()
                 DisableRagdollingWhileFall()
             end
 
-
-            local newPos = GetOffsetFromEntityInWorldCoords(player, 0.0, yoff * (CurrentSpeed + 0.3), zoff * (CurrentSpeed + 0.3))
-            SetEntityCoordsNoOffset(player, newPos.x, newPos.y, newPos.z, NoClipActive, NoClipActive, NoClipActive)
+            if yoff ~= 0.0 or zoff ~= 0.0 then
+                local mult = CurrentSpeed + 0.3
+                local newPos = GetOffsetFromEntityInWorldCoords(player, 0.0, yoff * mult, zoff * mult)
+                SetEntityCoordsNoOffset(player, newPos.x, newPos.y, newPos.z, true, true, true)
+            end
         end
         Wait(sleep)
+    end
+end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() ~= resourceName then return end
+
+    if Prompt1 and Prompt1 ~= 0 then UiPromptDelete(Prompt1); Prompt1 = 0 end
+    if Prompt2 and Prompt2 ~= 0 then UiPromptDelete(Prompt2); Prompt2 = 0 end
+    if Prompt4 and Prompt4 ~= 0 then UiPromptDelete(Prompt4); Prompt4 = 0 end
+    if Prompt6 and Prompt6 ~= 0 then UiPromptDelete(Prompt6); Prompt6 = 0 end
+
+    local player = PlayerPedId()
+    if NoClipActive then
+        ResetNoclip(player)
+        NoClipActive = false
+    end
+    if invis then
+        SetEntityVisible(player, true)
+        invis = false
+    end
+    if god then
+        SetEntityCanBeDamaged(player, true)
+        SetEntityInvincible(player, false)
+        SetPlayerInvincible(PlayerId(), false)
+        god = false
     end
 end)
 

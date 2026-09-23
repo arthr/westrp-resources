@@ -16,21 +16,30 @@ checkResourceStarted()
 local Core <const> = exports.vorp_core:GetCore()
 
 local function getUserData(User, _source)
+    if not User then return nil end
     local Character = User.getUsedCharacter
-    local group = Character.group
+    if not Character then return nil end
 
+    local group = Character.group or "user"
     local playername = (Character.firstname or "no name") .. ' ' .. (Character.lastname or "noname")
-    local job = Character.job
-    local identifier = Character.identifier
-    local PlayerMoney = Character.money
-    local PlayerGold = Character.gold
-    local JobGrade = Character.jobGrade
-    local getid = Core.Whitelist.getEntry(identifier)
-    local getstatus = Core.Whitelist.getEntry(identifier)
+    local job = Character.job or "unemployed"
+    local identifier = Character.identifier or "none"
+    local PlayerMoney = Character.money or 0
+    local PlayerGold = Character.gold or 0
+    local JobGrade = Character.jobGrade or 0
+
+    local getid = nil
+    local getstatus = nil
+    if Core.Whitelist and Core.Whitelist.getEntry and identifier ~= "none" then
+        pcall(function()
+            getid = Core.Whitelist.getEntry(identifier)
+            getstatus = getid
+        end)
+    end
 
     local data = {
         serverId = _source,
-        name = GetPlayerName(_source),
+        name = GetPlayerName(_source) or "Unknown",
         Group = group,
         PlayerName = playername,
         Job = job,
@@ -55,8 +64,10 @@ local function populateAllPlayers()
                 if Config.AllowedActions[user_group] then
                     stafftable[_source] = _source
                 end
-                local data = getUserData(user, _source)
-                PlayersTable[_source] = data
+                local ok, data = pcall(getUserData, user, _source)
+                if ok and data then
+                    PlayersTable[_source] = data
+                end
             end
         end
     end
@@ -78,9 +89,11 @@ Core.Callback.Register("vorp_admin:Callback:getplayersinfo", function(_, cb, arg
             if PlayersTable[args.id] then
                 local User = Core.getUser(args.id)
                 if User then
-                    local data = getUserData(User, args.id)
-                    PlayersTable[args.id] = data
-                    return cb(PlayersTable[args.id])
+                    local ok, data = pcall(getUserData, User, args.id)
+                    if ok and data then
+                        PlayersTable[args.id] = data
+                        return cb(PlayersTable[args.id])
+                    end
                 end
                 return cb(false)
             else
@@ -90,9 +103,11 @@ Core.Callback.Register("vorp_admin:Callback:getplayersinfo", function(_, cb, arg
 
         for id, _ in pairs(PlayersTable) do
             local User = Core.getUser(id)
-            if User then
-                local data = getUserData(User, id)
-                PlayersTable[id] = data
+            if User and User.getUsedCharacter then
+                local ok, data = pcall(getUserData, User, id)
+                if ok and data then
+                    PlayersTable[id] = data
+                end
             end
         end
         return cb(PlayersTable)
@@ -986,7 +1001,7 @@ AddEventHandler("vorp:SelectedCharacter", function(source)
     PlayersTable[_source] = data
 end)
 
-RegisterNetEvent("vorp_admin:getStaffInfo", function(source)
+RegisterNetEvent("vorp_admin:getStaffInfo", function()
     local _source = source
     local user <const> = Core.getUser(_source)
     if not user then return end
@@ -997,7 +1012,9 @@ RegisterNetEvent("vorp_admin:getStaffInfo", function(source)
     end
 
     local data = getUserData(user, _source)
-    PlayersTable[_source] = data
+    if data then
+        PlayersTable[_source] = data
+    end
 end)
 
 RegisterNetEvent("vorp_admin:requeststaff", function(type)
