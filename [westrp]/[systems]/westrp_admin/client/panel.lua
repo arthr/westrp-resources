@@ -67,6 +67,244 @@ end
 
 local currentTarget = nil
 
+---Obtém a posição configurada do dock salva no KVP local
+---@return string
+local function GetSavedDockPosition()
+    local saved = GetResourceKvpString("westrp_admin:dock_position")
+    if saved and saved ~= "" then
+        return saved
+    end
+    return Config.DefaultDockPosition or "mid_left"
+end
+
+---Obtém as preferências de ações rápidas ativas salvas no KVP
+---@return table<string, boolean>
+local function GetSavedQuickActions()
+    local raw = GetResourceKvpString("westrp_admin:quick_actions")
+    if raw and raw ~= "" then
+        local success, decoded = pcall(json.decode, raw)
+        if success and type(decoded) == "table" then
+            return decoded
+        end
+    end
+
+    local defaults = {}
+    for _, qa in ipairs(Config.QuickActions or {}) do
+        defaults[qa.id] = qa.defaultEnabled ~= false
+    end
+    return defaults
+end
+
+---Abre modal de diálogo para teleporte até coordenadas manuais
+function WestRP.Admin.Panel.TeleportCoordsDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "tp_coords_dialog",
+        tag = "TELEPORTE",
+        title = "TELEPORTAR PARA COORDENADAS",
+        subtitle = "Insira as coordenadas tridimensionais (X, Y, Z)",
+        submitLabel = "TELEPORTAR",
+        fields = {
+            { id = "coords", label = "Coordenadas (vector3)", placeholder = "ex: 1269.72, -6855.15, 43.16", required = true }
+        },
+        onSubmit = function(values)
+            WestRP.Admin.Teleport.TeleportToCoords(values.coords)
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para spawn de montaria
+function WestRP.Admin.Panel.SpawnHorseDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "spawn_horse_dialog",
+        tag = "SPAWNER",
+        title = "SPAWNAR MONTARIA / CAVALO",
+        subtitle = "Informe o modelo do cavalo (ex: a_c_horse_turkoman_gold)",
+        submitLabel = "SPAWNAR",
+        fields = {
+            { id = "model", label = "Modelo do Cavalo", type = "text", placeholder = "a_c_horse_turkoman_gold", required = true }
+        },
+        onSubmit = function(values)
+            local modelName = values.model or "a_c_horse_turkoman_gold"
+            local modelHash = GetHashKey(modelName)
+            RequestModel(modelHash)
+            local timeout = 0
+            while not HasModelLoaded(modelHash) and timeout < 50 do
+                Wait(50)
+                timeout = timeout + 1
+            end
+            local ped = PlayerPedId()
+            local coords = GetOffsetFromEntityInWorldCoords(ped, 0.0, 3.0, 0.0)
+            local horse = CreatePed(modelHash, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false, false, false)
+            Citizen.InvokeNative(0x283978A15512B2FE, horse, true)
+            SetModelAsNoLongerNeeded(modelHash)
+            WestRP.Client.UI.ShowToast("SPAWNER", "Montaria criada com sucesso", "success")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para spawn de carroça
+function WestRP.Admin.Panel.SpawnWagonDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "spawn_wagon_dialog",
+        tag = "SPAWNER",
+        title = "SPAWNAR VEÍCULO / CARROÇA",
+        subtitle = "Informe o modelo da carroça (ex: coach2, wagon02x, cart01)",
+        submitLabel = "SPAWNAR",
+        fields = {
+            { id = "model", label = "Modelo da Carroça", type = "text", placeholder = "coach2", required = true }
+        },
+        onSubmit = function(values)
+            local modelName = values.model or "coach2"
+            local modelHash = GetHashKey(modelName)
+            RequestModel(modelHash)
+            local timeout = 0
+            while not HasModelLoaded(modelHash) and timeout < 50 do
+                Wait(50)
+                timeout = timeout + 1
+            end
+            local ped = PlayerPedId()
+            local coords = GetOffsetFromEntityInWorldCoords(ped, 0.0, 4.0, 0.0)
+            local veh = CreateVehicle(modelHash, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false, false, false)
+            SetVehicleOnGroundProperly(veh)
+            SetModelAsNoLongerNeeded(modelHash)
+            WestRP.Client.UI.ShowToast("SPAWNER", "Carroça criada com sucesso", "success")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para confirmação de expulsão global
+function WestRP.Admin.Panel.KickAllDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "kick_all_dialog",
+        tag = "AÇÃO GLOBAL CRÍTICA",
+        title = "EXPULSAR TODOS OS JOGADORES",
+        subtitle = "Todos os jogadores conectados (exceto staff) serão desconectados do servidor",
+        submitLabel = "CONFIRMAR EXPULSÃO",
+        fields = {
+            { id = "reason", label = "Motivo da Expulsão Global", type = "text", placeholder = "Manutenção emergencial do servidor", required = true }
+        },
+        onSubmit = function(values)
+            TriggerServerEvent("westrp_admin:server:executeAction", { action = "kick_all", payload = { reason = values.reason } })
+            Wait(200)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para comunicado global
+function WestRP.Admin.Panel.AnnounceDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "announce_dialog",
+        tag = "COMUNICADO GLOBAL",
+        title = "ENVIAR ANÚNCIO NO SERVIDOR",
+        subtitle = "Esta mensagem será exibida na tela e chat de todos os jogadores",
+        submitLabel = "TRANSMITIR",
+        fields = {
+            { id = "message", label = "Mensagem do Anúncio", type = "textarea", placeholder = "Digite a mensagem do comunicado...", required = true }
+        },
+        onSubmit = function(values)
+            TriggerServerEvent("westrp_admin:server:executeAction", { action = "announce", payload = { message = values.message } })
+            Wait(200)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Executa ações clicadas diretamente na grade do Dashboard
+---@param actId string
+---@param tileData? table
+function WestRP.Admin.Panel.ExecuteDashboardAction(actId, tileData)
+    if not actId then return end
+
+    if actId == "noclip" then
+        local st = WestRP.Admin.Boosters.ToggleNoClip()
+        WestRP.Client.UI.ShowToast("NOCLIP", st and "Modo Fantasma Ativado" or "Modo Fantasma Desativado", st and "success" or "info")
+    elseif actId == "godmode" then
+        local st = WestRP.Admin.Boosters.ToggleGodMode()
+        WestRP.Client.UI.ShowToast("MODO DEUS", st and "Invulnerabilidade Ativada" or "Invulnerabilidade Desativada", st and "success" or "info")
+    elseif actId == "invis" then
+        local st = WestRP.Admin.Boosters.ToggleInvis()
+        WestRP.Client.UI.ShowToast("INVISIBILIDADE", st and "Invisibilidade Ativada" or "Invisibilidade Desativada", st and "success" or "info")
+    elseif actId == "goldencores" then
+        local st = WestRP.Admin.Boosters.ToggleGoldenCores()
+        WestRP.Client.UI.ShowToast("NÚCLEOS", st and "Núcleos Dourados Máximos" or "Núcleos Restaurados", st and "success" or "info")
+    elseif actId == "infiammo" then
+        local st = WestRP.Admin.Boosters.ToggleInfiniteAmmo()
+    elseif actId == "self_heal" then
+        WestRP.Admin.Boosters.SelfHeal()
+    elseif actId == "self_revive" then
+        WestRP.Admin.Boosters.SelfRevive()
+    elseif actId == "clean_ped" then
+        WestRP.Admin.Boosters.CleanPed()
+    elseif actId == "tp_waypoint" then
+        WestRP.Admin.Teleport.TeleportToWaypoint()
+    elseif actId == "tp_coords" then
+        WestRP.Admin.Panel.TeleportCoordsDialog()
+    elseif actId == "send_back" then
+        WestRP.Admin.Teleport.GoBack()
+    elseif actId == "guarma" then
+        WestRP.Admin.Teleport.ToggleGuarma()
+    elseif actId == "clear_area" then
+        WestRP.Admin.Boosters.ClearArea(50.0)
+    elseif actId == "clear_weather" then
+        SetWeatherType("SUNNY", true, true, false, 0.0, false)
+        WestRP.Client.UI.ShowToast("CLIMA", "Tempo limpo ensolarado aplicado", "success")
+    elseif actId == "freeze_time" then
+        NetworkOverrideClockTime(12, 0, 0)
+        WestRP.Client.UI.ShowToast("TEMPO", "Horário ajustado para 12:00", "info")
+    elseif actId == "spawn_horse" then
+        WestRP.Admin.Panel.SpawnHorseDialog()
+    elseif actId == "spawn_wagon" then
+        WestRP.Admin.Panel.SpawnWagonDialog()
+    elseif actId == "heal_all" then
+        TriggerServerEvent("westrp_admin:server:executeAction", { action = "heal_all" })
+    elseif actId == "revive_all" then
+        TriggerServerEvent("westrp_admin:server:executeAction", { action = "revive_all" })
+    elseif actId == "bring_all" then
+        TriggerServerEvent("westrp_admin:server:executeAction", { action = "bring_all" })
+    elseif actId == "kick_all" then
+        WestRP.Admin.Panel.KickAllDialog()
+    elseif actId == "announce" then
+        WestRP.Admin.Panel.AnnounceDialog()
+    elseif actId == "server_logs" then
+        WestRP.Client.UI.ShowToast("AUDITORIA", "Ações administrativas estão sendo auditadas no Discord", "info")
+    end
+end
+
 ---Abre o Painel Central multimodal
 ---@param targetOverride? table { serverId: number, name: string }
 function WestRP.Admin.Panel.Open(targetOverride)
@@ -80,6 +318,7 @@ function WestRP.Admin.Panel.Open(targetOverride)
     end
 
     -- Carregamento de dados via RPC assíncrono
+    local overview = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getServerOverview") or {}
     local players = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getPlayers", "all") or {}
     local catalog = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getItemsCatalog") or {}
     local bans = WestRP.Client.Callback.TriggerAwait("westrp_admin:server:getBansList") or {}
@@ -90,18 +329,108 @@ function WestRP.Admin.Panel.Open(targetOverride)
 
     local targetDisplay = (currentTarget.serverId == myServerId) and "Você (Operador)" or string.format("%s [ID %s]", currentTarget.name, currentTarget.serverId)
 
+    local bStates = WestRP.Admin.Boosters.GetStates()
+
+    -- Grade de Ações Categorizadas do Dashboard
+    local dashboardActionGroups = {
+        {
+            title = "TELEPORT",
+            actions = {
+                { id = "tp_waypoint", label = "Teleport to Waypoint", type = "action" },
+                { id = "tp_coords", label = "Teleport to Coords", type = "action" },
+                { id = "send_back", label = "Send Back", type = "action" },
+                { id = "guarma", label = "Guarma Island", type = "action" }
+            }
+        },
+        {
+            title = "SELF ACTIONS",
+            actions = {
+                { id = "noclip", label = "Ghost (Noclip)", type = "toggle", active = bStates.noclip },
+                { id = "godmode", label = "Godmode", type = "toggle", active = bStates.godmode },
+                { id = "invis", label = "Invisibility", type = "toggle", active = bStates.invis },
+                { id = "goldencores", label = "Golden Cores", type = "toggle", active = bStates.goldencores },
+                { id = "infiammo", label = "Infinite Ammo", type = "toggle", active = bStates.infiammo },
+                { id = "self_heal", label = "Self Heal", type = "action" },
+                { id = "self_revive", label = "Self Revive", type = "action" },
+                { id = "clean_ped", label = "Clean Ped", type = "action" }
+            }
+        },
+        {
+            title = "WORLD TOGGLES",
+            actions = {
+                { id = "clear_area", label = "Clear Area", type = "action" },
+                { id = "clear_weather", label = "Clear Weather", type = "action" },
+                { id = "freeze_time", label = "Freeze Time", type = "action" }
+            }
+        },
+        {
+            title = "SPAWN",
+            actions = {
+                { id = "spawn_horse", label = "Spawn Horse", type = "action" },
+                { id = "spawn_wagon", label = "Spawn Wagon", type = "action" }
+            }
+        },
+        {
+            title = "ALL PLAYERS",
+            actions = {
+                { id = "heal_all", label = "Heal All Players", type = "action" },
+                { id = "revive_all", label = "Revive All Players", type = "action" },
+                { id = "bring_all", label = "Bring All Players", type = "action" },
+                { id = "kick_all", label = "Kick All Players", type = "action" }
+            }
+        },
+        {
+            title = "SERVER",
+            actions = {
+                { id = "announce", label = "Announcement", type = "action" },
+                { id = "server_logs", label = "Server Logs", type = "action" }
+            }
+        }
+    }
+
+    -- Lista de Ações Rápidas da Aba de Configurações
+    local savedQuickActions = GetSavedQuickActions()
+    local settingsQuickList = {}
+    for _, qa in ipairs(Config.QuickActions or {}) do
+        settingsQuickList[#settingsQuickList + 1] = {
+            id = qa.id,
+            label = qa.label,
+            category = qa.category or "Geral",
+            enabled = savedQuickActions[qa.id] ~= false
+        }
+    end
+
     local panelSchema = {
         id = "admin_central_panel",
-        title = "MESA DE COMANDO & AUDITORIA",
-        tag = "WESTRP • CENTRAL ADMINISTRATIVA",
+        title = "PAINEL ADMINISTRATIVO",
+        tag = "WESTRP • DASHBOARD & GESTÃO",
         subtitle = string.format("Operador: %s [ID %s] • Alvo do Spawner: %s • Online: %s", myName, myServerId, targetDisplay, #players),
         ctaLabel = "EXECUTAR AÇÃO",
+        brand = Config.Brand or { name = "WESTRP SERVER", badge = "ADMIN MENU" },
+        operator = overview.operator or { name = myName, role = "Operador", onDuty = true },
         tabs = {
-            -- Aba 1: Jogadores Online (Table)
+            -- Aba 1: Dashboard Principal
+            {
+                id = "dashboard_tab",
+                label = "Dashboard",
+                icon = "fas fa-tachometer-alt",
+                viewType = "dashboard",
+                stats = overview.stats or {
+                    online = #players,
+                    maxClients = 32,
+                    uptime = "0h 05m",
+                    peak24h = #players,
+                    peakAllTime = #players
+                },
+                actionGroups = dashboardActionGroups
+            },
+            -- Aba 2: Jogadores Online (Table)
             {
                 id = "players_tab",
-                label = "Jogadores Online",
+                label = "Jogadores",
+                icon = "fas fa-users",
                 badge = tostring(#players),
+                badgeType = "count-blue",
                 viewType = "table",
                 pageSize = 10,
                 columns = {
@@ -115,31 +444,37 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 },
                 rows = playerRows
             },
-            -- Aba 2: Catálogo de Itens & Spawner (Grid)
+            -- Aba 3: Catálogo de Itens & Spawner (Grid)
             {
                 id = "spawner_tab",
                 label = "Item Spawner",
+                icon = "fas fa-boxes",
                 badge = "ITENS",
+                badgeType = "count-orange",
                 viewType = "grid",
                 filterCategory = true,
                 pageSize = 24,
                 items = catalog
             },
-            -- Aba 3: Catálogo de Armamento & Munições (Grid)
+            -- Aba 4: Catálogo de Armamento & Munições (Grid)
             {
                 id = "weapons_tab",
-                label = "Armamento & Munições",
+                label = "Armamento",
+                icon = "fas fa-shield-alt",
                 badge = tostring(#weapons),
+                badgeType = "count-orange",
                 viewType = "grid",
                 filterCategory = true,
                 pageSize = 18,
                 items = weapons
             },
-            -- Aba 4: Banimentos Ativos (Table)
+            -- Aba 5: Banimentos Ativos (Table)
             {
                 id = "bans_tab",
                 label = "Punições & Bans",
+                icon = "fas fa-gavel",
                 badge = tostring(#banRows),
+                badgeType = "count-blue",
                 viewType = "table",
                 pageSize = 10,
                 columns = {
@@ -149,9 +484,58 @@ function WestRP.Admin.Panel.Open(targetOverride)
                     { key = "status", label = "TIPO", width = "14%", align = "center", type = "pill" }
                 },
                 rows = banRows
+            },
+            -- Aba 6: Configurações do Menu & Posição
+            {
+                id = "settings_tab",
+                label = "Configurações",
+                icon = "fas fa-cog",
+                viewType = "settings",
+                currentPosition = GetSavedDockPosition(),
+                positions = {
+                    { id = "top_left", label = "Top Left" },
+                    { id = "top_right", label = "Top Right" },
+                    { id = "mid_left", label = "Mid Left" },
+                    { id = "mid_right", label = "Mid Right" },
+                    { id = "bottom_left", label = "Bottom Left" },
+                    { id = "bottom_right", label = "Bottom Right" }
+                },
+                quickActions = settingsQuickList
             }
         },
-        onAction = function(action, item, tabId, qty)
+        onAction = function(action, item, tabId, qty, data)
+            data = data or {}
+
+            -- Ações da aba de Configurações
+            if action == "set_menu_position" then
+                local pos = data.position or (item and item.id)
+                if pos then
+                    SetResourceKvp("westrp_admin:dock_position", pos)
+                    WestRP.Client.UI.ShowToast("PREFERÊNCIAS", "Posição do Hot Menu definida para: " .. pos, "success")
+                end
+                return
+            elseif action == "toggle_quick_action" then
+                local actId = data.actionId or (item and item.id)
+                local enabled = data.enabled
+                if actId then
+                    local current = GetSavedQuickActions()
+                    current[actId] = enabled
+                    SetResourceKvp("westrp_admin:quick_actions", json.encode(current))
+                    WestRP.Client.UI.ShowToast("AÇÕES RÁPIDAS", (enabled and "Ativado no Hot Menu: " or "Desativado do Hot Menu: ") .. actId, "info")
+                end
+                return
+            elseif action == "toggle_duty" then
+                local onDuty = data.onDuty
+                local msg = onDuty and "Você entrou em serviço administrativo." or "Você saiu de serviço."
+                WestRP.Client.UI.ShowToast("STATUS OPERADOR", msg, onDuty and "success" or "alert")
+                TriggerServerEvent("westrp_admin:server:logBooster", "Plantão", msg)
+                return
+            elseif action == "dashboard_action" then
+                local actId = data.actionId or (item and item.id)
+                WestRP.Admin.Panel.ExecuteDashboardAction(actId, data.tileData or item)
+                return
+            end
+
             local count = tonumber(qty) or 1
             local destId = currentTarget and currentTarget.serverId or myServerId
             local destName = currentTarget and currentTarget.name or "Você mesmo"
@@ -198,7 +582,6 @@ function WestRP.Admin.Panel.Open(targetOverride)
                 end
             elseif tabId == "bans_tab" then
                 if action == "confirm" and item and item.rawIdentifier then
-                    -- Desbane o jogador selecionado na tabela
                     TriggerServerEvent("westrp_admin:server:executeAction", {
                         action = "unban",
                         payload = {
@@ -207,7 +590,7 @@ function WestRP.Admin.Panel.Open(targetOverride)
                     })
                     WestRP.Client.UI.ShowToast("PUNIÇÕES", "Solicitado desbanimento para: " .. item.rawIdentifier, "info")
                     Wait(400)
-                    WestRP.Admin.Panel.Open() -- Recarrega a tabela de banimentos
+                    WestRP.Admin.Panel.Open()
                 end
             end
         end,

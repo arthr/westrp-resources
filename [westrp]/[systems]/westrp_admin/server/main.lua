@@ -3,9 +3,53 @@ WestRP.Server = WestRP.Server or {}
 WestRP.Server.Admin = WestRP.Server.Admin or {}
 
 
+local serverStartTime = os.time()
+local peakPlayers = 0
+local peak24h = 0
+
 --------------------------------------------------------------------------------
 -- REGISTRO DE CALLBACKS RPC (WestRP.Callback)
 --------------------------------------------------------------------------------
+-- Obtenção do resumo do servidor (Server Overview KPI & Operador)
+WestRP.Server.Callback.Register("westrp_admin:server:getServerOverview", function(source, cb)
+    local players = GetPlayers()
+    local onlineCount = #players
+    if onlineCount > peakPlayers then peakPlayers = onlineCount end
+    if onlineCount > peak24h then peak24h = onlineCount end
+
+    local maxClients = GetConvarInt("sv_maxclients", 32)
+    local uptime = os.time() - serverStartTime
+    local hours = math.floor(uptime / 3600)
+    local mins = math.floor((uptime % 3600) / 60)
+    local uptimeStr = string.format("%dh %02dm", hours, mins)
+
+    local role = WestRP.Server.Admin.Security.GetPlayerRole(source)
+    local char = WestRP.Shared.Bridge.Player.GetCharacter(source)
+    local charName = char and (char.firstname .. " " .. char.lastname) or GetPlayerName(source)
+
+    local roleLabel = "Operador"
+    if Config.Roles and Config.Roles[role] then
+        roleLabel = Config.Roles[role].label or role
+    end
+
+    cb({
+        stats = {
+            online = onlineCount,
+            maxClients = maxClients,
+            uptime = uptimeStr,
+            uptimeSeconds = uptime,
+            peak24h = peak24h,
+            peakAllTime = peakPlayers
+        },
+        operator = {
+            name = charName,
+            role = roleLabel,
+            rawRole = role,
+            onDuty = true
+        }
+    })
+end)
+
 -- Obtenção do cargo staff do operador
 WestRP.Server.Callback.Register("westrp_admin:server:getStaffRole", function(source, cb)
     local role = WestRP.Server.Admin.Security.GetPlayerRole(source)
@@ -122,6 +166,14 @@ RegisterNetEvent("westrp_admin:server:executeAction", function(data)
         WestRP.Server.Admin.Players.Troll(_source, targetId, payload.trollType or "lightning")
     elseif action == "announce" then
         WestRP.Server.Admin.World.Announce(_source, payload.message)
+    elseif action == "heal_all" then
+        WestRP.Server.Admin.Players.HealAll(_source)
+    elseif action == "revive_all" then
+        WestRP.Server.Admin.Players.ReviveAll(_source)
+    elseif action == "bring_all" then
+        WestRP.Server.Admin.Players.BringAll(_source)
+    elseif action == "kick_all" then
+        WestRP.Server.Admin.Players.KickAll(_source, payload.reason)
     end
 end)
 

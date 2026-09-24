@@ -4,199 +4,157 @@ WestRP.Admin.Dock = {}
 
 local isDockOpen = false
 
----Gera o esquema atualizado do menu lateral
+---Obtém a posição configurada do dock salva no KVP local
+---@return string
+local function GetSavedDockPosition()
+    local saved = GetResourceKvpString("westrp_admin:dock_position")
+    if saved and saved ~= "" then
+        return saved
+    end
+    return Config.DefaultDockPosition or "mid_left"
+end
+
+---Obtém as preferências de ações rápidas ativas salvas no KVP
+---@return table<string, boolean>
+local function GetSavedQuickActions()
+    local raw = GetResourceKvpString("westrp_admin:quick_actions")
+    if raw and raw ~= "" then
+        local success, decoded = pcall(json.decode, raw)
+        if success and type(decoded) == "table" then
+            return decoded
+        end
+    end
+
+    -- Padrões da configuração caso o jogador ainda não tenha customizado
+    local defaults = {}
+    for _, qa in ipairs(Config.QuickActions or {}) do
+        defaults[qa.id] = qa.defaultEnabled ~= false
+    end
+    return defaults
+end
+
+---Gera o esquema atualizado do menu lateral (Hot Menu)
 ---@return table
 local function BuildDockSchema()
     local bStates = WestRP.Admin.Boosters.GetStates()
+    local enabledActions = GetSavedQuickActions()
+    local dockPosition = GetSavedDockPosition()
+
+    local quickItems = {}
+
+    -- Constrói itens baseados no catálogo de ações rápidas configuradas
+    for _, qa in ipairs(Config.QuickActions or {}) do
+        if enabledActions[qa.id] ~= false then
+            local it = {
+                id = qa.id,
+                label = qa.label,
+                sublabel = qa.sublabel,
+                type = qa.type or "action",
+                icon = qa.icon,
+                category = qa.category or "general"
+            }
+
+            if qa.id == "noclip" then
+                it.checked = bStates.noclip
+                it.badge = bStates.noclip and "LIGADO" or "DESLIGADO"
+                it.badgeType = bStates.noclip and "on" or "off"
+            elseif qa.id == "godmode" then
+                it.checked = bStates.godmode
+                it.badge = bStates.godmode and "IMUNE" or "NORMAL"
+                it.badgeType = bStates.godmode and "on" or "off"
+            elseif qa.id == "invis" then
+                it.checked = bStates.invis
+                it.badge = bStates.invis and "OCULTO" or "VISÍVEL"
+                it.badgeType = bStates.invis and "on" or "off"
+            elseif qa.id == "goldencores" then
+                it.checked = bStates.goldencores
+                it.badge = bStates.goldencores and "MAX" or "PADRÃO"
+                it.badgeType = bStates.goldencores and "gold" or "off"
+            elseif qa.id == "infiammo" then
+                it.checked = bStates.infiammo
+                it.badge = bStates.infiammo and "ILIMITADO" or "NORMAL"
+                it.badgeType = bStates.infiammo and "gold" or "off"
+            elseif qa.id == "autotpm" then
+                local st = WestRP.Admin.Teleport.GetAutoTPMState and WestRP.Admin.Teleport.GetAutoTPMState() or false
+                it.checked = st
+                it.badge = st and "ATIVO" or "INATIVO"
+                it.badgeType = st and "on" or "off"
+            elseif qa.id == "dev_laser" then
+                local st = WestRP.Admin.DevTools.IsLaserActive and WestRP.Admin.DevTools.IsLaserActive() or false
+                it.checked = st
+                it.badge = st and "SCAN 3D" or "DESLIGADO"
+                it.badgeType = st and "gold" or "off"
+            elseif qa.id == "tp_waypoint" then
+                it.badge = "WAYPOINT"
+                it.badgeType = "gold"
+            elseif qa.id == "self_heal" then
+                it.badge = "CURAR"
+                it.badgeType = "gold"
+            elseif qa.id == "self_revive" then
+                it.badge = "REVIVER"
+                it.badgeType = "danger"
+                it.danger = true
+            elseif qa.id == "clean_ped" then
+                it.badge = "LIMPAR"
+                it.badgeType = "gold"
+            elseif qa.id == "copy_coords" then
+                it.badge = "COPIAR"
+                it.badgeType = "gold"
+            elseif qa.id == "delete_object" then
+                it.badge = "EXCLUIR"
+                it.badgeType = "danger"
+                it.danger = true
+            elseif qa.id == "clear_area" then
+                it.badge = "ÁREA"
+                it.badgeType = "danger"
+                it.danger = true
+            end
+
+            quickItems[#quickItems + 1] = it
+        end
+    end
+
+    -- Adiciona sempre opção de abrir o painel completo
+    quickItems[#quickItems + 1] = {
+        id = "open_panel",
+        label = "Abrir Painel Completo",
+        sublabel = "Dashboard & Gestão Geral [ENTER]",
+        badge = "PAINEL",
+        badgeType = "gold",
+        description = "Abre a mesa de comando central com indicadores do servidor, tabela de jogadores e catálogo."
+    }
 
     return {
         id = "admin_dock",
-        title = "PAINEL STAFF",
-        tag = "WESTRP • OPERAÇÕES & COMANDO",
+        title = "HOT MENU",
+        tag = "AÇÕES RÁPIDAS",
+        position = dockPosition,
         keepInput = true,
         tabs = {
-            -- Aba 1: Boosters
             {
-                id = "boosters",
-                name = "BOOSTERS",
-                items = {
-                    {
-                        id = "noclip",
-                        label = "Modo Voo (NoClip)",
-                        type = "toggle",
-                        checked = bStates.noclip,
-                        badge = bStates.noclip and "LIGADO" or "DESLIGADO",
-                        badgeType = bStates.noclip and "on" or "off",
-                        description = "Permite voar livremente e atravessar paredes sem colisão física. Pressione [L-SHIFT] para mudar a velocidade."
-                    },
-                    {
-                        id = "godmode",
-                        label = "Modo Deus (GodMode)",
-                        type = "toggle",
-                        checked = bStates.godmode,
-                        badge = bStates.godmode and "IMUNE" or "NORMAL",
-                        badgeType = bStates.godmode and "on" or "off",
-                        description = "Torna o operador e sua montaria totalmente invulneráveis a tiros, fogo e quedas (Proofs 511)."
-                    },
-                    {
-                        id = "invis",
-                        label = "Invisibilidade",
-                        type = "toggle",
-                        checked = bStates.invis,
-                        badge = bStates.invis and "OCULTO" or "VISÍVEL",
-                        badgeType = bStates.invis and "on" or "off",
-                        description = "Oculta a renderização do corpo do operador dos demais jogadores."
-                    },
-                    {
-                        id = "goldencores",
-                        label = "Núcleos Dourados",
-                        type = "toggle",
-                        checked = bStates.goldencores,
-                        badge = bStates.goldencores and "MAX" or "PADRÃO",
-                        badgeType = bStates.goldencores and "gold" or "off",
-                        description = "Preenche e doura todos os núcleos e anéis externos de vida e estamina."
-                    },
-                    {
-                        id = "infiammo",
-                        label = "Munição Infinita",
-                        type = "toggle",
-                        checked = bStates.infiammo,
-                        badge = bStates.infiammo and "ILIMITADO" or "NORMAL",
-                        badgeType = bStates.infiammo and "gold" or "off",
-                        description = "Mantém a arma em mãos com munição constante sem necessidade de recarga."
-                    },
-                    {
-                        id = "selfheal",
-                        label = "Auto Cura & Fome/Sede",
-                        badge = "RESTAURAR",
-                        badgeType = "gold",
-                        description = "Cura 100% da vida, recupera fôlego e restaura metabolismo."
-                    },
-                    {
-                        id = "selfrevive",
-                        label = "Auto Reviver",
-                        badge = "REANIMAR",
-                        badgeType = "danger",
-                        danger = true,
-                        description = "Reanima o operador imediatamente caso esteja incapacitado ou em coma."
-                    }
-                }
-            },
-            -- Aba 2: Teleportes
-            {
-                id = "teleports",
-                name = "TELEPORTES",
-                items = {
-                    {
-                        id = "tpm",
-                        label = "Ir para Marcador (TPM)",
-                        badge = "WAYPOINT",
-                        badgeType = "gold",
-                        description = "Teleporta o operador para o ponto atualmente marcado no mapa com detecção de solo."
-                    },
-                    {
-                        id = "autotpm",
-                        label = "Auto-TPM ao Marcar",
-                        type = "toggle",
-                        checked = false,
-                        description = "Sempre que definir um novo marcador no mapa, será teleportado instantaneamente."
-                    },
-                    {
-                        id = "goback",
-                        label = "Voltar Posição Anterior",
-                        badge = "RETORNO",
-                        badgeType = "gold",
-                        description = "Retorna à localização salva antes do último teleporte ou ação de GoTo/Bring."
-                    },
-                    {
-                        id = "guarma",
-                        label = "Zarpar / Voltar de Guarma",
-                        badge = "EXPEDIÇÃO",
-                        badgeType = "gold",
-                        description = "Viaja diretamente para a ilha caribenha de Guarma ou retorna à terra firme."
-                    }
-                }
-            },
-            -- Aba 3: DevTools
-            {
-                id = "devtools",
-                name = "DEV TOOLS",
-                items = {
-                    {
-                        id = "devlaser",
-                        label = "Laser Inspecionador Raycast",
-                        type = "toggle",
-                        checked = false,
-                        badge = "3D SCAN",
-                        badgeType = "gold",
-                        description = "Desenha mira laser 3D identificando modelos, hashes, coordenadas e rotações de entidades."
-                    },
-                    {
-                        id = "copy_v3",
-                        label = "Copiar vector3(x, y, z)",
-                        badge = "VETOR",
-                        badgeType = "gold",
-                        description = "Copia as coordenadas tridimensionais exatas para sua área de transferência."
-                    },
-                    {
-                        id = "copy_v4",
-                        label = "Copiar vector4(x, y, z, h)",
-                        badge = "VETOR 4",
-                        badgeType = "gold",
-                        description = "Copia coordenadas e direção do olhar para criação rápida de spawns de veículos e NPCs."
-                    },
-                    {
-                        id = "copy_heading",
-                        label = "Copiar Heading Atual",
-                        badge = "ÂNGULO",
-                        badgeType = "gold",
-                        description = "Copia o ângulo de orientação (Heading) para o clipboard."
-                    },
-                    {
-                        id = "interior_id",
-                        label = "Copiar ID do Interior",
-                        badge = "MUNDO",
-                        badgeType = "gold",
-                        description = "Identifica o ID do interior da construção onde o operador se encontra."
-                    },
-                    {
-                        id = "del_object",
-                        label = "Deletar Objeto Mais Próximo",
-                        badge = "EXCLUIR",
-                        badgeType = "danger",
-                        danger = true,
-                        description = "Remove a entidade mais próxima (objeto/prop/veículo) à frente do operador."
-                    },
-                    {
-                        id = "open_panel",
-                        label = "Mesa de Trabalho Completa",
-                        badge = "PAINEL [ENTER]",
-                        badgeType = "gold",
-                        description = "Abre o Painel Central multimodal com gestão de jogadores, catálogo de itens e registros de punições."
-                    }
-                }
+                id = "quick_actions",
+                name = "AÇÕES RÁPIDAS",
+                items = quickItems
             }
         },
         onSelect = function(item, tabId)
-            if item.id == "selfheal" then
+            if item.id == "self_heal" or item.id == "selfheal" then
                 WestRP.Admin.Boosters.SelfHeal()
-            elseif item.id == "selfrevive" then
+            elseif item.id == "self_revive" or item.id == "selfrevive" then
                 WestRP.Admin.Boosters.SelfRevive()
-            elseif item.id == "tpm" then
+            elseif item.id == "clean_ped" then
+                WestRP.Admin.Boosters.CleanPed()
+            elseif item.id == "clear_area" then
+                WestRP.Admin.Boosters.ClearArea(50.0)
+            elseif item.id == "tp_waypoint" or item.id == "tpm" then
                 WestRP.Admin.Teleport.TeleportToWaypoint()
             elseif item.id == "goback" then
                 WestRP.Admin.Teleport.GoBack()
             elseif item.id == "guarma" then
                 WestRP.Admin.Teleport.ToggleGuarma()
-            elseif item.id == "copy_v3" then
+            elseif item.id == "copy_coords" or item.id == "copy_v3" then
                 WestRP.Admin.DevTools.CopyCoords("v3")
-            elseif item.id == "copy_v4" then
-                WestRP.Admin.DevTools.CopyCoords("v4")
-            elseif item.id == "copy_heading" then
-                WestRP.Admin.DevTools.CopyCoords("heading")
-            elseif item.id == "interior_id" then
-                WestRP.Admin.DevTools.CopyCoords("interior")
-            elseif item.id == "del_object" then
+            elseif item.id == "delete_object" or item.id == "del_object" then
                 WestRP.Admin.DevTools.DeleteClosestObject()
             elseif item.id == "open_panel" then
                 WestRP.Admin.Dock.Close()
@@ -222,10 +180,10 @@ local function BuildDockSchema()
                 WestRP.Client.UI.UpdateItem("infiammo", { checked = res, badge = res and "ILIMITADO" or "NORMAL", badgeType = res and "gold" or "off" })
             elseif item.id == "autotpm" then
                 local res = WestRP.Admin.Teleport.ToggleAutoTPM()
-                WestRP.Client.UI.UpdateItem("autotpm", { checked = res })
-            elseif item.id == "devlaser" then
+                WestRP.Client.UI.UpdateItem("autotpm", { checked = res, badge = res and "ATIVO" or "INATIVO", badgeType = res and "on" or "off" })
+            elseif item.id == "dev_laser" or item.id == "devlaser" then
                 local res = WestRP.Admin.DevTools.ToggleLaser()
-                WestRP.Client.UI.UpdateItem("devlaser", { checked = res })
+                WestRP.Client.UI.UpdateItem(item.id, { checked = res, badge = res and "SCAN 3D" or "DESLIGADO", badgeType = res and "gold" or "off" })
             end
         end,
         onClose = function()

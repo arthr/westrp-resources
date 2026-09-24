@@ -75,6 +75,7 @@ function OpenDock(options)
             id = options.id,
             title = options.title,
             tag = options.tag,
+            position = options.position,
             tabs = options.tabs,
             items = options.items
         }
@@ -175,8 +176,20 @@ function OpenPanel(options)
             tag = options.tag,
             subtitle = options.subtitle,
             ctaLabel = options.ctaLabel,
+            brand = options.brand,
+            operator = options.operator,
             tabs = options.tabs
         }
+    })
+end
+
+---Atualiza dados/abas do Panel enquanto aberto
+---@param options table
+function UpdatePanel(options)
+    if not isPanelOpen then return end
+    SendNUIMessage({
+        action = 'westrp_ui:updatePanel',
+        options = options
     })
 end
 
@@ -324,7 +337,7 @@ end)
 -- Callbacks do Panel
 RegisterNUICallback('westrp_ui:panelAction', function(data, cb)
     if currentActivePanel and currentActivePanel.onAction then
-        currentActivePanel.onAction(data.action, data.item, data.tabId, data.quantity)
+        currentActivePanel.onAction(data.action, data.item or data.tileData, data.tabId, data.quantity, data)
     end
     cb({ ok = true })
 end)
@@ -390,6 +403,7 @@ exports('UpdateItem', UpdateItem)
 exports('ShowToast', ShowToast)
 
 exports('OpenPanel', OpenPanel)
+exports('UpdatePanel', UpdatePanel)
 exports('ClosePanel', ClosePanel)
 exports('IsPanelOpen', IsPanelOpen)
 

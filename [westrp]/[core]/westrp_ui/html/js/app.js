@@ -498,6 +498,15 @@
     searchInput: document.getElementById('panel-search-input'),
     searchWrap: document.getElementById('panel-search-wrap'),
     closeBtn: document.getElementById('panel-close-btn'),
+    sidebarBrand: document.getElementById('panel-sidebar-brand'),
+    sidebarName: document.getElementById('panel-sidebar-name'),
+    sidebarBadge: document.getElementById('panel-sidebar-badge'),
+    sidebarOperator: document.getElementById('panel-sidebar-operator'),
+    operatorInitials: document.getElementById('operator-initials'),
+    operatorName: document.getElementById('operator-name'),
+    operatorStatusBtn: document.getElementById('operator-status-btn'),
+    operatorStatusDot: document.getElementById('operator-status-dot'),
+    operatorStatusText: document.getElementById('operator-status-text'),
     tabsList: document.getElementById('panel-tabs-list'),
     filterBar: document.getElementById('panel-filter-bar'),
     paginationBar: document.getElementById('panel-pagination-bar'),
@@ -505,6 +514,12 @@
     btnPagePrev: document.getElementById('btn-page-prev'),
     btnPageNext: document.getElementById('btn-page-next'),
     pageIndicator: document.getElementById('pagination-page-indicator'),
+    dashboardView: document.getElementById('panel-dashboard-view'),
+    overviewGrid: document.getElementById('dashboard-overview-grid'),
+    actionsContainer: document.getElementById('dashboard-actions-container'),
+    settingsView: document.getElementById('panel-settings-view'),
+    positionsGrid: document.getElementById('settings-positions-grid'),
+    actionsList: document.getElementById('settings-actions-list'),
     gridView: document.getElementById('panel-grid-view'),
     tableView: document.getElementById('panel-table-view'),
     tableHead: document.getElementById('panel-table-head'),
@@ -552,6 +567,29 @@
       panelEl.metaPill.style.display = 'none';
     }
 
+    // Configuração de Marca da Sidebar (Logo & Título)
+    if (options.brand) {
+      if (panelEl.sidebarBrand) panelEl.sidebarBrand.style.display = 'flex';
+      if (panelEl.sidebarName) panelEl.sidebarName.textContent = options.brand.name || 'WESTRP SERVER';
+      if (panelEl.sidebarBadge) panelEl.sidebarBadge.textContent = options.brand.badge || 'ADMIN MENU';
+    } else if (panelEl.sidebarBrand) {
+      panelEl.sidebarBrand.style.display = 'none';
+    }
+
+    // Configuração do Perfil do Operador
+    if (options.operator) {
+      if (panelEl.sidebarOperator) panelEl.sidebarOperator.style.display = 'flex';
+      if (panelEl.operatorName) panelEl.operatorName.textContent = options.operator.name || 'Operador';
+      const initials = (options.operator.name || 'AD').substring(0, 2).toUpperCase();
+      if (panelEl.operatorInitials) panelEl.operatorInitials.textContent = initials;
+      const onDuty = options.operator.onDuty !== false;
+      if (panelEl.operatorStatusDot) panelEl.operatorStatusDot.className = 'status-dot ' + (onDuty ? 'on' : 'off');
+      if (panelEl.operatorStatusText) panelEl.operatorStatusText.textContent = onDuty ? 'Em Serviço' : 'Fora de Serviço';
+      panelState.operator = options.operator;
+    } else if (panelEl.sidebarOperator) {
+      panelEl.sidebarOperator.style.display = 'none';
+    }
+
     panelEl.container.style.display = 'flex';
     playUiTick('confirm');
 
@@ -574,13 +612,31 @@
       const btn = document.createElement('button');
       btn.className = `panel-tab-btn ${index === panelState.activeTab ? 'active' : ''}`;
       
+      const mainWrap = document.createElement('div');
+      mainWrap.className = 'panel-tab-btn-main';
+
+      if (tab.icon) {
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'panel-tab-icon';
+        if (tab.icon.startsWith('fa-') || tab.icon.includes(' ')) {
+          iconSpan.innerHTML = `<i class="${tab.icon}"></i>`;
+        } else {
+          iconSpan.textContent = tab.icon;
+        }
+        mainWrap.appendChild(iconSpan);
+      }
+
       const titleSpan = document.createElement('span');
       titleSpan.textContent = tab.label || `ABA ${index + 1}`;
-      btn.appendChild(titleSpan);
+      mainWrap.appendChild(titleSpan);
+      btn.appendChild(mainWrap);
 
-      if (tab.badge) {
+      if (tab.badge !== undefined && tab.badge !== null) {
         const badge = document.createElement('span');
-        badge.className = 'panel-tab-badge';
+        let badgeCls = 'panel-tab-badge';
+        if (tab.badgeType === 'count-blue') badgeCls += ' count-blue';
+        else if (tab.badgeType === 'count-orange') badgeCls += ' count-orange';
+        badge.className = badgeCls;
         badge.textContent = tab.badge;
         btn.appendChild(badge);
       }
@@ -772,30 +828,259 @@
     panelEl.tableView.style.display = 'none';
     panelEl.craftView.style.display = 'none';
     panelEl.queueView.style.display = 'none';
+    if (panelEl.dashboardView) panelEl.dashboardView.style.display = 'none';
+    if (panelEl.settingsView) panelEl.settingsView.style.display = 'none';
 
     stopQueueTicker();
     updateFooter();
 
-    if (currentTab.viewType === 'grid') {
-      panelEl.gridView.style.display = 'grid';
-      renderPanelFilters(currentTab);
-      renderGridView(currentTab);
-    } else if (currentTab.viewType === 'table') {
-      panelEl.tableView.style.display = 'block';
-      renderPanelFilters(currentTab);
-      renderTableView(currentTab);
-    } else if (currentTab.viewType === 'craft') {
+    if (currentTab.viewType === 'dashboard') {
       panelEl.filterBar.style.display = 'none';
       panelEl.paginationBar.style.display = 'none';
-      panelEl.craftView.style.display = 'flex';
-      renderCraftView(currentTab);
-    } else if (currentTab.viewType === 'queue') {
+      if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
+        panelEl.footerInfo.parentElement.style.display = 'none';
+      }
+      if (panelEl.dashboardView) {
+        panelEl.dashboardView.style.display = 'flex';
+        renderDashboardView(currentTab);
+      }
+    } else if (currentTab.viewType === 'settings') {
       panelEl.filterBar.style.display = 'none';
       panelEl.paginationBar.style.display = 'none';
-      panelEl.queueView.style.display = 'flex';
-      renderQueueView(currentTab);
-      startQueueTicker(currentTab);
+      if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
+        panelEl.footerInfo.parentElement.style.display = 'none';
+      }
+      if (panelEl.settingsView) {
+        panelEl.settingsView.style.display = 'flex';
+        renderSettingsView(currentTab);
+      }
+    } else {
+      if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
+        panelEl.footerInfo.parentElement.style.display = 'flex';
+      }
+      if (currentTab.viewType === 'grid') {
+        panelEl.gridView.style.display = 'grid';
+        renderPanelFilters(currentTab);
+        renderGridView(currentTab);
+      } else if (currentTab.viewType === 'table') {
+        panelEl.tableView.style.display = 'block';
+        renderPanelFilters(currentTab);
+        renderTableView(currentTab);
+      } else if (currentTab.viewType === 'craft') {
+        panelEl.filterBar.style.display = 'none';
+        panelEl.paginationBar.style.display = 'none';
+        panelEl.craftView.style.display = 'flex';
+        renderCraftView(currentTab);
+      } else if (currentTab.viewType === 'queue') {
+        panelEl.filterBar.style.display = 'none';
+        panelEl.paginationBar.style.display = 'none';
+        panelEl.queueView.style.display = 'flex';
+        renderQueueView(currentTab);
+        startQueueTicker(currentTab);
+      }
     }
+  }
+
+  function renderDashboardView(tab) {
+    if (!panelEl.overviewGrid || !panelEl.actionsContainer) return;
+
+    // 1. Renderiza os cartões de KPI (Server Overview)
+    panelEl.overviewGrid.innerHTML = '';
+    const overview = tab.overview || [
+      { id: 'players', icon: '👥', label: 'PLAYERS COUNT', value: '1', subvalue: '/ 48' },
+      { id: 'uptime', icon: '⏱️', label: 'UP TIME', value: '1H 00M' },
+      { id: 'peak_24h', icon: '📈', label: '24H PEAK PLAYERS', value: '1' },
+      { id: 'peak_all', icon: '🏆', label: 'ALL-TIME PEAK', value: '1' }
+    ];
+
+    overview.forEach(stat => {
+      const card = document.createElement('div');
+      card.className = 'kpi-card';
+
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'kpi-icon-wrap';
+      iconWrap.textContent = stat.icon || '📊';
+      card.appendChild(iconWrap);
+
+      const content = document.createElement('div');
+      content.className = 'kpi-content';
+
+      const lbl = document.createElement('span');
+      lbl.className = 'kpi-label';
+      lbl.textContent = stat.label || stat.id;
+      content.appendChild(lbl);
+
+      const valWrap = document.createElement('div');
+      valWrap.style.display = 'flex';
+      valWrap.style.alignItems = 'baseline';
+      valWrap.style.gap = '4px';
+
+      const val = document.createElement('span');
+      val.className = 'kpi-value';
+      val.textContent = stat.value !== undefined ? stat.value : '0';
+      valWrap.appendChild(val);
+
+      if (stat.subvalue) {
+        const sub = document.createElement('span');
+        sub.className = 'kpi-subvalue';
+        sub.textContent = stat.subvalue;
+        valWrap.appendChild(sub);
+      }
+
+      content.appendChild(valWrap);
+      card.appendChild(content);
+      panelEl.overviewGrid.appendChild(card);
+    });
+
+    // 2. Renderiza os blocos de Ações Administrativas Categorizadas
+    panelEl.actionsContainer.innerHTML = '';
+    const groups = tab.actionGroups || [];
+
+    groups.forEach(group => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'dashboard-actions-group';
+
+      const header = document.createElement('div');
+      header.className = 'actions-group-header';
+      header.innerHTML = `<span>${group.icon || '▪'}</span> <span>${group.title || group.id}</span>`;
+      groupEl.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'actions-group-grid';
+
+      (group.actions || []).forEach(act => {
+        const tile = document.createElement('button');
+        tile.className = `admin-action-tile ${act.active ? 'active' : ''}`;
+        tile.title = act.description || act.label;
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'action-tile-icon';
+        iconSpan.textContent = act.icon || '⚡';
+        tile.appendChild(iconSpan);
+
+        const lblSpan = document.createElement('span');
+        lblSpan.textContent = act.label || act.id;
+        tile.appendChild(lblSpan);
+
+        tile.addEventListener('click', () => {
+          playUiTick('confirm');
+          if (act.type === 'toggle') {
+            act.active = !act.active;
+            tile.classList.toggle('active', act.active);
+          }
+          postData('westrp_ui:panelAction', {
+            action: 'dashboard_action',
+            groupId: group.id,
+            actionId: act.id,
+            active: act.active,
+            item: act
+          });
+        });
+
+        grid.appendChild(tile);
+      });
+
+      groupEl.appendChild(grid);
+      panelEl.actionsContainer.appendChild(groupEl);
+    });
+  }
+
+  function renderSettingsView(tab) {
+    if (!panelEl.positionsGrid || !panelEl.actionsList) return;
+
+    // 1. Grid de Posições do Dock
+    panelEl.positionsGrid.innerHTML = '';
+    const positions = [
+      { id: 'top_left', label: 'Top Left' },
+      { id: 'top_right', label: 'Top Right' },
+      { id: 'mid_left', label: 'Mid Left' },
+      { id: 'mid_right', label: 'Mid Right' },
+      { id: 'bottom_left', label: 'Bottom Left' },
+      { id: 'bottom_right', label: 'Bottom Right' }
+    ];
+
+    const currentPos = tab.currentPosition || 'mid_left';
+
+    positions.forEach(pos => {
+      const chip = document.createElement('div');
+      chip.className = `position-chip ${currentPos === pos.id ? 'selected' : ''}`;
+
+      const dot = document.createElement('span');
+      dot.className = 'position-dot';
+      chip.appendChild(dot);
+
+      const lbl = document.createElement('span');
+      lbl.textContent = pos.label;
+      chip.appendChild(lbl);
+
+      chip.addEventListener('click', () => {
+        tab.currentPosition = pos.id;
+        playUiTick('nav');
+        renderSettingsView(tab);
+        postData('westrp_ui:panelAction', {
+          action: 'set_menu_position',
+          position: pos.id
+        });
+      });
+
+      panelEl.positionsGrid.appendChild(chip);
+    });
+
+    // 2. Lista de Ações do Quick Actions com Toggles
+    panelEl.actionsList.innerHTML = '';
+    const quickActions = tab.quickActions || [];
+
+    quickActions.forEach(act => {
+      const row = document.createElement('div');
+      row.className = 'action-order-row';
+
+      const left = document.createElement('div');
+      left.className = 'action-row-left';
+
+      const handle = document.createElement('span');
+      handle.className = 'action-drag-handle';
+      handle.textContent = '≡';
+      left.appendChild(handle);
+
+      const iconSpan = document.createElement('span');
+      iconSpan.className = 'action-row-icon';
+      iconSpan.textContent = act.icon || '⚡';
+      left.appendChild(iconSpan);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'action-row-name';
+      nameSpan.textContent = act.label || act.id;
+      left.appendChild(nameSpan);
+
+      row.appendChild(left);
+
+      // Switch Toggle
+      const switchLabel = document.createElement('label');
+      switchLabel.className = 'ui-switch';
+
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = act.enabled !== false;
+
+      input.addEventListener('change', () => {
+        act.enabled = input.checked;
+        playUiTick('nav');
+        postData('westrp_ui:panelAction', {
+          action: 'toggle_quick_action',
+          actionId: act.id,
+          enabled: act.enabled
+        });
+      });
+
+      const slider = document.createElement('span');
+      slider.className = 'ui-switch-slider';
+
+      switchLabel.appendChild(input);
+      switchLabel.appendChild(slider);
+      row.appendChild(switchLabel);
+
+      panelEl.actionsList.appendChild(row);
+    });
   }
 
   function renderGridView(tab) {
@@ -1344,6 +1629,21 @@
   panelEl.btnPlus.addEventListener('click', () => setPanelQuantity(panelState.quantity + 1));
   panelEl.ctaBtn.addEventListener('click', () => executePanelCta());
 
+  if (panelEl.operatorStatusBtn) {
+    panelEl.operatorStatusBtn.addEventListener('click', () => {
+      if (!panelState.operator) return;
+      panelState.operator.onDuty = !panelState.operator.onDuty;
+      const onDuty = panelState.operator.onDuty;
+      if (panelEl.operatorStatusDot) panelEl.operatorStatusDot.className = 'status-dot ' + (onDuty ? 'on' : 'off');
+      if (panelEl.operatorStatusText) panelEl.operatorStatusText.textContent = onDuty ? 'Em Serviço' : 'Fora de Serviço';
+      playUiTick('confirm');
+      postData('westrp_ui:panelAction', {
+        action: 'toggle_duty',
+        onDuty: onDuty
+      });
+    });
+  }
+
   panelEl.btnPagePrev.addEventListener('click', () => {
     if (panelState.currentPage > 1) {
       panelState.currentPage--;
@@ -1482,6 +1782,14 @@
         dockState.tabs = [{ id: 'main', name: 'GERAL', items: [] }];
       }
 
+      // Aplica classes de posicionamento se fornecido (ex: 'mid_left', 'top_left', etc.)
+      const validPositions = ['pos-top-left', 'pos-mid-left', 'pos-bottom-left', 'pos-top-right', 'pos-mid-right', 'pos-bottom-right'];
+      validPositions.forEach(p => dockEl.container.classList.remove(p));
+      if (opts.position) {
+        const cls = 'pos-' + String(opts.position).replace('_', '-');
+        dockEl.container.classList.add(cls);
+      }
+
       dockEl.container.style.display = 'flex';
       renderDockHeader();
       renderDockTabsBar();
@@ -1507,6 +1815,18 @@
     // --- MENSAGENS DO PANEL ---
     else if (data.action === 'westrp_ui:openPanel') {
       openPanel(data.options);
+    } else if (data.action === 'westrp_ui:updatePanel') {
+      if (panelState.isOpen && data.options) {
+        if (data.options.tabs) panelState.tabs = data.options.tabs;
+        if (data.options.operator) {
+          panelState.operator = Object.assign(panelState.operator || {}, data.options.operator);
+          const onDuty = panelState.operator.onDuty;
+          if (panelEl.operatorStatusDot) panelEl.operatorStatusDot.className = 'status-dot ' + (onDuty ? 'on' : 'off');
+          if (panelEl.operatorStatusText) panelEl.operatorStatusText.textContent = onDuty ? 'Em Serviço' : 'Fora de Serviço';
+        }
+        renderPanelTabs();
+        renderPanelContent();
+      }
     } else if (data.action === 'westrp_ui:closePanel') {
       closePanel('client_request');
     }

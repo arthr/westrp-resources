@@ -98,13 +98,107 @@
         
         <!-- Sidebar de Abas Verticais -->
         <aside class="panel-sidebar" id="panel-sidebar">
+          <!-- Branding do Servidor / Menu -->
+          <div class="panel-sidebar-brand" id="panel-sidebar-brand" style="display: none;">
+            <div class="panel-sidebar-logo" id="panel-sidebar-logo">
+              <svg viewBox="0 0 24 24" class="sidebar-logo-icon">
+                <path fill="currentColor" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </div>
+            <div class="panel-sidebar-titles">
+              <h2 class="panel-sidebar-name" id="panel-sidebar-name">WESTRP SERVER</h2>
+              <span class="panel-sidebar-badge" id="panel-sidebar-badge">ADMIN MENU</span>
+            </div>
+          </div>
+
           <nav class="panel-tabs-list" id="panel-tabs-list">
             <!-- Abas geradas dinamicamente -->
           </nav>
+
+          <!-- Perfil do Operador / Status em Serviço -->
+          <div class="panel-sidebar-operator" id="panel-sidebar-operator" style="display: none;">
+            <div class="operator-avatar" id="operator-avatar">
+              <span class="avatar-initials" id="operator-initials">AD</span>
+            </div>
+            <div class="operator-info">
+              <span class="operator-name" id="operator-name">Operador</span>
+              <button class="operator-status-btn" id="operator-status-btn" title="Alternar Status de Serviço">
+                <span class="status-dot on" id="operator-status-dot"></span>
+                <span class="status-text" id="operator-status-text">Em Serviço</span>
+              </button>
+            </div>
+          </div>
         </aside>
 
         <!-- Viewport Principal de Conteúdo -->
         <main class="panel-content" id="panel-content">
+          <!-- Viewport do Dashboard (Visão Geral + Ações Categorizadas) -->
+          <div class="panel-dashboard-view" id="panel-dashboard-view" style="display: none;">
+            <!-- Header do Dashboard -->
+            <div class="dashboard-header">
+              <div class="dashboard-header-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.01-4.09l-2.49-1.46C16.29 17.94 14.28 19 12 19zm1-11v4.41l3.58 2.07-.84 1.45L11.5 13.9V8h1.5z"/></svg>
+              </div>
+              <div class="dashboard-header-text">
+                <h2 class="dashboard-title" id="dashboard-title">DASHBOARD</h2>
+                <p class="dashboard-subtitle" id="dashboard-subtitle">Visão geral do servidor e atalhos rápidos da administração</p>
+              </div>
+            </div>
+
+            <!-- Seção SERVER OVERVIEW (4 Stat Cards) -->
+            <div class="dashboard-section-title">
+              <span class="sec-icon">📊</span>
+              <span>SERVER OVERVIEW</span>
+            </div>
+            <div class="dashboard-overview-grid" id="dashboard-overview-grid">
+              <!-- KPI Cards gerados dinamicamente via JS -->
+            </div>
+
+            <!-- Seção ADMIN ACTIONS (Categorized Actions) -->
+            <div class="dashboard-section-title" style="margin-top: 18px;">
+              <span class="sec-icon">⚡</span>
+              <span>ADMIN ACTIONS</span>
+            </div>
+            <div class="dashboard-actions-container" id="dashboard-actions-container">
+              <!-- Grupos de ações gerados dinamicamente via JS -->
+            </div>
+          </div>
+
+          <!-- Viewport de Configurações (Settings / Posição do Dock e Atalhos) -->
+          <div class="panel-settings-view" id="panel-settings-view" style="display: none;">
+            <div class="settings-header">
+              <div class="settings-header-icon">⚙️</div>
+              <div class="settings-header-text">
+                <h2 class="settings-title">SETTINGS</h2>
+                <p class="settings-subtitle">Personalize as preferências operacionais e atalhos do Hot Menu</p>
+              </div>
+            </div>
+
+            <div class="settings-scroll-area">
+              <!-- Seletor de Posição do Dock -->
+              <div class="settings-group">
+                <div class="settings-group-header">
+                  <h4 class="settings-group-title">POSIÇÃO DO HOT MENU</h4>
+                  <p class="settings-group-desc">Selecione o ancoramento da janela rápida de Quick Actions na tela.</p>
+                </div>
+                <div class="settings-positions-grid" id="settings-positions-grid">
+                  <!-- 6 posições geradas via JS -->
+                </div>
+              </div>
+
+              <!-- Lista de Ações e Ordenação com Toggles -->
+              <div class="settings-group" style="margin-top: 22px;">
+                <div class="settings-group-header">
+                  <h4 class="settings-group-title">ATALHOS & VISIBILIDADE</h4>
+                  <p class="settings-group-desc">Ative ou desative as ações rápidas exibidas no Hot Menu lateral.</p>
+                </div>
+                <div class="settings-actions-list" id="settings-actions-list">
+                  <!-- Linhas com toggles geradas via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Barra de Filtros por Chips (Sub-aba) -->
           <div class="panel-filter-bar" id="panel-filter-bar" style="display: none;"></div>
 

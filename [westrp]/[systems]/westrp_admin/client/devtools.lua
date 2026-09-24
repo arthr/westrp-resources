@@ -143,6 +143,12 @@ function WestRP.Admin.DevTools.ToggleLaser()
     return laserActive
 end
 
+---Retorna se o laser de desenvolvedor está ativo
+---@return boolean
+function WestRP.Admin.DevTools.IsLaserActive()
+    return laserActive
+end
+
 --------------------------------------------------------------------------------
 -- CÓPIA DE VETORES & INFORMAÇÕES
 --------------------------------------------------------------------------------

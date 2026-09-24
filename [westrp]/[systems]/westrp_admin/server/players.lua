@@ -214,6 +214,77 @@ function WestRP.Server.Admin.Players.Troll(source, targetId, trollType)
     WestRP.Server.Admin.Logger.Log("General", "Troll Administrativo", "Disparou efeito: " .. trollType, source, targetId)
 end
 
+---Cura todos os jogadores online no servidor
+---@param source number
+function WestRP.Server.Admin.Players.HealAll(source)
+    local players = GetPlayers()
+    for _, pId in ipairs(players) do
+        local src = tonumber(pId)
+        if src then
+            WestRP.Shared.Bridge.Player.Heal(src)
+            WestRP.Shared.Bridge.Player.Notify(src, "Todos os jogadores foram curados pela administração", 4000)
+        end
+    end
+    WestRP.Shared.Bridge.Player.Notify(source, ("Todos os %d jogadores foram curados"):format(#players), 4000)
+    WestRP.Server.Admin.Logger.Log("General", "Cura Global (Heal All)", ("Operador curou todos os %d jogadores online"):format(#players), source)
+end
+
+---Revive todos os jogadores online no servidor
+---@param source number
+function WestRP.Server.Admin.Players.ReviveAll(source)
+    local players = GetPlayers()
+    for _, pId in ipairs(players) do
+        local src = tonumber(pId)
+        if src then
+            WestRP.Shared.Bridge.Player.Revive(src)
+            WestRP.Shared.Bridge.Player.Notify(src, "Todos os jogadores foram revividos pela administração", 4000)
+        end
+    end
+    WestRP.Shared.Bridge.Player.Notify(source, ("Todos os %d jogadores foram revividos"):format(#players), 4000)
+    WestRP.Server.Admin.Logger.Log("General", "Reviver Global (Revive All)", ("Operador reviveu todos os %d jogadores online"):format(#players), source)
+end
+
+---Puxa todos os jogadores online para as coordenadas do operador
+---@param source number
+function WestRP.Server.Admin.Players.BringAll(source)
+    local adminPed = GetPlayerPed(source)
+    if not DoesEntityExist(adminPed) then return end
+    local coords = GetEntityCoords(adminPed)
+    local players = GetPlayers()
+    local count = 0
+    for _, pId in ipairs(players) do
+        local src = tonumber(pId)
+        if src and src ~= source then
+            TriggerClientEvent("westrp_admin:client:bringPlayer", src, coords)
+            WestRP.Shared.Bridge.Player.Notify(src, "Você foi puxado até um evento administrativo", 4000)
+            count = count + 1
+        end
+    end
+    WestRP.Shared.Bridge.Player.Notify(source, ("Puxou %d jogadores até sua posição"):format(count), 4000)
+    WestRP.Server.Admin.Logger.Log("Teleport", "Puxar Todos (Bring All)", ("Operador puxou %d jogadores para sua posição"):format(count), source)
+end
+
+---Expulsa todos os jogadores não-staff do servidor
+---@param source number
+---@param reason? string
+function WestRP.Server.Admin.Players.KickAll(source, reason)
+    local kickReason = reason or "Manutenção ou reinício do servidor."
+    local players = GetPlayers()
+    local count = 0
+    for _, pId in ipairs(players) do
+        local src = tonumber(pId)
+        if src and src ~= source then
+            local role = WestRP.Server.Admin.Security.GetPlayerRole(src)
+            if not role or role == "user" then
+                DropPlayer(src, "👢 WestRP • Manutenção / Reinício Programado\nMotivo: " .. kickReason)
+                count = count + 1
+            end
+        end
+    end
+    WestRP.Shared.Bridge.Player.Notify(source, ("%d jogadores foram expulsos"):format(count), 4000)
+    WestRP.Server.Admin.Logger.Log("Punish", "Expulsão Global (Kick All)", ("Operador expulsou %d jogadores. Motivo: %s"):format(count, kickReason), source)
+end
+
 AddEventHandler("playerDropped", function()
     local src = source
     if frozenStates[src] then

@@ -1,153 +1,110 @@
-# Especificação de Engenharia — Expansão do Admin Panel (`westrp_admin`)
-> **Padrão:** Spec-Driven Development (SDD)  
-> **Módulo:** `westrp_admin` (Extensão da Mesa Central de Comando & Auditoria)  
-> **Versão:** 2.0.0  
+# Especificação Técnica de Engenharia — Admin Panel 3.0 & Hot Menu (`westrp_admin`)
+> **Padrão:** Spec-Driven Development (SDD) & Rockstar Victorian Design System  
+> **Módulos:** `westrp_admin` (Painel Central & Hot Menu Dock) e `westrp_ui` (Motor NUI Central)  
+> **Versão:** 3.0.0  
 > **Target:** RedM (CitizenFX RDR3) — CEF / Chromium / Lua 5.4  
-> **Status:** Proposta de Arquitetura  
+> **Status:** Implementado & Validado  
 
 ---
 
-## 1. Visão Geral & Objetivos de Engenharia
+## 1. Visão Geral & Hierarquia de Comandos
 
-O **Admin Panel 2.0** expande a Mesa Central de Comando (`/adminpanel`), elevando a experiência operacional da equipe de administração e suporte. A arquitetura mantém rigorosamente a **Regra R3 (Bridge Pattern)**, **0.00ms idle resmon** e conformidade com o mini-framework `westrp_ui`.
+O **Admin Panel 3.0** redefine a arquitetura operacional da administração do WestRP, separando as ferramentas em dois pilares complementares de alta performance:
 
-### Metas Principais:
-1. **Desacoplamento & Multi-Alvo**: Permitir que ações de concessão de itens, armamentos e economia operem tanto sobre o próprio operador (`self`) quanto sobre qualquer jogador conectado (`targetId`).
-2. **Inspeção em Tempo Real**: Permitir auditar e moderar o inventário e finanças de um jogador sem exigir comandos de terminal ou reinicialização.
-3. **Ergonomia Operacional**: Introduzir filtros rápidos por profissão/estado e aba interna de auditoria sem depender de consulta externa ao Discord.
+1. **Painel Administrativo Principal (`/admin` | `/adminpanel`)**:
+   - Centro de comando e controle centralizado em canvas modal modal (`1160px` x `720px`).
+   - Estética Victorian Dark Onyx com adornos de latão dourado envelhecido (`#d4af37`), cantos em arabescos ornamentais e efeito RedM Screen Blur nativo.
+   - Apresenta Dashboard com KPIs em tempo real do servidor, catálogo de ações operacionais categorizadas, gerenciamento de jogadores, spawner de itens/armas, tabela de punições e configurações visuais.
+
+2. **Hot Menu / Dock Lateral (`/admhot` | Tecla `[PGDOWN]` / `NEXT`)**:
+   - Menu lateral rápido de atalhos em modo Câmera Livre (*Keep Input* com bloqueio cirúrgico de combate).
+   - Renderização 100% dinâmica baseada na lista de ações rápidas habilitadas pelo operador na aba de Configurações do painel.
+   - Posição da tela ancorada dinamicamente conforme preferência salva no KVP local (`top_left`, `top_right`, `mid_left`, `mid_right`, `bottom_left`, `bottom_right`).
 
 ---
 
-## 2. Anatomia do Painel & Estrutura de Abas (Schema 2.0)
-
-O painel central manterá o canvas modal (`1200px` de largura) com abas reorganizadas por domínio de atuação:
+## 2. Anatomia do Painel Administrativo (`/admin`)
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│  WESTRP • CENTRAL ADMINISTRATIVA                          Operador: [ID 1] • Online: 12│
-│  MESA DE COMANDO & AUDITORIA AVANÇADA                                                ✕ │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ [JOGADORES] | [ITENS] | [ARMAS] | [MONTARIAS/VEÍCULOS] | [PUNIÇÕES/BANS] | [AUDITORIA] │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ FILTROS RÁPIDOS: [TODOS]  [MORTOS / COMA]  [STAFF]  [POLÍCIA]  [MÉDICOS]               │
-│                                                                                        │
-│  VIEWPORT DINÂMICA (Grid / Table / Inspector):                                         │
-│  ...                                                                                   │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ [RODAPÉ / CONTROLE DE ALVO & EXECUÇÃO]                                                 │
-│  ALVO: [ (o) PARA MIM  |  ( ) JOGADOR: [ ID: 3 - John Marston ] ]                      │
-│  QUANTIDADE: [ - ] [ 1 ] [ + ]                        [ BOTÃO DE AÇÃO: EXECUTAR ]      │
-└────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  [SIDEBAR ESQUERDA]           │  [CANVAS CENTRAL SUPERIOR - BRAND & HEADER]                            │
+│  ⭐ WESTRP SERVER             │  WESTRP • DASHBOARD & GESTÃO                     Operador: [ID 1]      │
+│  ADMIN MENU                   │  PAINEL ADMINISTRATIVO                           Online: 12            │
+│  ──────────────────────────── ├────────────────────────────────────────────────────────────────────────┤
+│  [ABAS DO SISTEMA]            │  [VIEWPORT DINÂMICA DA ABA SELECIONADA]                                │
+│  🎛️ Dashboard                 │                                                                        │
+│  👥 Jogadores        [12]     │  * DASHBOARD:                                                          │
+│  📦 Item Spawner    [ITENS]   │    [KPI STAT CARDS: JOGADORES | UPTIME | PICO 24H | PICO GERAL]        │
+│  🛡️ Armamento       [65]      │    [AÇÕES CATEGORIZADAS: TELEPORT | SELF | WORLD | SPAWN | ALL PLAYERS]│
+│  ⚖️ Punições & Bans  [3]      │  * JOGADORES: Tabela de dados com modal contextual                     │
+│  ⚙️ Configurações             │  * ITEM SPAWNER: Vitrine com filtros de categorias e busca             │
+│  ──────────────────────────── │  * ARMAMENTO: Catálogo de armas de fogo, arremessáveis e munições      │
+│  [RODAPÉ DO OPERADOR]         │  * PUNIÇÕES: Tabela de bans com revogação em 1 clique                  │
+│  👤 John Doe (Super Admin)    │  * CONFIGURAÇÕES: Seletor de 6 posições e interruptores do Hot Menu    │
+│  [ 🟢 Em Serviço ] (Toggle)   │                                                                        │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Especificação Detalhada dos Novos Recursos
+## 3. Especificação das Abas do Painel
 
-### 3.1 Seletor de Destinatário no Spawner (Target Selector)
-* **Objetivo:** Alternar entre conceder o item/arma para o próprio administrador ou para um jogador alvo.
-* **Mecânica:**
-  * O rodapé do painel central inclui um seletor de alvo (`targetMode: "self" | "target"`).
-  * Quando o administrador seleciona um jogador na tabela de jogadores e clica em "Gerenciar Itens", o painel alterna para o Spawner já pré-selecionando o jogador alvo.
-  * O evento `executeAction` envia `targetId = selectedTargetId` com validação de alcance e autorização no servidor.
+### Aba 1: Dashboard Principal (`viewType = "dashboard"`)
+* **KPI Stat Cards (Server Overview):**
+  - **Jogadores Online:** Contador de clientes ativos vs `sv_maxclients` (ex: `12 / 32`).
+  - **Tempo de Atividade (Uptime):** Duração contínua do servidor em horas e minutos.
+  - **Pico em 24h:** Maior número de conexões simultâneas nas últimas 24 horas.
+  - **Recorde Geral:** Pico histórico de jogadores desde o início do ciclo.
+* **Ações Categorizadas (Grid Tiles):**
+  - **TELEPORT:** Teleport to Waypoint, Teleport to Coords, Send Back, Guarma Island.
+  - **SELF ACTIONS:** Ghost (Noclip), Godmode, Invisibility, Golden Cores, Infinite Ammo, Self Heal, Self Revive, Clean Ped.
+  - **WORLD TOGGLES:** Clear Area, Clear Weather (Sunny), Freeze Time (12:00).
+  - **SPAWN:** Spawn Horse (dialog modal de modelos), Spawn Wagon (dialog modal de carroças).
+  - **ALL PLAYERS:** Heal All Players, Revive All Players, Bring All Players, Kick All Players (dialog de confirmação).
+  - **SERVER:** Announcement (dialog modal de transmissão global), Server Logs (Discord webhook).
 
-### 3.2 Spawner de Armamento & Munições (Weapon Spawner - Vitrine Grid)
-* **Objetivo:** Catálogo visual de revólveres, pistolas, rifles, escopetas e armas brancas.
-* **Schema do Item:**
-  ```lua
-  {
-      id = "WEAPON_REVOLVER_CATTLEMAN",
-      title = "Revólver Cattleman",
-      subtitle = "Arma Curta • Calibre .45",
-      category = "Revólveres",
-      icon = "weapon_revolver_cattleman",
-      badge = "ARMA",
-      badgeType = "gold"
-  }
-  ```
-* **Fluxo de Concessão:**
-  * Invoca `WestRP.Shared.Bridge.Inventory.GiveWeapon(targetId, weaponName)`.
-  * Valida no servidor se o jogador já atingiu o limite de armas portadas.
+### Aba 2: Jogadores Online (`viewType = "table"`)
+* Tabela completa com colunas: `ID`, `PERSONAGEM`, `STEAM`, `EMPREGO / CARGO`, `PERMISSÃO`, `DINHEIRO`, `ESTADO`.
+* Clique na linha abre o menu contextual lateral (`player_action_dock`) permitindo:
+  - Inspecionar Inventário em Tempo Real (`OpenInventoryInspector`).
+  - Gestão Financeira & Moedas (`OpenCurrencyDialog` tipado com Cash, Gold, Rol).
+  - Definir como Alvo do Spawner.
+  - Teleportes direcionados (`GoTo`, `Bring`, `Spectate`).
+  - Ações de saúde (`Heal`, `Revive`, `Respawn`, `Freeze`).
+  - Punições (`Kick`, `Ban 3D`, `Ban Permanente`).
+  - Trolagens administrativas (`Raio`, `Fogo`, `Céu`, `Ragdoll`, `Algemas`, `Bêbado`).
 
-### 3.3 Gestor Financeiro / Econômico (Currency Manager)
-* **Objetivo:** Injetar ou retirar Dinheiro (`cash`), Ouro (`gold`) ou Rol (`rol`) de jogadores.
-* **Interface:** Modal contextual acionado no perfil do jogador com seletor de moeda, campo de valor numérico e campo de justificativa obrigatório para auditoria.
-* **Validação:**
-  * Adição: `WestRP.Shared.Bridge.Player.AddMoney(targetId, type, amount)`.
-  * Remoção: `WestRP.Shared.Bridge.Player.RemoveMoney(targetId, type, amount)` com validação prévia de saldo disponível.
-  * Log estruturado no Discord com autor, alvo, valor e justificativa.
+### Aba 3: Item Spawner (`viewType = "grid"`)
+* Catálogo dinâmico de todos os itens registrados no ecossistema Vorp/WestRP.
+* Filtros por categoria e busca em tempo real com debounce procedural.
+* Seletor de quantidade no rodapé e entrega direta para o alvo selecionado (`currentTarget`).
 
-### 3.4 Inspetor de Inventário em Tempo Real (Live Inventory Inspector)
-* **Objetivo:** Exibir os itens e armas carregados pelo personagem do jogador selecionado.
-* **Endpoint RPC:** `westrp_admin:server:getPlayerInventory(targetId)`
-  * Retorna tabela unificada contendo itens (nome, label, quantidade, peso) e armas (nome, número de série).
-* **Ações Disponíveis:**
-  * `confiscate_item`: Remove uma quantidade específica do item da bolsa do jogador.
-  * `confiscate_weapons`: Remove todo o armamento ilegal do personagem.
+### Aba 4: Armamento & Munições (`viewType = "grid"`)
+* Catálogo completo extraído dos dados nativos do RDR3, incluindo revólveres, pistolas, rifles, escopetas, armas longas e armas de arremesso (`WEAPON_THROWN_MOLOTOV`, `WEAPON_THROWN_DYNAMITE`, `WEAPON_MOONSHINEJUG_MP`, etc.).
+* Filtro categórico (`Revólveres`, `Pistolas`, `Rifles & Carabinas`, `Espingardas`, `Arco & Arremesso`, `Armas Brancas`, `Munições`).
 
-### 3.5 Gerenciador de Empregos & Cargos (Job & Role Manager)
-* **Objetivo:** Alterar a profissão (`job`), patente (`jobGrade`) e permissão (`group`) de forma visual.
-* **Endpoints:**
-  * `WestRP.Shared.Bridge.Player.SetJob(targetId, job, grade, label)`
-  * `WestRP.Shared.Bridge.Player.SetGroup(targetId, group)`
-* **Regra de Segurança:** Operadores não podem atribuir cargos (`group`) iguais ou superiores ao seu próprio cargo hierárquico.
+### Aba 5: Punições & Bans (`viewType = "table"`)
+* Tabela de punições ativas com busca por identificador Steam/Licença.
+* Ação de desbanimento imediato e sincronizado.
 
-### 3.6 Spawner de Montarias e Veículos (Mount & Wagon Spawner)
-* **Objetivo:** Catálogo de cavalos de raça e carroças/carruagens para spawn imediato.
-* **Categorias:** Cavalos de Trabalho, Cavalos de Guerra, Cavalos de Corrida, Carroças de Carga e Diligências.
-* **Mecânica de Spawn:** Invocação client-side com verificação de rota livre, criação de ped/veículo via native e atribuição de sela/arreios.
-
-### 3.7 Aba de Auditoria Interna (Live Audit Logs)
-* **Objetivo:** Buffer circular em memória no servidor contendo as últimas 50 ações executadas pela staff.
-* **Endpoint RPC:** `westrp_admin:server:getRecentLogs()`
-* **Visualização:** Tabela com Horário, Operador, Ação, Alvo e Detalhes.
-
-### 3.8 Filtros Rápidos na Tabela de Jogadores
-* **Filtros Disponíveis no Cabeçalho:**
-  * `TODOS`: Exibe todos os jogadores conectados.
-  * `MORTOS / COMA`: Filtra jogadores onde `isDead == true`.
-  * `STAFF`: Filtra jogadores onde `group ~= "user"`.
-  * `POLÍCIA`: Filtra jogadores cujo `job` pertence à segurança pública (`sheriff`, `police`, `marshal`).
-  * `MÉDICOS`: Filtra médicos em serviço (`medic`, `doctor`).
+### Aba 6: Configurações do Menu & Posição (`viewType = "settings"`)
+* **Seletor de Posição da Dock (Hot Menu):**
+  - Matriz com 6 posições gráficas: `Top Left`, `Top Right`, `Mid Left`, `Mid Right`, `Bottom Left`, `Bottom Right`.
+  - Salva instantaneamente no KVP do cliente (`westrp_admin:dock_position`).
+* **Interruptores de Ações Rápidas (Quick Actions Toggles):**
+  - Lista de interruptores tipados (`.ui-switch`) permitindo ao administrador escolher exatamente quais ferramentas aparecem no seu menu lateral `/admhot`.
+  - Persistido no KVP local (`westrp_admin:quick_actions`) em formato JSON.
 
 ---
 
-## 4. Matriz de Segurança Zero-Trust & RBAC
+## 4. Auditoria, Segurança e Zero-Trust
 
-Todas as novas rotinas obedecem estritamente à matriz de permissões no `config.lua`:
-
-| Ação | Root (100) | Admin (80) | Moderator (50) | Support (20) |
-| :--- | :---: | :---: | :---: | :---: |
-| `give_item` (Self) | ✅ | ✅ | ✅ | ❌ |
-| `give_item` (Target) | ✅ | ✅ | ✅ | ❌ |
-| `give_weapon` | ✅ | ✅ | ❌ | ❌ |
-| `give_currency` | ✅ | ✅ | ❌ | ❌ |
-| `inspect_inventory` | ✅ | ✅ | ✅ | ✅ |
-| `confiscate_item` | ✅ | ✅ | ✅ | ❌ |
-| `set_job` | ✅ | ✅ | ❌ | ❌ |
-| `set_group` | ✅ | ❌ | ❌ | ❌ |
-| `spawn_mount` | ✅ | ✅ | ✅ | ❌ |
-| `view_audit_logs` | ✅ | ✅ | ✅ | ❌ |
-
----
-
-## 5. Critérios de Aceite (Gherkin)
-
-### Cenário 1: Concessão de item com seletor de destinatário
-* **Dado** que o operador é um `admin` e abre o Spawner de Itens
-* **Quando** seleciona o modo "Para Jogador Alvo" com o ID `2` e confirma a entrega de 5x Maçãs
-* **Então** o jogador `2` deve receber os 5 itens em seu inventário
-* **E** o operador recebe confirmação Toast na tela
-* **E** o log estruturado é registrado na auditoria com operador e alvo identificados.
-
-### Cenário 2: Inspeção e confisco de item
-* **Dado** que um moderador clica sobre um jogador suspeito na tabela
-* **Quando** seleciona a ação "Inspecionar Inventário"
-* **Então** uma lista em tempo real de todos os itens e quantidades daquele jogador é exibida
-* **E** ao clicar em "Confiscar", o item é subtraído imediatamente da bolsa do jogador via Bridge.
-
-### Cenário 3: Validação de hierarquia no gestor de cargos
-* **Dado** que um administrador com nível `80` tenta promover outro jogador para `root` (`100`)
-* **Quando** a requisição atinge o servidor
-* **Então** o middleware `Security.CanExecute` rejeita a ação com aviso "Ação não permitida"
-* **E** nenhum dado é modificado no banco de dados.
+1. **Permissões RBAC Hierárquicas:**
+   - Todos os eventos de servidor utilizam `WestRP.Server.Admin.Security.CanExecute(_source, action, targetId)`.
+   - Proteção de hierarquia estrita: moderadores e administradores não podem punir ou alterar dados de administradores de hierarquia igual ou superior.
+2. **Rate-Limiting:**
+   - Proteção anti-spam de 400ms em todas as rotas administrativas.
+3. **Webhooks Discord Estruturados:**
+   - Cores e metadados categorizados por canal: Geral, Punições, Teleporte, Spawner e Ferramentas Dev.
+4. **Desempenho (0.00ms Idle Resmon):**
+   - Zero loops contínuos de verificação de tecla (utiliza `RegisterKeyMapping` e eventos NUI nativos).

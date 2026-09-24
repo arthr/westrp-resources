@@ -123,6 +123,12 @@ function WestRP.Admin.Teleport.ToggleAutoTPM()
     return autoTpmActive
 end
 
+---Retorna o estado atual do Auto-TPM
+---@return boolean
+function WestRP.Admin.Teleport.GetAutoTPMState()
+    return autoTpmActive
+end
+
 --------------------------------------------------------------------------------
 -- RETORNO & TELEPORTE PARA COORDENADAS
 --------------------------------------------------------------------------------

@@ -386,6 +386,28 @@ function WestRP.Admin.Boosters.SelfRevive()
     WestRP.Client.UI.ShowToast("AUTO REVIVER", "Operador reanimado com sucesso", "success")
 end
 
+---Limpa sangue, danos e lama do ped
+function WestRP.Admin.Boosters.CleanPed()
+    local ped = PlayerPedId()
+    ClearPedEnvDirt(ped)
+    ClearPedDamageDecalByZone(ped, 10, "ALL")
+    ClearPedBloodDamage(ped)
+    ClearPedWetness(ped)
+    WestRP.Client.UI.ShowToast("LIMPEZA", "Personagem limpo de sangue e sujeira", "success")
+end
+
+---Limpa entidades mortas, veículos e projéteis da área
+---@param radius? number
+function WestRP.Admin.Boosters.ClearArea(radius)
+    local r = radius or 50.0
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    ClearAreaOfPeds(coords.x, coords.y, coords.z, r, 0)
+    ClearAreaOfVehicles(coords.x, coords.y, coords.z, r, false, false, false, false, false)
+    ClearAreaOfProjectiles(coords.x, coords.y, coords.z, r, false)
+    WestRP.Client.UI.ShowToast("LIMPEZA DE ÁREA", string.format("Área de %.0fm limpa de entidades", r), "success")
+end
+
 ---Retorna o estado consolidado de todos os boosters
 ---@return table
 function WestRP.Admin.Boosters.GetStates()

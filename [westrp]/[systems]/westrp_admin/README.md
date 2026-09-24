@@ -193,10 +193,15 @@ Todas as operações sensíveis geram rich embeds automáticos contendo:
 
 | Atalho / Comando | Função |
 | :--- | :--- |
-| **`[PGDOWN]`** | Abre ou fecha o menu lateral rápido (Dock). |
-| **`/admin`** | Alternativa via chat/console para abrir o Dock. |
-| **`/adminpanel`** | Abre diretamente a Mesa de Trabalho Central completa. |
-| **`[L-SHIFT]`** *(no NoClip)* | Alterna entre as 5 velocidades de voo. |
+| **`/admin`** | Abre o **Painel Administrativo Completo** (Dashboard com KPIs, Gestão de Jogadores, Spawner de Itens e Armas, Punições e Configurações). |
+| **`/adminpanel`** | Alias secundário para o Painel Administrativo Completo. |
+| **`[PGDOWN]`** | Abre ou fecha instantaneamente o **Hot Menu Lateral (Quick Actions)**. |
+| **`/admhot`** | Comando de chat/console para abrir o Hot Menu Lateral. |
+| **`[L-SHIFT]`** *(no NoClip)* | Alterna entre as 5 velocidades de voo livre. |
 | **`[G]`** *(no DevLaser)* | Copia `vector3(x, y, z)` para a área de transferência. |
 | **`[H]`** *(no DevLaser)* | Copia todos os dados da entidade inspecionada. |
 | **`[DEL]`** *(no DevLaser)* | Deleta o objeto selecionado pelo laser. |
+
+### 10. Persistência de Preferências do Operador (KVP Local)
+* **Posição do Dock:** Configurada na aba *Configurações* do `/admin`, podendo ser ancorada em 6 posições da tela (`top_left`, `top_right`, `mid_left`, `mid_right`, `bottom_left`, `bottom_right`) e persistida via KVP `westrp_admin:dock_position`.
+* **Catálogo de Ações Rápidas:** O operador pode ativar ou desativar cada ação do catálogo individualmente através dos seletores `.ui-switch`, definindo exatamente o que aparece no `/admhot` (salvo via KVP `westrp_admin:quick_actions`).

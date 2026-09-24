@@ -17,8 +17,28 @@ end)
 --------------------------------------------------------------------------------
 -- REGISTRO DE COMANDOS & KEYMAPPINGS (0.00ms IDLE)
 --------------------------------------------------------------------------------
--- Comando para abrir o Dock Lateral
+-- Comando principal para abrir o Painel Administrativo Completo (/admin)
 RegisterCommand(Config.CommandAdmin, function()
+    if not isPlayerReady then return end
+    if not Config.CanOpenWhenDead and IsPedDeadOrDying(PlayerPedId(), false) then
+        return
+    end
+
+    WestRP.Admin.Panel.Toggle()
+end, false)
+
+-- Alias secundário (/adminpanel)
+RegisterCommand(Config.CommandPanel, function()
+    if not isPlayerReady then return end
+    if not Config.CanOpenWhenDead and IsPedDeadOrDying(PlayerPedId(), false) then
+        return
+    end
+
+    WestRP.Admin.Panel.Toggle()
+end, false)
+
+-- Comando para abrir o Hot Menu / Dock Lateral de Ações Rápidas (/admhot)
+RegisterCommand(Config.CommandHot, function()
     if not isPlayerReady then return end
     if not Config.CanOpenWhenDead and IsPedDeadOrDying(PlayerPedId(), false) then
         return
@@ -27,17 +47,12 @@ RegisterCommand(Config.CommandAdmin, function()
     WestRP.Admin.Dock.Toggle()
 end, false)
 
--- Comando direto para abrir o Painel Central
-RegisterCommand(Config.CommandPanel, function()
-    if not isPlayerReady then return end
-    WestRP.Admin.Panel.Toggle()
-end, false)
+-- Keymapping nativo do RedM para PGDOWN (NEXT) -> Abre o Hot Menu (/admhot) (0.00ms constante)
+RegisterKeyMapping(Config.CommandHot, "Abrir Hot Menu Administrativo (WestRP)", "keyboard", "NEXT")
 
--- Keymapping nativo do RedM para PGDOWN (Zero polling thread, 0.00ms constante)
-RegisterKeyMapping(Config.CommandAdmin, "Abrir Menu Administrativo (WestRP)", "keyboard", "NEXT")
-
-TriggerEvent("chat:addSuggestion", "/" .. Config.CommandAdmin, "Abre o menu lateral rápido da staff", {})
-TriggerEvent("chat:addSuggestion", "/" .. Config.CommandPanel, "Abre a mesa de trabalho e painel completo da staff", {})
+TriggerEvent("chat:addSuggestion", "/" .. Config.CommandAdmin, "Abre o painel administrativo de gestão completa (Dashboard)", {})
+TriggerEvent("chat:addSuggestion", "/" .. Config.CommandPanel, "Abre o painel administrativo de gestão completa (Alias)", {})
+TriggerEvent("chat:addSuggestion", "/" .. Config.CommandHot, "Abre o menu lateral rápido da staff (Hot Menu)", {})
 
 --------------------------------------------------------------------------------
 -- EVENTOS DE AÇÕES RECEBIDAS DO SERVIDOR

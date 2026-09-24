@@ -3,15 +3,144 @@ Config = Config or {}
 -- Idioma do Sistema
 Config.Lang = "pt_br"
 
--- Tecla de Abertura (0x3C3DD371 = PGDOWN)
+-- Tecla de Abertura do Hot Menu / Dock (0x3C3DD371 = PGDOWN)
 Config.Key = 0x3C3DD371
 
--- Comandos de Terminal/Chat
-Config.CommandAdmin = "admin"
-Config.CommandPanel = "adminpanel"
+-- Comandos de Chat/Terminal
+Config.CommandAdmin = "admin"       -- Painel Administrativo Completo (Dashboard)
+Config.CommandPanel = "adminpanel"  -- Alias secundário do painel
+Config.CommandHot = "admhot"        -- Hot Menu / Dock Lateral de Ações Rápidas
+
+-- Identidade Visual e Branding do Painel
+Config.Brand = {
+    name = "WESTRP SERVER",
+    badge = "ADMIN MENU",
+    logo = "https://raw.githubusercontent.com/femga/rdr3_discoveries/master/graphics/rdr3_icon.png"
+}
+
+-- Posição Padrão do Dock Lateral ('top_left' | 'top_right' | 'mid_left' | 'mid_right' | 'bottom_left' | 'bottom_right')
+Config.DefaultDockPosition = "mid_left"
 
 -- Permitir abrir o menu quando estiver inconsciente/morto
 Config.CanOpenWhenDead = true
+
+--------------------------------------------------------------------------------
+-- CATÁLOGO DE AÇÕES RÁPIDAS (HOT MENU / DOCK LATERAL)
+--------------------------------------------------------------------------------
+Config.QuickActions = {
+    {
+        id = "noclip",
+        label = "Modo Fantasma",
+        sublabel = "Voo livre e atravessar colisão",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "godmode",
+        label = "Modo Deus",
+        sublabel = "Invulnerabilidade a dano e quedas",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "invis",
+        label = "Invisibilidade",
+        sublabel = "Ocultar personagem de outros jogadores",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "goldencores",
+        label = "Núcleos Dourados",
+        sublabel = "Vida e estamina no nível máximo",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "infiammo",
+        label = "Munição Infinita",
+        sublabel = "Disparos sem consumir cartuchos",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = false
+    },
+    {
+        id = "tp_waypoint",
+        label = "Teleportar p/ Marcador",
+        sublabel = "Desloca ao waypoint no mapa (TPM)",
+        type = "action",
+        category = "teleport",
+        defaultEnabled = true
+    },
+    {
+        id = "autotpm",
+        label = "Auto TPM ao Marcar",
+        sublabel = "Teleporta ao clicar no mapa mundi",
+        type = "toggle",
+        category = "teleport",
+        defaultEnabled = false
+    },
+    {
+        id = "self_heal",
+        label = "Curar a Si Mesmo",
+        sublabel = "Restaura 100% da vida e estamina",
+        type = "action",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "self_revive",
+        label = "Reviver a Si Mesmo",
+        sublabel = "Ressuscita ped se estiver incapacitado",
+        type = "action",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "clean_ped",
+        label = "Limpar Personagem",
+        sublabel = "Remove sangue, lama e sujeiras",
+        type = "action",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "dev_laser",
+        label = "Laser de Desenvolvedor",
+        sublabel = "Inspecionar entidades e hashes com mira",
+        type = "toggle",
+        category = "tools",
+        defaultEnabled = true
+    },
+    {
+        id = "copy_coords",
+        label = "Copiar Coordenadas",
+        sublabel = "Copia vector3/vector4 para a área de transferência",
+        type = "action",
+        category = "tools",
+        defaultEnabled = true
+    },
+    {
+        id = "delete_object",
+        label = "Arma Deletora",
+        sublabel = "Mire e delete props indesejados",
+        type = "toggle",
+        category = "tools",
+        defaultEnabled = false
+    },
+    {
+        id = "clear_area",
+        label = "Limpar Área Próxima",
+        sublabel = "Deleta peds mortos, veículos e rastros num raio de 50m",
+        type = "action",
+        category = "world",
+        defaultEnabled = false
+    }
+}
 
 --------------------------------------------------------------------------------
 -- CONFIGURAÇÕES DE NOCLIP

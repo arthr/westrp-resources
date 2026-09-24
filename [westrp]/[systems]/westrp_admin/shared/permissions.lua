@@ -25,8 +25,25 @@ function WestRP.Admin.Permissions.CanRoleExecute(role, action)
         return true
     end
 
+    if not roleData.actions then return false end
+
     -- Se a ação específica está habilitada
-    return roleData.actions and roleData.actions[action] == true
+    if roleData.actions[action] == true then
+        return true
+    end
+
+    -- Mapeamentos de ações globais / em lote para permissões base
+    if action == "heal_all" and roleData.actions["heal_player"] == true then
+        return true
+    elseif action == "revive_all" and roleData.actions["revive_player"] == true then
+        return true
+    elseif action == "bring_all" and roleData.actions["bring_player"] == true then
+        return true
+    elseif action == "kick_all" and roleData.actions["kick_player"] == true then
+        return true
+    end
+
+    return false
 end
 
 ---Retorna o peso hierárquico do cargo para proteção contra abuso

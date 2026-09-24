@@ -252,8 +252,10 @@ Todas as visões internas possuem scrollbars estilizadas de 5px em tom dourado e
 | `tag` | `string` | Não | Tag temática superior (ex: `'OFICINA & BANCADA'`). |
 | `subtitle` | `string` | Não | Informação complementar ou saldo (ex: `'Saldo: $ 580.00'`). |
 | `ctaLabel` | `string` | Não | Rótulo do botão principal do rodapé (padrão: `'CONFIRMAR'`). |
+| `brand` | `table` | Não | Identidade visual `{ name = "WESTRP SERVER", badge = "ADMIN MENU", logo = "..." }`. |
+| `operator` | `table` | Não | Perfil do operador `{ name = "John", role = "Admin", avatar = "...", onDuty = true }`. |
 | `tabs` | `table[]` | Sim | Array de abas com seus respectivos `viewType`. |
-| `onAction` | `function(action, item, tabId, qty)` | Não | Callback universal de ações executadas no painel. |
+| `onAction` | `function(action, item, tabId, qty, data)` | Não | Callback universal de ações executadas no painel. |
 | `onClose` | `function()` | Não | Disparado ao fechar o painel. |
 
 ---
@@ -264,8 +266,15 @@ Todas as visões internas possuem scrollbars estilizadas de 5px em tom dourado e
 | :--- | :--- | :---: | :--- |
 | `id` | `string` | **Obrigatório** | Identificador único da aba. |
 | `label` | `string` | **Obrigatório** | Nome visível na sidebar de abas. |
-| `viewType` | `'grid' \| 'table' \| 'craft' \| 'queue'` | `'grid'` | Modo de renderização da viewport. |
+| `icon` | `string` | `nil` | Classe de ícone FontAwesome (ex: `'fas fa-tachometer-alt'`). |
+| `viewType` | `'grid' \| 'table' \| 'craft' \| 'queue' \| 'dashboard' \| 'settings'` | `'grid'` | Modo de renderização da viewport. |
 | `badge` | `string \| number` | `nil` | Rótulo/contador decorativo na aba. |
+| `badgeType` | `'count-blue' \| 'count-orange' \| 'gold' \| 'on' \| 'off'` | `'gold'` | Estilo visual do badge na sidebar. |
+| `stats` | `table` | `nil` | Dados de KPI para `dashboard` (`{ online, maxClients, uptime, peak24h, peakAllTime }`). |
+| `actionGroups` | `table[]` | `nil` | Grupos de ações categorizadas para `dashboard` (`{ title, actions = { { id, label, type, active } } }`). |
+| `currentPosition` | `string` | `'mid_left'` | Posição selecionada para a aba `settings`. |
+| `positions` | `table[]` | `nil` | Posições disponíveis para a aba `settings`. |
+| `quickActions` | `table[]` | `nil` | Lista de ações com switches para a aba `settings`. |
 | `items` | `table[]` | `nil` | Lista de cards para `grid` ou receitas para `craft`. |
 | `columns` | `table[]` | `nil` | Definição de colunas para `table`. |
 | `rows` | `table[]` | `nil` | Registros de dados para `table`. |
