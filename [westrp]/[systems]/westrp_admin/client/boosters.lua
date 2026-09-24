@@ -7,7 +7,9 @@ local state = {
     noclip      = false,
     invis       = false,
     goldencores = false,
-    infiammo    = false
+    infiammo    = false,
+    superjump   = false,
+    freecam     = false
 }
 
 local currentSpeedIndex = 3 -- 'Normal' por padrão
@@ -408,6 +410,97 @@ function WestRP.Admin.Boosters.ClearArea(radius)
     WestRP.Client.UI.ShowToast("LIMPEZA DE ÁREA", string.format("Área de %.0fm limpa de entidades", r), "success")
 end
 
+---Alterna o Super Pulo
+---@return boolean
+function WestRP.Admin.Boosters.ToggleSuperJump()
+    state.superjump = not state.superjump
+    if state.superjump then
+        WestRP.Client.TickManager.RegisterTick("admin_superjump", function()
+            SetSuperJumpThisFrame(PlayerId())
+        end)
+        WestRP.Client.UI.ShowToast("SUPER JUMP", "Super pulo ativado", "success")
+    else
+        WestRP.Client.TickManager.UnregisterTick("admin_superjump")
+        WestRP.Client.UI.ShowToast("SUPER JUMP", "Super pulo desativado", "info")
+    end
+    return state.superjump
+end
+
+local freecamHandle = nil
+local freecamCoords = nil
+
+---Alterna a Câmera Livre (Freecam)
+---@return boolean
+function WestRP.Admin.Boosters.ToggleFreecam()
+    state.freecam = not state.freecam
+    local ped = PlayerPedId()
+
+    if state.freecam then
+        local coords = GetGameplayCamCoord()
+        local rot = GetGameplayCamRot(2)
+        freecamCoords = coords
+
+        freecamHandle = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", coords.x, coords.y, coords.z, rot.x, rot.y, rot.z, GetGameplayCamFov(), true, 2)
+        SetCamActive(freecamHandle, true)
+        RenderScriptCams(true, true, 300, true, true)
+        FreezeEntityPosition(ped, true)
+        SetEntityVisible(ped, false)
+
+        WestRP.Client.TickManager.RegisterTick("admin_freecam", function()
+            DisableControlAction(0, 0x3C0A40F2, true) -- Mira
+            local camRot = GetCamRot(freecamHandle, 2)
+            local right, forward, up = GetCamMatrix(freecamHandle)
+
+            local moveX = GetDisabledControlNormal(0, 0x4D8FB4C1) - GetDisabledControlNormal(0, 0xFDA83190) -- D - A
+            local moveY = GetDisabledControlNormal(0, 0x8FD015D8) - GetDisabledControlNormal(0, 0xD27782E3) -- W - S
+            local moveZ = 0.0
+
+            if IsDisabledControlPressed(0, 0xF84FA74F) then -- Q (subir)
+                moveZ = 1.0
+            elseif IsDisabledControlPressed(0, 0xD9D0E1C0) then -- E (descer)
+                moveZ = -1.0
+            end
+
+            local speed = 1.0
+            if IsDisabledControlPressed(0, 0x8FFC75D6) then -- Shift
+                speed = 3.0
+            end
+
+            freecamCoords = freecamCoords + (forward * moveY * speed) + (right * moveX * speed) + (vector3(0, 0, moveZ * speed))
+            SetCamCoord(freecamHandle, freecamCoords.x, freecamCoords.y, freecamCoords.z)
+
+            local mouseX = GetDisabledControlNormal(0, 0xA987235F) * -8.0
+            local mouseY = GetDisabledControlNormal(0, 0xD2047988) * -8.0
+            local newPitch = math.max(-85.0, math.min(85.0, camRot.x + mouseY))
+            local newYaw = camRot.z + mouseX
+            SetCamRot(freecamHandle, newPitch, 0.0, newYaw, 2)
+        end)
+
+        WestRP.Client.UI.ShowToast("FREECAM", "Câmera livre ativada (WASD + Q/E)", "success")
+    else
+        WestRP.Client.TickManager.UnregisterTick("admin_freecam")
+        if freecamHandle and DoesCamExist(freecamHandle) then
+            RenderScriptCams(false, true, 300, true, true)
+            DestroyCam(freecamHandle, false)
+            freecamHandle = nil
+        end
+        FreezeEntityPosition(ped, false)
+        if not state.invis then
+            SetEntityVisible(ped, true)
+        end
+        WestRP.Client.UI.ShowToast("FREECAM", "Câmera livre desativada", "info")
+    end
+    return state.freecam
+end
+
+---Auto-eliminação do ped
+function WestRP.Admin.Boosters.KillSelf()
+    local ped = PlayerPedId()
+    ApplyDamageToPed(ped, 50000.0, 1, 0, 0)
+    SetEntityHealth(ped, 0, 0)
+    WestRP.Client.UI.ShowToast("SUICÍDIO", "Personagem eliminado", "danger")
+end
+
 ---Retorna o estado consolidado de todos os boosters
 ---@return table
 function WestRP.Admin.Boosters.GetStates()
@@ -416,7 +509,9 @@ function WestRP.Admin.Boosters.GetStates()
         noclip      = state.noclip,
         invis       = state.invis,
         goldencores = state.goldencores,
-        infiammo    = state.infiammo
+        infiammo    = state.infiammo,
+        superjump   = state.superjump,
+        freecam     = state.freecam
     }
 end
 
@@ -442,6 +537,21 @@ AddEventHandler("onResourceStop", function(resName)
     end
 
     if state.invis then
+        SetEntityVisible(ped, true)
+    end
+
+    if state.superjump then
+        WestRP.Client.TickManager.UnregisterTick("admin_superjump")
+    end
+
+    if state.freecam then
+        WestRP.Client.TickManager.UnregisterTick("admin_freecam")
+        if freecamHandle and DoesCamExist(freecamHandle) then
+            RenderScriptCams(false, true, 100, true, true)
+            DestroyCam(freecamHandle, false)
+            freecamHandle = nil
+        end
+        FreezeEntityPosition(ped, false)
         SetEntityVisible(ped, true)
     end
 end)

@@ -205,10 +205,135 @@ function WestRP.Admin.DevTools.DeleteClosestObject()
     end
 end
 
+--------------------------------------------------------------------------------
+-- VISUALIZADORES DE MUNDO (SHOW NAMES & SHOW BLIPS)
+--------------------------------------------------------------------------------
+local showNamesActive = false
+
+---Alterna a exibição de nomes e IDs 3D sobre jogadores
+---@return boolean
+function WestRP.Admin.DevTools.TogglePlayerNames()
+    showNamesActive = not showNamesActive
+    if showNamesActive then
+        WestRP.Client.TickManager.RegisterTick("admin_show_names", function()
+            local myPed = PlayerPedId()
+            local myCoords = GetEntityCoords(myPed)
+            local activePlayers = GetActivePlayers()
+
+            for i = 1, #activePlayers do
+                local playerIdx = activePlayers[i]
+                local targetPed = GetPlayerPed(playerIdx)
+
+                if DoesEntityExist(targetPed) then
+                    local targetCoords = GetEntityCoords(targetPed)
+                    local dist = #(myCoords - targetCoords)
+
+                    if dist <= 120.0 then
+                        local headCoords = GetPedBoneCoords(targetPed, 12844, 0.0, 0.0, 0.35)
+                        local sId = GetPlayerServerId(playerIdx)
+                        local pName = GetPlayerName(playerIdx)
+                        local hp = GetEntityHealth(targetPed)
+                        local maxHp = GetEntityMaxHealth(targetPed)
+                        local tagText = string.format("[%s] %s | %d/%d HP", sId, pName, hp, maxHp)
+
+                        local onScreen, screenX, screenY = GetScreenCoordFromWorldCoord(headCoords.x, headCoords.y, headCoords.z)
+                        if onScreen then
+                            local scale = math.max(0.24, 0.38 - (dist / 400.0))
+                            DrawText2D(tagText, screenX, screenY, scale, 212, 175, 55, 240)
+                        end
+                    end
+                end
+            end
+        end)
+        WestRP.Client.UI.ShowToast("SHOW NAMES", "ESP de Nomes e IDs Ativado", "success")
+    else
+        WestRP.Client.TickManager.UnregisterTick("admin_show_names")
+        WestRP.Client.UI.ShowToast("SHOW NAMES", "ESP de Nomes Desativado", "info")
+    end
+    return showNamesActive
+end
+
+function WestRP.Admin.DevTools.IsShowNamesActive()
+    return showNamesActive
+end
+
+local showBlipsActive = false
+local playerBlips = {}
+
+---Alterna a exibição de blips de jogadores no radar
+---@return boolean
+function WestRP.Admin.DevTools.TogglePlayerBlips()
+    showBlipsActive = not showBlipsActive
+    if showBlipsActive then
+        WestRP.Client.TickManager.RegisterTick("admin_show_blips", function()
+            local activePlayers = GetActivePlayers()
+            local currentPeds = {}
+
+            for i = 1, #activePlayers do
+                local playerIdx = activePlayers[i]
+                local targetPed = GetPlayerPed(playerIdx)
+
+                if DoesEntityExist(targetPed) then
+                    currentPeds[targetPed] = true
+                    if not playerBlips[targetPed] or not DoesBlipExist(playerBlips[targetPed]) then
+                        local blip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1230993421, targetPed)
+                        if blip and blip ~= 0 then
+                            SetBlipScale(blip, 0.8)
+                            local sId = GetPlayerServerId(playerIdx)
+                            local pName = GetPlayerName(playerIdx)
+                            Citizen.InvokeNative(0x9CB1A1623062F402, blip, string.format("[%s] %s", sId, pName))
+                            playerBlips[targetPed] = blip
+                        end
+                    end
+                end
+            end
+
+            -- Remove blips de entidades desconectadas
+            for ped, blip in pairs(playerBlips) do
+                if not currentPeds[ped] or not DoesEntityExist(ped) then
+                    if DoesBlipExist(blip) then
+                        RemoveBlip(blip)
+                    end
+                    playerBlips[ped] = nil
+                end
+            end
+        end)
+        WestRP.Client.UI.ShowToast("SHOW BLIPS", "Rastreamento de jogadores no radar ativado", "success")
+    else
+        WestRP.Client.TickManager.UnregisterTick("admin_show_blips")
+        for ped, blip in pairs(playerBlips) do
+            if DoesBlipExist(blip) then
+                RemoveBlip(blip)
+            end
+        end
+        playerBlips = {}
+        WestRP.Client.UI.ShowToast("SHOW BLIPS", "Rastreamento de jogadores desativado", "info")
+    end
+    return showBlipsActive
+end
+
+function WestRP.Admin.DevTools.IsShowBlipsActive()
+    return showBlipsActive
+end
+
 AddEventHandler("onResourceStop", function(resName)
     if resName ~= GetCurrentResourceName() then return end
     if laserActive then
         WestRP.Client.TickManager.UnregisterTick("admin_devlaser")
         laserActive = false
+    end
+    if showNamesActive then
+        WestRP.Client.TickManager.UnregisterTick("admin_show_names")
+        showNamesActive = false
+    end
+    if showBlipsActive then
+        WestRP.Client.TickManager.UnregisterTick("admin_show_blips")
+        for ped, blip in pairs(playerBlips) do
+            if DoesBlipExist(blip) then
+                RemoveBlip(blip)
+            end
+        end
+        playerBlips = {}
+        showBlipsActive = false
     end
 end)

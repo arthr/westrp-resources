@@ -20,6 +20,8 @@ O **WestRP UI Engine** (`westrp_ui`) é o ecossistema padronizado de interfaces 
    - [Visão 2: `craft` (Bancada de Manufatura & Receitas)](#visão-2-craft-bancada-de-manufatura)
    - [Visão 3: `queue` (Fila de Produção com Countdown)](#visão-3-queue-fila-de-produção)
    - [Visão 4: `table` (Livro-Razão & Gestão Contábil)](#visão-4-table-livro-razão--gestão)
+   - [Visão 5: `dashboard` (Cockpit Administrativo & Ações Rápidas)](#visão-5-dashboard-cockpit-administrativo--ações-rápidas)
+   - [Visão 6: `settings` (Posicionamento do Dock & Gestão de Ações Rápidas)](#visão-6-settings-posicionamento-do-dock--gestão-de-ações-rápidas)
    - [Callbacks & Ações do Panel](#callbacks--ações-do-panel)
    - [Casos de Uso Práticos](#casos-de-uso-do-panel)
 5. [Módulo C: Modal de Diálogos Tipados (OpenDialog)](#5-módulo-c-modal-de-diálogos-tipados-opendialog)
@@ -433,6 +435,90 @@ Ideal para extratos contábeis, livros de registros do xerife, histórico de ven
   * **Barra de Filtros por Chips:** Filtragem dinâmica de linhas por status ou categoria (ex: Todos, Pagos, Pendentes).
   * **Paginação Dinâmica:** Controle por páginas (`pageSize = 10`) com navegação rápida `◄` e `►`.
   * Status Pills coloridas personalizadas com suporte a clique e seleção de linha.
+
+---
+
+### Visão 5: `dashboard` (Cockpit Administrativo & Ações Rápidas)
+Ideal para painéis operacionais de staff, centrais de telemetria do servidor e cockpits de comando com layout 100% data-driven.
+
+```lua
+{
+    id = 'dashboard',
+    label = 'Dashboard',
+    icon = 'fas fa-tachometer-alt',
+    viewType = 'dashboard',
+    stats = {
+        online = 12,
+        maxClients = 64,
+        uptime = '04h 22m',
+        peak24h = 48,
+        peakAllTime = 128
+    },
+    actionGroups = {
+        {
+            title = 'TELEPORT',
+            icon = 'fa-location-arrow',
+            actions = {
+                { id = 'tpm', label = 'Ir para Marcador (TPM)', icon = 'fa-map-pin', type = 'action' },
+                { id = 'tpm_auto', label = 'Auto-TPM ao Marcar', icon = 'fa-compass', type = 'toggle', active = false },
+                { id = 'tp_back', label = 'Voltar Posição Anterior', icon = 'fa-history', type = 'action' },
+                { id = 'tp_coords', label = 'Teleportar Coordenadas', icon = 'fa-crosshairs', type = 'action' }
+            }
+        },
+        {
+            title = 'SELF',
+            icon = 'fa-user-shield',
+            actions = {
+                { id = 'noclip', label = 'Modo Voo (NoClip)', icon = 'fa-rocket', type = 'toggle', active = false },
+                { id = 'godmode', label = 'Modo Deus (GodMode)', icon = 'fa-shield-alt', type = 'toggle', active = true },
+                { id = 'invis', label = 'Invisibilidade', icon = 'fa-ghost', type = 'toggle', active = false },
+                { id = 'superjump', label = 'Super Pulo', icon = 'fa-angle-double-up', type = 'toggle', active = false },
+                { id = 'self_heal', label = 'Curar-se', icon = 'fa-medkit', type = 'action' },
+                { id = 'self_revive', label = 'Reviver-se', icon = 'fa-heartbeat', type = 'action' },
+                { id = 'kill_self', label = 'Suicídio', icon = 'fa-skull', type = 'action' }
+            }
+        }
+    }
+}
+```
+* **Recursos Integrados:**
+  * **KPI Server Stat Cards:** 4 cartões com ícones e estatísticas em tempo real (`PLAYERS COUNT`, `UP TIME`, `24H PEAK PLAYERS`, `ALL-TIME PEAK`).
+  * **Action Tiles com Efeito Tátil:** Cards estilizados com suporte a ícones FontAwesome, feedback sonoro e estados dinâmicos (ativo/inativo).
+  * **Normalização Defensiva:** Suporta estruturas de tabela vazias serializadas como `{}` ou arrays `[]` do Lua sem quebras no DOM.
+
+---
+
+### Visão 6: `settings` (Posicionamento do Dock & Gestão de Ações Rápidas)
+Dedicada a customizações do operador, permitindo configurar a ancoragem de menus na viewport e habilitar/desabilitar ações do dock rápido.
+
+```lua
+{
+    id = 'settings',
+    label = 'Configurações',
+    icon = 'fas fa-cog',
+    viewType = 'settings',
+    currentPosition = 'top_left',
+    positions = {
+        { id = 'top_left', label = 'Top Left' },
+        { id = 'top_right', label = 'Top Right' },
+        { id = 'mid_left', label = 'Mid Left' },
+        { id = 'mid_right', label = 'Mid Right' },
+        { id = 'bottom_left', label = 'Bottom Left' },
+        { id = 'bottom_right', label = 'Bottom Right' }
+    },
+    quickActions = {
+        { id = 'noclip', label = 'NoClip', icon = 'fa-rocket', enabled = true },
+        { id = 'show_names', label = 'Show Player Names (ESP)', icon = 'fa-id-badge', enabled = true },
+        { id = 'invis', label = 'Invisibilidade', icon = 'fa-ghost', enabled = true },
+        { id = 'show_blips', label = 'Show Player Blips', icon = 'fa-map-marker-alt', enabled = false },
+        { id = 'freecam', label = 'Freecam', icon = 'fa-video', enabled = false }
+    }
+}
+```
+* **Recursos Integrados:**
+  * **Chips de Ancoragem de Posição:** Alternância imediata da posição do menu no cliente com disparo do callback `set_dock_position`.
+  * **Switches Interativos de Quick Actions:** Alternância granular via interruptores `.ui-switch` disparando o callback `toggle_quick_action`.
+  * **Ocultação Automática da Barra de Busca:** A barra de busca textual superior é automaticamente ocultada nas visões `dashboard` e `settings` para manter o layout limpo e desobstruído.
 
 ---
 

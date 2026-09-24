@@ -211,3 +211,48 @@ RegisterNetEvent("westrp_admin:server:selfRevive", function()
         WestRP.Server.Admin.Logger.Log("General", "Auto Reviver", "Operador reanimou a si mesmo", _source)
     end
 end)
+
+local isRestartScheduled = false
+local restartMinutesRemaining = 0
+
+RegisterNetEvent("westrp_admin:server:startRestart", function(minutes)
+    local _source = source
+    if not WestRP.Server.Admin.Security.CanExecute(_source, "server_control") then return end
+
+    local mins = tonumber(minutes) or 5
+    isRestartScheduled = true
+    restartMinutesRemaining = mins
+
+    WestRP.Server.Admin.World.Announce(_source, string.format("O servidor será reiniciado em %d minuto(s). Por favor, salvem suas ações!", mins))
+    WestRP.Server.Admin.Logger.Log("Server", "Restart Agendado", string.format("Reinicialização agendada para %d minutos", mins), _source)
+
+    CreateThread(function()
+        while isRestartScheduled and restartMinutesRemaining > 0 do
+            Wait(60000)
+            if not isRestartScheduled then break end
+            restartMinutesRemaining = restartMinutesRemaining - 1
+            if restartMinutesRemaining > 0 then
+                WestRP.Server.Admin.World.Announce(-1, string.format("ATENÇÃO: Reinicialização do servidor em %d minuto(s)!", restartMinutesRemaining))
+            else
+                WestRP.Server.Admin.World.Announce(-1, "ATENÇÃO: O servidor está reiniciando agora!")
+                Wait(5000)
+                local players = GetPlayers()
+                for _, pid in ipairs(players) do
+                    DropPlayer(pid, "[WestRP] Reinicialização agendada do servidor concluída. Reconecte em instantes.")
+                end
+            end
+        end
+    end)
+end)
+
+RegisterNetEvent("westrp_admin:server:cancelRestart", function()
+    local _source = source
+    if not WestRP.Server.Admin.Security.CanExecute(_source, "server_control") then return end
+
+    if isRestartScheduled then
+        isRestartScheduled = false
+        restartMinutesRemaining = 0
+        WestRP.Server.Admin.World.Announce(_source, "O agendamento de reinicialização do servidor foi CANCELADO pela administração.")
+        WestRP.Server.Admin.Logger.Log("Server", "Restart Cancelado", "Agendamento de reinicialização cancelado", _source)
+    end
+end)

@@ -834,253 +834,322 @@
     stopQueueTicker();
     updateFooter();
 
-    if (currentTab.viewType === 'dashboard') {
-      panelEl.filterBar.style.display = 'none';
-      panelEl.paginationBar.style.display = 'none';
-      if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
-        panelEl.footerInfo.parentElement.style.display = 'none';
-      }
-      if (panelEl.dashboardView) {
-        panelEl.dashboardView.style.display = 'flex';
-        renderDashboardView(currentTab);
-      }
-    } else if (currentTab.viewType === 'settings') {
-      panelEl.filterBar.style.display = 'none';
-      panelEl.paginationBar.style.display = 'none';
-      if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
-        panelEl.footerInfo.parentElement.style.display = 'none';
-      }
-      if (panelEl.settingsView) {
-        panelEl.settingsView.style.display = 'flex';
-        renderSettingsView(currentTab);
-      }
-    } else {
-      if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
-        panelEl.footerInfo.parentElement.style.display = 'flex';
-      }
-      if (currentTab.viewType === 'grid') {
-        panelEl.gridView.style.display = 'grid';
-        renderPanelFilters(currentTab);
-        renderGridView(currentTab);
-      } else if (currentTab.viewType === 'table') {
-        panelEl.tableView.style.display = 'block';
-        renderPanelFilters(currentTab);
-        renderTableView(currentTab);
-      } else if (currentTab.viewType === 'craft') {
+    try {
+      if (currentTab.viewType === 'dashboard') {
+        if (panelEl.searchWrap) panelEl.searchWrap.style.display = 'none';
         panelEl.filterBar.style.display = 'none';
         panelEl.paginationBar.style.display = 'none';
-        panelEl.craftView.style.display = 'flex';
-        renderCraftView(currentTab);
-      } else if (currentTab.viewType === 'queue') {
+        if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
+          panelEl.footerInfo.parentElement.style.display = 'none';
+        }
+        if (panelEl.dashboardView) {
+          panelEl.dashboardView.style.display = 'flex';
+          renderDashboardView(currentTab);
+        }
+      } else if (currentTab.viewType === 'settings') {
+        if (panelEl.searchWrap) panelEl.searchWrap.style.display = 'none';
         panelEl.filterBar.style.display = 'none';
         panelEl.paginationBar.style.display = 'none';
-        panelEl.queueView.style.display = 'flex';
-        renderQueueView(currentTab);
-        startQueueTicker(currentTab);
+        if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
+          panelEl.footerInfo.parentElement.style.display = 'none';
+        }
+        if (panelEl.settingsView) {
+          panelEl.settingsView.style.display = 'flex';
+          renderSettingsView(currentTab);
+        }
+      } else {
+        if (panelEl.searchWrap) panelEl.searchWrap.style.display = 'flex';
+        if (panelEl.footerInfo && panelEl.footerInfo.parentElement) {
+          panelEl.footerInfo.parentElement.style.display = 'flex';
+        }
+        if (currentTab.viewType === 'grid') {
+          panelEl.gridView.style.display = 'grid';
+          renderPanelFilters(currentTab);
+          renderGridView(currentTab);
+        } else if (currentTab.viewType === 'table') {
+          panelEl.tableView.style.display = 'block';
+          renderPanelFilters(currentTab);
+          renderTableView(currentTab);
+        } else if (currentTab.viewType === 'craft') {
+          panelEl.filterBar.style.display = 'none';
+          panelEl.paginationBar.style.display = 'none';
+          panelEl.craftView.style.display = 'flex';
+          renderCraftView(currentTab);
+        } else if (currentTab.viewType === 'queue') {
+          panelEl.filterBar.style.display = 'none';
+          panelEl.paginationBar.style.display = 'none';
+          panelEl.queueView.style.display = 'flex';
+          renderQueueView(currentTab);
+          startQueueTicker(currentTab);
+        }
       }
+    } catch (err) {
+      console.error('Erro na renderização do conteúdo da aba:', err);
     }
   }
 
   function renderDashboardView(tab) {
     if (!panelEl.overviewGrid || !panelEl.actionsContainer) return;
 
-    // 1. Renderiza os cartões de KPI (Server Overview)
-    panelEl.overviewGrid.innerHTML = '';
-    const overview = tab.overview || [
-      { id: 'players', icon: '👥', label: 'PLAYERS COUNT', value: '1', subvalue: '/ 48' },
-      { id: 'uptime', icon: '⏱️', label: 'UP TIME', value: '1H 00M' },
-      { id: 'peak_24h', icon: '📈', label: '24H PEAK PLAYERS', value: '1' },
-      { id: 'peak_all', icon: '🏆', label: 'ALL-TIME PEAK', value: '1' }
-    ];
+    try {
+      // 1. Renderiza os cartões de KPI (Server Overview)
+      panelEl.overviewGrid.innerHTML = '';
+      let overview = [];
+      if (Array.isArray(tab.overview) && tab.overview.length > 0) {
+        overview = tab.overview;
+      } else if (tab.overview && typeof tab.overview === 'object' && !tab.overview.stats && Object.keys(tab.overview).length > 0) {
+        overview = Object.values(tab.overview);
+      } else {
+        const stats = tab.stats || (tab.overview && tab.overview.stats) || {};
+        const online = stats.online !== undefined ? stats.online : 1;
+        const maxClients = stats.maxClients || 48;
+        const uptime = stats.uptime || '0H 00M';
+        const peak24 = stats.peak24h !== undefined ? stats.peak24h : 1;
+        const peakAll = stats.peakAllTime !== undefined ? stats.peakAllTime : 1;
 
-    overview.forEach(stat => {
-      const card = document.createElement('div');
-      card.className = 'kpi-card';
-
-      const iconWrap = document.createElement('div');
-      iconWrap.className = 'kpi-icon-wrap';
-      iconWrap.textContent = stat.icon || '📊';
-      card.appendChild(iconWrap);
-
-      const content = document.createElement('div');
-      content.className = 'kpi-content';
-
-      const lbl = document.createElement('span');
-      lbl.className = 'kpi-label';
-      lbl.textContent = stat.label || stat.id;
-      content.appendChild(lbl);
-
-      const valWrap = document.createElement('div');
-      valWrap.style.display = 'flex';
-      valWrap.style.alignItems = 'baseline';
-      valWrap.style.gap = '4px';
-
-      const val = document.createElement('span');
-      val.className = 'kpi-value';
-      val.textContent = stat.value !== undefined ? stat.value : '0';
-      valWrap.appendChild(val);
-
-      if (stat.subvalue) {
-        const sub = document.createElement('span');
-        sub.className = 'kpi-subvalue';
-        sub.textContent = stat.subvalue;
-        valWrap.appendChild(sub);
+        overview = [
+          { id: 'players', icon: 'fas fa-users', label: 'PLAYERS COUNT', value: `${online}`, subvalue: `/ ${maxClients}` },
+          { id: 'uptime', icon: 'fas fa-stopwatch', label: 'UP TIME', value: `${uptime}`.toUpperCase() },
+          { id: 'peak_24h', icon: 'fas fa-chart-line', label: '24H PEAK PLAYERS', value: `${peak24}` },
+          { id: 'peak_all', icon: 'fas fa-trophy', label: 'ALL-TIME PEAK', value: `${peakAll}` }
+        ];
       }
 
-      content.appendChild(valWrap);
-      card.appendChild(content);
-      panelEl.overviewGrid.appendChild(card);
-    });
+      overview.forEach(stat => {
+        const card = document.createElement('div');
+        card.className = 'kpi-card';
 
-    // 2. Renderiza os blocos de Ações Administrativas Categorizadas
-    panelEl.actionsContainer.innerHTML = '';
-    const groups = tab.actionGroups || [];
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'kpi-icon-wrap';
+        if (stat.icon && (stat.icon.includes('fa-') || stat.icon.includes(' '))) {
+          iconWrap.innerHTML = `<i class="${stat.icon}"></i>`;
+        } else {
+          iconWrap.textContent = stat.icon || '📊';
+        }
+        card.appendChild(iconWrap);
 
-    groups.forEach(group => {
-      const groupEl = document.createElement('div');
-      groupEl.className = 'dashboard-actions-group';
+        const content = document.createElement('div');
+        content.className = 'kpi-content';
 
-      const header = document.createElement('div');
-      header.className = 'actions-group-header';
-      header.innerHTML = `<span>${group.icon || '▪'}</span> <span>${group.title || group.id}</span>`;
-      groupEl.appendChild(header);
+        const lbl = document.createElement('span');
+        lbl.className = 'kpi-label';
+        lbl.textContent = stat.label || stat.id;
+        content.appendChild(lbl);
 
-      const grid = document.createElement('div');
-      grid.className = 'actions-group-grid';
+        const valWrap = document.createElement('div');
+        valWrap.style.display = 'flex';
+        valWrap.style.alignItems = 'baseline';
+        valWrap.style.gap = '4px';
 
-      (group.actions || []).forEach(act => {
-        const tile = document.createElement('button');
-        tile.className = `admin-action-tile ${act.active ? 'active' : ''}`;
-        tile.title = act.description || act.label;
+        const val = document.createElement('span');
+        val.className = 'kpi-value';
+        val.textContent = stat.value !== undefined ? stat.value : '0';
+        valWrap.appendChild(val);
 
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'action-tile-icon';
-        iconSpan.textContent = act.icon || '⚡';
-        tile.appendChild(iconSpan);
+        if (stat.subvalue) {
+          const sub = document.createElement('span');
+          sub.className = 'kpi-subvalue';
+          sub.textContent = stat.subvalue;
+          valWrap.appendChild(sub);
+        }
 
-        const lblSpan = document.createElement('span');
-        lblSpan.textContent = act.label || act.id;
-        tile.appendChild(lblSpan);
-
-        tile.addEventListener('click', () => {
-          playUiTick('confirm');
-          if (act.type === 'toggle') {
-            act.active = !act.active;
-            tile.classList.toggle('active', act.active);
-          }
-          postData('westrp_ui:panelAction', {
-            action: 'dashboard_action',
-            groupId: group.id,
-            actionId: act.id,
-            active: act.active,
-            item: act
-          });
-        });
-
-        grid.appendChild(tile);
+        content.appendChild(valWrap);
+        card.appendChild(content);
+        panelEl.overviewGrid.appendChild(card);
       });
 
-      groupEl.appendChild(grid);
-      panelEl.actionsContainer.appendChild(groupEl);
-    });
+      // 2. Renderiza os blocos de Ações Administrativas Categorizadas
+      panelEl.actionsContainer.innerHTML = '';
+      let groups = [];
+      if (Array.isArray(tab.actionGroups)) {
+        groups = tab.actionGroups;
+      } else if (tab.actionGroups && typeof tab.actionGroups === 'object') {
+        groups = Object.values(tab.actionGroups);
+      }
+
+      groups.forEach(group => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'dashboard-actions-group';
+
+        const header = document.createElement('div');
+        header.className = 'actions-group-header';
+        let gIcon = group.icon || '▪';
+        if (gIcon.includes('fa-') || gIcon.includes(' ')) {
+          gIcon = `<i class="${gIcon}"></i>`;
+        }
+        header.innerHTML = `<span>${gIcon}</span> <span>${group.title || group.id}</span>`;
+        groupEl.appendChild(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'actions-group-grid';
+
+        let actions = [];
+        if (Array.isArray(group.actions)) {
+          actions = group.actions;
+        } else if (group.actions && typeof group.actions === 'object') {
+          actions = Object.values(group.actions);
+        }
+
+        actions.forEach(act => {
+          const tile = document.createElement('button');
+          tile.className = `admin-action-tile ${act.active ? 'active' : ''}`;
+          tile.title = act.description || act.label;
+
+          const iconSpan = document.createElement('span');
+          iconSpan.className = 'action-tile-icon';
+          if (act.icon && (act.icon.includes('fa-') || act.icon.includes(' '))) {
+            iconSpan.innerHTML = `<i class="${act.icon}"></i>`;
+          } else {
+            iconSpan.textContent = act.icon || '⚡';
+          }
+          tile.appendChild(iconSpan);
+
+          const lblSpan = document.createElement('span');
+          lblSpan.textContent = act.label || act.id;
+          tile.appendChild(lblSpan);
+
+          tile.addEventListener('click', () => {
+            playUiTick('confirm');
+            if (act.type === 'toggle') {
+              act.active = !act.active;
+              tile.classList.toggle('active', act.active);
+            }
+            postData('westrp_ui:panelAction', {
+              action: 'dashboard_action',
+              groupId: group.id || group.title,
+              actionId: act.id,
+              active: act.active,
+              item: act
+            });
+          });
+
+          grid.appendChild(tile);
+        });
+
+        groupEl.appendChild(grid);
+        panelEl.actionsContainer.appendChild(groupEl);
+      });
+    } catch (err) {
+      console.error('Erro na renderização do Dashboard:', err);
+    }
   }
 
   function renderSettingsView(tab) {
     if (!panelEl.positionsGrid || !panelEl.actionsList) return;
 
-    // 1. Grid de Posições do Dock
-    panelEl.positionsGrid.innerHTML = '';
-    const positions = [
-      { id: 'top_left', label: 'Top Left' },
-      { id: 'top_right', label: 'Top Right' },
-      { id: 'mid_left', label: 'Mid Left' },
-      { id: 'mid_right', label: 'Mid Right' },
-      { id: 'bottom_left', label: 'Bottom Left' },
-      { id: 'bottom_right', label: 'Bottom Right' }
-    ];
+    try {
+      // 1. Grid de Posições do Dock
+      panelEl.positionsGrid.innerHTML = '';
+      let positions = [];
+      if (Array.isArray(tab.positions) && tab.positions.length > 0) {
+        positions = tab.positions;
+      } else if (tab.positions && typeof tab.positions === 'object' && Object.keys(tab.positions).length > 0) {
+        positions = Object.values(tab.positions);
+      } else {
+        positions = [
+          { id: 'top_left', label: 'Top Left' },
+          { id: 'top_right', label: 'Top Right' },
+          { id: 'mid_left', label: 'Mid Left' },
+          { id: 'mid_right', label: 'Mid Right' },
+          { id: 'bottom_left', label: 'Bottom Left' },
+          { id: 'bottom_right', label: 'Bottom Right' }
+        ];
+      }
 
-    const currentPos = tab.currentPosition || 'mid_left';
+      const currentPos = tab.currentPosition || 'mid_left';
 
-    positions.forEach(pos => {
-      const chip = document.createElement('div');
-      chip.className = `position-chip ${currentPos === pos.id ? 'selected' : ''}`;
+      positions.forEach(pos => {
+        const chip = document.createElement('div');
+        chip.className = `position-chip ${currentPos === pos.id ? 'selected' : ''}`;
 
-      const dot = document.createElement('span');
-      dot.className = 'position-dot';
-      chip.appendChild(dot);
+        const dot = document.createElement('span');
+        dot.className = 'position-dot';
+        chip.appendChild(dot);
 
-      const lbl = document.createElement('span');
-      lbl.textContent = pos.label;
-      chip.appendChild(lbl);
+        const lbl = document.createElement('span');
+        lbl.textContent = pos.label;
+        chip.appendChild(lbl);
 
-      chip.addEventListener('click', () => {
-        tab.currentPosition = pos.id;
-        playUiTick('nav');
-        renderSettingsView(tab);
-        postData('westrp_ui:panelAction', {
-          action: 'set_menu_position',
-          position: pos.id
+        chip.addEventListener('click', () => {
+          tab.currentPosition = pos.id;
+          playUiTick('nav');
+          renderSettingsView(tab);
+          postData('westrp_ui:panelAction', {
+            action: 'set_menu_position',
+            position: pos.id
+          });
         });
+
+        panelEl.positionsGrid.appendChild(chip);
       });
 
-      panelEl.positionsGrid.appendChild(chip);
-    });
+      // 2. Lista de Ações do Quick Actions com Toggles
+      panelEl.actionsList.innerHTML = '';
+      let quickActions = [];
+      if (Array.isArray(tab.quickActions)) {
+        quickActions = tab.quickActions;
+      } else if (tab.quickActions && typeof tab.quickActions === 'object') {
+        quickActions = Object.values(tab.quickActions);
+      }
 
-    // 2. Lista de Ações do Quick Actions com Toggles
-    panelEl.actionsList.innerHTML = '';
-    const quickActions = tab.quickActions || [];
+      quickActions.forEach(act => {
+        const row = document.createElement('div');
+        row.className = 'action-order-row';
 
-    quickActions.forEach(act => {
-      const row = document.createElement('div');
-      row.className = 'action-order-row';
+        const left = document.createElement('div');
+        left.className = 'action-row-left';
 
-      const left = document.createElement('div');
-      left.className = 'action-row-left';
+        const handle = document.createElement('span');
+        handle.className = 'action-drag-handle';
+        handle.textContent = '≡';
+        left.appendChild(handle);
 
-      const handle = document.createElement('span');
-      handle.className = 'action-drag-handle';
-      handle.textContent = '≡';
-      left.appendChild(handle);
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'action-row-icon';
+        if (act.icon && (act.icon.includes('fa-') || act.icon.includes(' '))) {
+          iconSpan.innerHTML = `<i class="${act.icon}"></i>`;
+        } else {
+          iconSpan.textContent = act.icon || '⚡';
+        }
+        left.appendChild(iconSpan);
 
-      const iconSpan = document.createElement('span');
-      iconSpan.className = 'action-row-icon';
-      iconSpan.textContent = act.icon || '⚡';
-      left.appendChild(iconSpan);
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'action-row-name';
+        nameSpan.textContent = act.label || act.id;
+        left.appendChild(nameSpan);
 
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'action-row-name';
-      nameSpan.textContent = act.label || act.id;
-      left.appendChild(nameSpan);
+        row.appendChild(left);
 
-      row.appendChild(left);
+        // Switch Toggle
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'ui-switch';
 
-      // Switch Toggle
-      const switchLabel = document.createElement('label');
-      switchLabel.className = 'ui-switch';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = act.enabled !== false;
 
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.checked = act.enabled !== false;
-
-      input.addEventListener('change', () => {
-        act.enabled = input.checked;
-        playUiTick('nav');
-        postData('westrp_ui:panelAction', {
-          action: 'toggle_quick_action',
-          actionId: act.id,
-          enabled: act.enabled
+        input.addEventListener('change', () => {
+          act.enabled = input.checked;
+          playUiTick('nav');
+          postData('westrp_ui:panelAction', {
+            action: 'toggle_quick_action',
+            actionId: act.id,
+            enabled: act.enabled
+          });
         });
+
+        const slider = document.createElement('span');
+        slider.className = 'ui-switch-slider';
+
+        switchLabel.appendChild(input);
+        switchLabel.appendChild(slider);
+        row.appendChild(switchLabel);
+
+        panelEl.actionsList.appendChild(row);
       });
-
-      const slider = document.createElement('span');
-      slider.className = 'ui-switch-slider';
-
-      switchLabel.appendChild(input);
-      switchLabel.appendChild(slider);
-      row.appendChild(switchLabel);
-
-      panelEl.actionsList.appendChild(row);
-    });
+    } catch (err) {
+      console.error('Erro na renderização das Configurações:', err);
+    }
   }
 
   function renderGridView(tab) {

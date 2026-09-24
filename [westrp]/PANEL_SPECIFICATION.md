@@ -86,6 +86,26 @@ O Panel suporta 4 modos de visualização intercambiáveis via schema Lua:
   * Sliders de valores financeiros e margens de lucro.
   * Dropdowns e checkboxes de permissão.
 
+### 3.5 Modo Dashboard / KPIs & Ações Operacionais (`type = "dashboard"`)
+* **Uso:** Painel de controle administrativo, central de monitoramento do servidor e cockpit de telemetria operacional.
+* **Componentes:**
+  * **Cards de Indicadores de Servidor (KPIs / Stats):** 4 cartões de destaque no topo exibindo:
+    * `PLAYERS COUNT` (Online / Max Slots com ícone e badge visual).
+    * `UP TIME` (Tempo de atividade contínua no formato `Xh Ym` ou `Xd Xh`).
+    * `24H PEAK PLAYERS` (Pico de jogadores nas últimas 24 horas).
+    * `ALL-TIME PEAK` (Recorde histórico de conexões simultâneas).
+  * **Grid de Grupos de Ações Rápidas (`actionGroups`):** Seções agrupadas com títulos e ícones temáticos (ex: `TELEPORT`, `SELF`, `WORLD TOGGLES`, `SPAWN`, `ALL PLAYERS`, `SERVER`).
+  * **Tiles Interativos de Ação:** Cards compactos com ícone FontAwesome, título, tipo de ação (`action` para execução imediata ou abertura de diálogo; `toggle` para estados binários ativos/inativos) e badge de status.
+
+### 3.6 Modo Configurações de Interface & Quick Actions (`type = "settings"`)
+* **Uso:** Customização de preferências do operador, docking de menus na tela e seleção granular de atalhos rápidos.
+* **Componentes:**
+  * **Seletor de Posição do Menu (Chips de Ancoragem):** Grade com 6 opções de ancoragem na tela (`Top Left`, `Top Right`, `Mid Left`, `Mid Right`, `Bottom Left`, `Bottom Right`) com destaque visual ativo.
+  * **Lista de Gestão de Quick Actions:** Tabela/Lista vertical contendo todas as ações rápidas disponíveis com:
+    * Ícone de arraste/ordenação (`fa-grip-lines`).
+    * Ícone e nome descritivo da ação rápida.
+    * Interruptor `.ui-switch` (checkbox estilizado) para ligar/desligar a exibição da ação no Hot Menu (`/admhot`).
+
 ---
 
 ## 4. Sistema Universal de Busca, Filtros e Paginação
@@ -146,14 +166,51 @@ O Panel suporta 4 modos de visualização intercambiáveis via schema Lua:
 ---@field public pageSize number Quantidade de registros por página
 ---@field public showSummary? boolean Se exibe resumo "Exibindo X-Y de Z" (default: true)
 
+---@class PanelDashboardStats
+---@field public online number Jogadores online no momento
+---@field public maxClients number Limite máximo de slots do servidor
+---@field public uptime string Tempo de atividade do servidor
+---@field public peak24h number Pico de jogadores nas últimas 24 horas
+---@field public peakAllTime number Recorde histórico de jogadores simultâneos
+
+---@class PanelDashboardAction
+---@field public id string Identificador da ação (ex: "noclip", "coords", "restart")
+---@field public label string Título amigável da ação
+---@field public icon? string Classe FontAwesome (ex: "fa-rocket", "fa-crosshairs")
+---@field public type "action"|"toggle" Tipo de execução do card
+---@field public active? boolean Se verdadeiro, renderiza como ativo/ligado
+---@field public badge? string Badge textual opcional (ex: "ATIVO", "OFF")
+
+---@class PanelDashboardActionGroup
+---@field public id string Identificador do grupo (ex: "teleport", "self")
+---@field public title string Título da seção (ex: "TELEPORT", "SELF")
+---@field public icon? string Ícone FontAwesome do grupo
+---@field public actions PanelDashboardAction[] Lista de tiles de ação
+
+---@class PanelSettingPosition
+---@field public id "top_left"|"top_right"|"mid_left"|"mid_right"|"bottom_left"|"bottom_right"
+---@field public label string Rótulo exibido no chip (ex: "Top Left")
+---@field public active? boolean Se é a posição ativa
+
+---@class PanelSettingQuickAction
+---@field public id string Identificador da ação rápida
+---@field public label string Rótulo descritivo
+---@field public icon? string Classe FontAwesome
+---@field public enabled boolean Estado do switch (true/false)
+
 ---@class PanelTab
 ---@field public id string Identificador da aba
 ---@field public label string Nome da aba
 ---@field public icon? string Ícone decorativo (ex: "fa-hammer")
----@field public viewType "grid"|"table"|"craft"|"queue"|"form"
+---@field public viewType "grid"|"table"|"craft"|"queue"|"form"|"dashboard"|"settings"
 ---@field public items? PanelCardItem[] (Se for grid ou craft)
 ---@field public columns? PanelTableColumn[] (Se for table)
 ---@field public rows? table[] (Se for table)
+---@field public stats? PanelDashboardStats (Se for dashboard)
+---@field public actionGroups? PanelDashboardActionGroup[] (Se for dashboard)
+---@field public currentPosition? string (Se for settings)
+---@field public positions? PanelSettingPosition[] (Se for settings)
+---@field public quickActions? PanelSettingQuickAction[] (Se for settings)
 ---@field public filters? PanelFilterOption[] Lista explícita de filtros por chips
 ---@field public filterCategory? boolean Se verdadeiro, extrai categorias automaticamente
 ---@field public pageSize? number Atalho para paginação simples (ex: 12)

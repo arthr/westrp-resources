@@ -74,6 +74,26 @@ local function BuildDockSchema()
                 it.checked = bStates.infiammo
                 it.badge = bStates.infiammo and "ILIMITADO" or "NORMAL"
                 it.badgeType = bStates.infiammo and "gold" or "off"
+            elseif qa.id == "show_names" then
+                local st = WestRP.Admin.DevTools.IsShowNamesActive and WestRP.Admin.DevTools.IsShowNamesActive() or false
+                it.checked = st
+                it.badge = st and "3D TAGS" or "DESLIGADO"
+                it.badgeType = st and "on" or "off"
+            elseif qa.id == "show_blips" then
+                local st = WestRP.Admin.DevTools.IsShowBlipsActive and WestRP.Admin.DevTools.IsShowBlipsActive() or false
+                it.checked = st
+                it.badge = st and "RADAR" or "DESLIGADO"
+                it.badgeType = st and "on" or "off"
+            elseif qa.id == "freecam" then
+                local st = bStates.freecam
+                it.checked = st
+                it.badge = st and "LIVRE" or "DESLIGADO"
+                it.badgeType = st and "gold" or "off"
+            elseif qa.id == "superjump" then
+                local st = bStates.superjump
+                it.checked = st
+                it.badge = st and "ALTO" or "PADRÃO"
+                it.badgeType = st and "gold" or "off"
             elseif qa.id == "autotpm" then
                 local st = WestRP.Admin.Teleport.GetAutoTPMState and WestRP.Admin.Teleport.GetAutoTPMState() or false
                 it.checked = st
@@ -126,8 +146,8 @@ local function BuildDockSchema()
 
     return {
         id = "admin_dock",
-        title = "HOT MENU",
-        tag = "AÇÕES RÁPIDAS",
+        title = "QUICK ACTIONS",
+        tag = "ADMIN SHORTCUTS",
         position = dockPosition,
         keepInput = true,
         tabs = {
@@ -178,6 +198,18 @@ local function BuildDockSchema()
             elseif item.id == "infiammo" then
                 local res = WestRP.Admin.Boosters.ToggleInfiniteAmmo()
                 WestRP.Client.UI.UpdateItem("infiammo", { checked = res, badge = res and "ILIMITADO" or "NORMAL", badgeType = res and "gold" or "off" })
+            elseif item.id == "superjump" then
+                local res = WestRP.Admin.Boosters.ToggleSuperJump()
+                WestRP.Client.UI.UpdateItem("superjump", { checked = res, badge = res and "ALTO" or "PADRÃO", badgeType = res and "gold" or "off" })
+            elseif item.id == "freecam" then
+                local res = WestRP.Admin.Boosters.ToggleFreecam()
+                WestRP.Client.UI.UpdateItem("freecam", { checked = res, badge = res and "LIVRE" or "DESLIGADO", badgeType = res and "gold" or "off" })
+            elseif item.id == "show_names" then
+                local res = WestRP.Admin.DevTools.TogglePlayerNames()
+                WestRP.Client.UI.UpdateItem("show_names", { checked = res, badge = res and "3D TAGS" or "DESLIGADO", badgeType = res and "on" or "off" })
+            elseif item.id == "show_blips" then
+                local res = WestRP.Admin.DevTools.TogglePlayerBlips()
+                WestRP.Client.UI.UpdateItem("show_blips", { checked = res, badge = res and "RADAR" or "DESLIGADO", badgeType = res and "on" or "off" })
             elseif item.id == "autotpm" then
                 local res = WestRP.Admin.Teleport.ToggleAutoTPM()
                 WestRP.Client.UI.UpdateItem("autotpm", { checked = res, badge = res and "ATIVO" or "INATIVO", badgeType = res and "on" or "off" })

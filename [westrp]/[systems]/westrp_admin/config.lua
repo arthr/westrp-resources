@@ -19,7 +19,7 @@ Config.Brand = {
 }
 
 -- Posição Padrão do Dock Lateral ('top_left' | 'top_right' | 'mid_left' | 'mid_right' | 'bottom_left' | 'bottom_right')
-Config.DefaultDockPosition = "mid_left"
+Config.DefaultDockPosition = "top_left"
 
 -- Permitir abrir o menu quando estiver inconsciente/morto
 Config.CanOpenWhenDead = true
@@ -30,112 +30,135 @@ Config.CanOpenWhenDead = true
 Config.QuickActions = {
     {
         id = "noclip",
-        label = "Modo Fantasma",
+        label = "Noclip",
         sublabel = "Voo livre e atravessar colisão",
+        icon = "fas fa-ghost",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "show_names",
+        label = "Show Names",
+        sublabel = "ESP 3D de nomes e IDs sobre peds",
+        icon = "fas fa-id-badge",
+        type = "toggle",
+        category = "world",
+        defaultEnabled = true
+    },
+    {
+        id = "invis",
+        label = "Invisible",
+        sublabel = "Ocultar personagem de outros jogadores",
+        icon = "fas fa-eye-slash",
+        type = "toggle",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "show_blips",
+        label = "Show Blips",
+        sublabel = "Exibir marcadores de jogadores no radar",
+        icon = "fas fa-map-marker-alt",
+        type = "toggle",
+        category = "world",
+        defaultEnabled = true
+    },
+    {
+        id = "dev_laser",
+        label = "Dev Laser",
+        sublabel = "Inspecionar entidades e hashes com mira",
+        icon = "fas fa-crosshairs",
+        type = "toggle",
+        category = "tools",
+        defaultEnabled = true
+    },
+    {
+        id = "self_revive",
+        label = "Revive",
+        sublabel = "Ressuscita ped se estiver incapacitado",
+        icon = "fas fa-heartbeat",
+        type = "action",
+        category = "self",
+        defaultEnabled = true
+    },
+    {
+        id = "freecam",
+        label = "Free Cam",
+        sublabel = "Câmera livre independente de ped",
+        icon = "fas fa-video",
         type = "toggle",
         category = "self",
         defaultEnabled = true
     },
     {
         id = "godmode",
-        label = "Modo Deus",
+        label = "God Mode",
         sublabel = "Invulnerabilidade a dano e quedas",
+        icon = "fas fa-shield-alt",
         type = "toggle",
         category = "self",
         defaultEnabled = true
     },
     {
-        id = "invis",
-        label = "Invisibilidade",
-        sublabel = "Ocultar personagem de outros jogadores",
-        type = "toggle",
-        category = "self",
-        defaultEnabled = true
-    },
-    {
-        id = "goldencores",
-        label = "Núcleos Dourados",
-        sublabel = "Vida e estamina no nível máximo",
+        id = "superjump",
+        label = "Super Jump",
+        sublabel = "Multiplicador de salto reforçado",
+        icon = "fas fa-arrow-circle-up",
         type = "toggle",
         category = "self",
         defaultEnabled = true
     },
     {
         id = "infiammo",
-        label = "Munição Infinita",
+        label = "Infinite Ammo",
         sublabel = "Disparos sem consumir cartuchos",
+        icon = "fas fa-infinity",
         type = "toggle",
         category = "self",
-        defaultEnabled = false
-    },
-    {
-        id = "tp_waypoint",
-        label = "Teleportar p/ Marcador",
-        sublabel = "Desloca ao waypoint no mapa (TPM)",
-        type = "action",
-        category = "teleport",
         defaultEnabled = true
     },
     {
-        id = "autotpm",
-        label = "Auto TPM ao Marcar",
-        sublabel = "Teleporta ao clicar no mapa mundi",
+        id = "goldencores",
+        label = "Lock Cores",
+        sublabel = "Vida e estamina no nível máximo",
+        icon = "fas fa-lock",
         type = "toggle",
-        category = "teleport",
-        defaultEnabled = false
+        category = "self",
+        defaultEnabled = true
     },
     {
         id = "self_heal",
-        label = "Curar a Si Mesmo",
+        label = "Heal",
         sublabel = "Restaura 100% da vida e estamina",
+        icon = "fas fa-medkit",
         type = "action",
         category = "self",
         defaultEnabled = true
     },
     {
-        id = "self_revive",
-        label = "Reviver a Si Mesmo",
-        sublabel = "Ressuscita ped se estiver incapacitado",
+        id = "tp_waypoint",
+        label = "TP Waypoint",
+        sublabel = "Desloca ao waypoint no mapa (TPM)",
+        icon = "fas fa-map-pin",
         type = "action",
-        category = "self",
-        defaultEnabled = true
-    },
-    {
-        id = "clean_ped",
-        label = "Limpar Personagem",
-        sublabel = "Remove sangue, lama e sujeiras",
-        type = "action",
-        category = "self",
-        defaultEnabled = true
-    },
-    {
-        id = "dev_laser",
-        label = "Laser de Desenvolvedor",
-        sublabel = "Inspecionar entidades e hashes com mira",
-        type = "toggle",
-        category = "tools",
-        defaultEnabled = true
+        category = "teleport",
+        defaultEnabled = false
     },
     {
         id = "copy_coords",
-        label = "Copiar Coordenadas",
+        label = "Copy Coords",
         sublabel = "Copia vector3/vector4 para a área de transferência",
+        icon = "fas fa-copy",
         type = "action",
-        category = "tools",
-        defaultEnabled = true
-    },
-    {
-        id = "delete_object",
-        label = "Arma Deletora",
-        sublabel = "Mire e delete props indesejados",
-        type = "toggle",
         category = "tools",
         defaultEnabled = false
     },
     {
         id = "clear_area",
-        label = "Limpar Área Próxima",
+        label = "Clear Area",
         sublabel = "Deleta peds mortos, veículos e rastros num raio de 50m",
+        icon = "fas fa-broom",
         type = "action",
         category = "world",
         defaultEnabled = false

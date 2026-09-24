@@ -115,7 +115,20 @@ Ativa o cursor livre do mouse e aplica o desfoque cinematográfico nativo `OJDom
 - **Barra de Paginação Universal**: Navegação fluida em páginas calculadas dinamicamente com controles táteis `◄` / `►` e resumo numérico de registros.
 
 ### Abas do Painel:
-1. **JOGADORES ONLINE (`viewType = 'table'`)**:
+1. **DASHBOARD & TELEMETRIA (`viewType = 'dashboard'`)**:
+   - Cockpit principal com indicadores em tempo real (KPIs):
+     - `PLAYERS COUNT`: Total online / limite máximo do servidor com ícone e badge.
+     - `UP TIME`: Tempo decorrido desde a inicialização do servidor.
+     - `24H PEAK PLAYERS`: Pico de conexões simultâneas nas últimas 24 horas.
+     - `ALL-TIME PEAK`: Recorde histórico de lotação do servidor.
+   - Grade com 28 Ações Rápidas categorizadas em 6 blocos temáticos:
+     - **`TELEPORT`**: Ir para Marcador (TP Waypoint), Teleporte por Coordenadas (TP Coords via Diálogo Modal), Copiar Coordenadas (Copy Coords).
+     - **`SELF`**: Modo Deus (God Mode), Invisibilidade (Invisible), Voo Livre (Noclip), Munição Infinita (Inf. Ammo), Núcleos Dourados (Golden Core), Super Pulo (Super Jump), Suicídio (Kill), Reviver-se (Revive), Curar-se (Heal), Alterar Modelo de Ped (Set Model via Diálogo Modal), Alterar Escala do Ped (Set Scale via Diálogo Modal), Câmera Livre (Freecam).
+     - **`WORLD TOGGLES`**: Nomes dos Jogadores (Show Names - ESP 3D com Server ID, Nome e Vida), Marcadores no Radar (Show Blips - Radar com IDs e Nomes), Mira Laser Desenvolvedor (Dev Laser Raycast).
+     - **`SPAWN`**: Gerar Objeto/Prop (Spawn Object via Diálogo Modal), Gerar Veículo/Carroça (Spawn Vehicle via Diálogo Modal), Gerar Ped/NPC (Spawn Ped via Diálogo Modal), Gerar Cavalo/Montaria (Spawn Horse via Diálogo Modal).
+     - **`ALL PLAYERS`**: Expulsar Todos (Kick All), Puxar Todos (Bring All), Reviver Todos (Revive All), Curar Todos (Heal All).
+     - **`SERVER`**: Agendar Reinicialização com Contagem Regressiva e Alertas Globais (Start Restart via Diálogo Modal), Cancelar Reinicialização (Cancel Restart), Anúncio Global para o Servidor (Announce via Diálogo Modal).
+2. **JOGADORES ONLINE (`viewType = 'table'`)**:
    - Livro-razão em tempo real de todos os jogadores conectados com paginação dinâmica (`pageSize = 10`).
    - Colunas: ID, Nome do Personagem, Steam, Emprego/Cargo, Permissão, Saldo em Dinheiro e Estado (Vivo, Morto, Congelado).
    - Ao selecionar um jogador e confirmar, abre o **Menu Contextual de Ações no Jogador**:
@@ -129,22 +142,25 @@ Ativa o cursor livre do mouse e aplica o desfoque cinematográfico nativo `OJDom
        - `Limpar Todo Inventário (Wipe)`: Remove todos os itens e armas do jogador.
      - *Punições*: Expulsar (Kick), Banir por 3 Dias, Banir Permanentemente.
      - *Trolagens*: Raio dos Céus, Colocar em Chamas, Enviar para o Céu, Derrubar no Chão (Ragdoll), Algemar e Efeito Embriaguez/Pântano.
-2. **ARMAMENTO & MUNIÇÕES (`viewType = 'grid'`)**:
-   - Catálogo com mais de 85 armas de fogo, arremessáveis, explosivos e cartuchos especializados.
-   - Segmentado por chips de categoria e paginado em grid 3x6 (`pageSize = 18`).
-   - Integração inteligente com as mecânicas de VORP:
-     - *Armamentos & Explosivos (`WEAPON_*`)*: Entrega direta da arma equipável na roda de armas (`loadout`). Inclui Dinamite, Molotov, Molotov Volátil, Moonshine Tóxico, Galão de Despejo, Boleadeiras, Facas e Tomahawk.
-     - *Munições (`ammorevolvernormal`, etc.)*: Entrega direta na bolsa como item empilhável com seletor de quantidade no rodapé.
 3. **ITEM SPAWNER (`viewType = 'grid'`)**:
    - Vitrine em grade com todos os consumíveis, alimentos, tônicos, ferramentas e matérias-primas cadastradas no servidor (`pageSize = 24`).
    - Exclusão estrita de munições (segregadas para a aba de armamentos).
    - Renderização automática de ícones através do `westrp_assets`.
    - Seletor de quantidade no rodapé (`-` e `+`) com busca em tempo real por nome ou ID técnico.
    - Entrega direta ao inventário com notificação Toast para operador e receptor.
-4. **PUNIÇÕES & BANS (`viewType = 'table'`)**:
+4. **ARMAMENTO & MUNIÇÕES (`viewType = 'grid'`)**:
+   - Catálogo com mais de 85 armas de fogo, arremessáveis, explosivos e cartuchos especializados.
+   - Segmentado por chips de categoria e paginado em grid 3x6 (`pageSize = 18`).
+   - Integração inteligente com as mecânicas de VORP:
+     - *Armamentos & Explosivos (`WEAPON_*`)*: Entrega direta da arma equipável na roda de armas (`loadout`). Inclui Dinamite, Molotov, Molotov Volátil, Moonshine Tóxico, Galão de Despejo, Boleadeiras, Facas e Tomahawk.
+     - *Munições (`ammorevolvernormal`, etc.)*: Entrega direta na bolsa como item empilhável com seletor de quantidade no rodapé.
+5. **PUNIÇÕES & BANS (`viewType = 'table'`)**:
    - Listagem de todas as punições ativas no servidor (offline e online) com paginação (`pageSize = 10`).
    - Exibe identificador, motivo, expiração e status (Temporário / Permanente).
    - Ação de 1 clique para revogar punições imediatamente (Unban).
+6. **CONFIGURAÇÕES DO HOT MENU & PREFERÊNCIAS (`viewType = 'settings'`)**:
+   - Seletor tátil de ancoragem do Hot Menu (`/admhot`) em 6 posições na tela (`Top Left`, `Top Right`, `Mid Left`, `Mid Right`, `Bottom Left`, `Bottom Right`) com persistência imediata em KVP (`westrp_admin:dock_position`).
+   - Gestão individual das 12 ações rápidas do catálogo via switches `.ui-switch` (NoClip, Show Names ESP, Invisible, Show Blips, Dev Laser, Revive, Freecam, God Mode, Super Jump, Inf. Ammo, Golden Core, Heal) com persistência em KVP (`westrp_admin:quick_actions`).
 
 ---
 

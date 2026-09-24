@@ -244,64 +244,261 @@ function WestRP.Admin.Panel.AnnounceDialog()
     })
 end
 
+---Abre modal de diálogo para alterar o modelo do ped
+function WestRP.Admin.Panel.SetModelDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "set_model_dialog",
+        tag = "MODELO",
+        title = "ALTERAR MODELO DO PERSONAGEM",
+        subtitle = "Informe o nome do modelo (ex: cs_dutch, mp_female, player_zero)",
+        submitLabel = "APLICAR",
+        fields = {
+            { id = "model", label = "Modelo do Ped", type = "text", placeholder = "cs_dutch", required = true }
+        },
+        onSubmit = function(values)
+            local modelName = values.model
+            if not modelName or modelName == "" then return end
+            local modelHash = GetHashKey(modelName)
+            if not IsModelInCdimage(modelHash) or not IsModelValid(modelHash) then
+                WestRP.Client.UI.ShowToast("MODELO", "Modelo inválido ou inexistente", "danger")
+                Wait(150)
+                WestRP.Admin.Panel.Open()
+                return
+            end
+            RequestModel(modelHash)
+            local timeout = 0
+            while not HasModelLoaded(modelHash) and timeout < 50 do
+                Wait(50)
+                timeout = timeout + 1
+            end
+            SetPlayerModel(PlayerId(), modelHash)
+            SetModelAsNoLongerNeeded(modelHash)
+            WestRP.Client.UI.ShowToast("MODELO", "Modelo alterado para: " .. modelName, "success")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para alterar a escala corporal do ped
+function WestRP.Admin.Panel.SetScaleDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "set_scale_dialog",
+        tag = "ESCALA",
+        title = "DEFINIR ESCALA DO PERSONAGEM",
+        subtitle = "Informe o multiplicador de escala (padrão: 1.0, mín: 0.2, máx: 3.0)",
+        submitLabel = "APLICAR",
+        fields = {
+            { id = "scale", label = "Multiplicador de Escala", type = "number", placeholder = "1.0", required = true }
+        },
+        onSubmit = function(values)
+            local scale = tonumber(values.scale) or 1.0
+            scale = math.max(0.2, math.min(3.0, scale))
+            local ped = PlayerPedId()
+            SetPedScale(ped, scale)
+            WestRP.Client.UI.ShowToast("ESCALA", string.format("Escala ajustada para: %.2fx", scale), "success")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para spawn de objeto / prop
+function WestRP.Admin.Panel.SpawnObjectDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "spawn_object_dialog",
+        tag = "SPAWNER",
+        title = "SPAWNAR OBJETO / PROP",
+        subtitle = "Informe o nome do modelo do prop (ex: p_campfire01x, p_chest01x)",
+        submitLabel = "SPAWNAR",
+        fields = {
+            { id = "model", label = "Modelo do Prop", type = "text", placeholder = "p_campfire01x", required = true }
+        },
+        onSubmit = function(values)
+            local modelName = values.model or "p_campfire01x"
+            local modelHash = GetHashKey(modelName)
+            RequestModel(modelHash)
+            local timeout = 0
+            while not HasModelLoaded(modelHash) and timeout < 50 do
+                Wait(50)
+                timeout = timeout + 1
+            end
+            local ped = PlayerPedId()
+            local coords = GetOffsetFromEntityInWorldCoords(ped, 0.0, 2.0, -0.5)
+            local obj = CreateObject(modelHash, coords.x, coords.y, coords.z, true, true, false)
+            PlaceObjectOnGroundProperly(obj)
+            SetEntityAsMissionEntity(obj, true, true)
+            SetModelAsNoLongerNeeded(modelHash)
+            WestRP.Client.UI.ShowToast("SPAWNER", "Objeto gerado com sucesso", "success")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de diálogo para spawn de NPC (Ped)
+function WestRP.Admin.Panel.SpawnPedDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "spawn_ped_dialog",
+        tag = "SPAWNER",
+        title = "SPAWNAR NPC / PED",
+        subtitle = "Informe o modelo do ped (ex: cs_dutch, cs_micahbell, u_m_m_valsheriff_01)",
+        submitLabel = "SPAWNAR",
+        fields = {
+            { id = "model", label = "Modelo do Ped", type = "text", placeholder = "cs_dutch", required = true }
+        },
+        onSubmit = function(values)
+            local modelName = values.model or "cs_dutch"
+            local modelHash = GetHashKey(modelName)
+            RequestModel(modelHash)
+            local timeout = 0
+            while not HasModelLoaded(modelHash) and timeout < 50 do
+                Wait(50)
+                timeout = timeout + 1
+            end
+            local ped = PlayerPedId()
+            local coords = GetOffsetFromEntityInWorldCoords(ped, 0.0, 2.5, 0.0)
+            local newPed = CreatePed(modelHash, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false, false, false)
+            SetEntityAsMissionEntity(newPed, true, true)
+            SetModelAsNoLongerNeeded(modelHash)
+            WestRP.Client.UI.ShowToast("SPAWNER", "Ped gerado com sucesso", "success")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
+---Abre modal de confirmação para agendamento de reinicialização do servidor
+function WestRP.Admin.Panel.StartRestartDialog()
+    WestRP.Admin.Panel.Close()
+    Wait(100)
+    WestRP.Client.UI.OpenDialog({
+        id = "start_restart_dialog",
+        tag = "SERVIDOR",
+        title = "AGENDAR REINICIALIZAÇÃO DO SERVIDOR",
+        subtitle = "Defina o tempo de contagem regressiva em minutos para alertar os jogadores",
+        submitLabel = "INICIAR RESTART",
+        fields = {
+            { id = "minutes", label = "Tempo em Minutos", type = "number", placeholder = "5", required = true }
+        },
+        onSubmit = function(values)
+            local mins = tonumber(values.minutes) or 5
+            mins = math.max(1, math.min(60, mins))
+            TriggerServerEvent("westrp_admin:server:startRestart", mins)
+            WestRP.Client.UI.ShowToast("SERVIDOR", string.format("Reinicialização agendada para daqui a %d minuto(s)", mins), "danger")
+            Wait(150)
+            WestRP.Admin.Panel.Open()
+        end,
+        onCancel = function()
+            Wait(100)
+            WestRP.Admin.Panel.Open()
+        end
+    })
+end
+
 ---Executa ações clicadas diretamente na grade do Dashboard
 ---@param actId string
 ---@param tileData? table
 function WestRP.Admin.Panel.ExecuteDashboardAction(actId, tileData)
     if not actId then return end
 
-    if actId == "noclip" then
-        local st = WestRP.Admin.Boosters.ToggleNoClip()
-        WestRP.Client.UI.ShowToast("NOCLIP", st and "Modo Fantasma Ativado" or "Modo Fantasma Desativado", st and "success" or "info")
+    -- TELEPORT
+    if actId == "tp_waypoint" then
+        WestRP.Admin.Teleport.TeleportToWaypoint()
+    elseif actId == "tp_coords" then
+        WestRP.Admin.Panel.TeleportCoordsDialog()
+    elseif actId == "copy_coords" then
+        WestRP.Admin.DevTools.CopyCoords("v3")
+
+    -- SELF
     elseif actId == "godmode" then
         local st = WestRP.Admin.Boosters.ToggleGodMode()
         WestRP.Client.UI.ShowToast("MODO DEUS", st and "Invulnerabilidade Ativada" or "Invulnerabilidade Desativada", st and "success" or "info")
     elseif actId == "invis" then
         local st = WestRP.Admin.Boosters.ToggleInvis()
         WestRP.Client.UI.ShowToast("INVISIBILIDADE", st and "Invisibilidade Ativada" or "Invisibilidade Desativada", st and "success" or "info")
+    elseif actId == "noclip" then
+        local st = WestRP.Admin.Boosters.ToggleNoClip()
+        WestRP.Client.UI.ShowToast("NOCLIP", st and "Modo Fantasma Ativado" or "Modo Fantasma Desativado", st and "success" or "info")
+    elseif actId == "infiammo" then
+        WestRP.Admin.Boosters.ToggleInfiniteAmmo()
     elseif actId == "goldencores" then
         local st = WestRP.Admin.Boosters.ToggleGoldenCores()
         WestRP.Client.UI.ShowToast("NÚCLEOS", st and "Núcleos Dourados Máximos" or "Núcleos Restaurados", st and "success" or "info")
-    elseif actId == "infiammo" then
-        local st = WestRP.Admin.Boosters.ToggleInfiniteAmmo()
-    elseif actId == "self_heal" then
-        WestRP.Admin.Boosters.SelfHeal()
+    elseif actId == "superjump" then
+        WestRP.Admin.Boosters.ToggleSuperJump()
+    elseif actId == "kill" then
+        WestRP.Admin.Boosters.KillSelf()
     elseif actId == "self_revive" then
         WestRP.Admin.Boosters.SelfRevive()
-    elseif actId == "clean_ped" then
-        WestRP.Admin.Boosters.CleanPed()
-    elseif actId == "tp_waypoint" then
-        WestRP.Admin.Teleport.TeleportToWaypoint()
-    elseif actId == "tp_coords" then
-        WestRP.Admin.Panel.TeleportCoordsDialog()
-    elseif actId == "send_back" then
-        WestRP.Admin.Teleport.GoBack()
-    elseif actId == "guarma" then
-        WestRP.Admin.Teleport.ToggleGuarma()
-    elseif actId == "clear_area" then
-        WestRP.Admin.Boosters.ClearArea(50.0)
-    elseif actId == "clear_weather" then
-        SetWeatherType("SUNNY", true, true, false, 0.0, false)
-        WestRP.Client.UI.ShowToast("CLIMA", "Tempo limpo ensolarado aplicado", "success")
-    elseif actId == "freeze_time" then
-        NetworkOverrideClockTime(12, 0, 0)
-        WestRP.Client.UI.ShowToast("TEMPO", "Horário ajustado para 12:00", "info")
+    elseif actId == "self_heal" then
+        WestRP.Admin.Boosters.SelfHeal()
+    elseif actId == "set_model" then
+        WestRP.Admin.Panel.SetModelDialog()
+    elseif actId == "set_scale" then
+        WestRP.Admin.Panel.SetScaleDialog()
+    elseif actId == "freecam" then
+        WestRP.Admin.Boosters.ToggleFreecam()
+
+    -- WORLD TOGGLES
+    elseif actId == "show_names" then
+        WestRP.Admin.DevTools.TogglePlayerNames()
+    elseif actId == "show_blips" then
+        WestRP.Admin.DevTools.TogglePlayerBlips()
+    elseif actId == "dev_laser" then
+        WestRP.Admin.DevTools.ToggleLaser()
+
+    -- SPAWN
+    elseif actId == "spawn_object" then
+        WestRP.Admin.Panel.SpawnObjectDialog()
+    elseif actId == "spawn_vehicle" then
+        WestRP.Admin.Panel.SpawnWagonDialog()
+    elseif actId == "spawn_ped" then
+        WestRP.Admin.Panel.SpawnPedDialog()
     elseif actId == "spawn_horse" then
         WestRP.Admin.Panel.SpawnHorseDialog()
-    elseif actId == "spawn_wagon" then
-        WestRP.Admin.Panel.SpawnWagonDialog()
-    elseif actId == "heal_all" then
-        TriggerServerEvent("westrp_admin:server:executeAction", { action = "heal_all" })
-    elseif actId == "revive_all" then
-        TriggerServerEvent("westrp_admin:server:executeAction", { action = "revive_all" })
-    elseif actId == "bring_all" then
-        TriggerServerEvent("westrp_admin:server:executeAction", { action = "bring_all" })
+
+    -- ALL PLAYERS
     elseif actId == "kick_all" then
         WestRP.Admin.Panel.KickAllDialog()
+    elseif actId == "bring_all" then
+        TriggerServerEvent("westrp_admin:server:executeAction", { action = "bring_all" })
+    elseif actId == "revive_all" then
+        TriggerServerEvent("westrp_admin:server:executeAction", { action = "revive_all" })
+    elseif actId == "heal_all" then
+        TriggerServerEvent("westrp_admin:server:executeAction", { action = "heal_all" })
+
+    -- SERVER
+    elseif actId == "start_restart" then
+        WestRP.Admin.Panel.StartRestartDialog()
+    elseif actId == "cancel_restart" then
+        TriggerServerEvent("westrp_admin:server:cancelRestart")
     elseif actId == "announce" then
         WestRP.Admin.Panel.AnnounceDialog()
-    elseif actId == "server_logs" then
-        WestRP.Client.UI.ShowToast("AUDITORIA", "Ações administrativas estão sendo auditadas no Discord", "info")
     end
 end
 
@@ -331,59 +528,71 @@ function WestRP.Admin.Panel.Open(targetOverride)
 
     local bStates = WestRP.Admin.Boosters.GetStates()
 
-    -- Grade de Ações Categorizadas do Dashboard
+    -- Grade de Ações Categorizadas do Dashboard (28 ações em 6 grupos fiéis à referência)
     local dashboardActionGroups = {
         {
             title = "TELEPORT",
+            icon = "fas fa-map-marked-alt",
             actions = {
-                { id = "tp_waypoint", label = "Teleport to Waypoint", type = "action" },
-                { id = "tp_coords", label = "Teleport to Coords", type = "action" },
-                { id = "send_back", label = "Send Back", type = "action" },
-                { id = "guarma", label = "Guarma Island", type = "action" }
+                { id = "tp_waypoint", label = "TP Waypoint", icon = "fas fa-map-pin", type = "action" },
+                { id = "tp_coords", label = "TP Coords", icon = "fas fa-crosshairs", type = "action" },
+                { id = "copy_coords", label = "Copy Coords", icon = "fas fa-copy", type = "action" }
             }
         },
         {
-            title = "SELF ACTIONS",
+            title = "SELF",
+            icon = "fas fa-user-shield",
             actions = {
-                { id = "noclip", label = "Ghost (Noclip)", type = "toggle", active = bStates.noclip },
-                { id = "godmode", label = "Godmode", type = "toggle", active = bStates.godmode },
-                { id = "invis", label = "Invisibility", type = "toggle", active = bStates.invis },
-                { id = "goldencores", label = "Golden Cores", type = "toggle", active = bStates.goldencores },
-                { id = "infiammo", label = "Infinite Ammo", type = "toggle", active = bStates.infiammo },
-                { id = "self_heal", label = "Self Heal", type = "action" },
-                { id = "self_revive", label = "Self Revive", type = "action" },
-                { id = "clean_ped", label = "Clean Ped", type = "action" }
+                { id = "godmode", label = "God Mode", icon = "fas fa-shield-alt", type = "toggle", active = bStates.godmode },
+                { id = "invis", label = "Invisible", icon = "fas fa-eye-slash", type = "toggle", active = bStates.invis },
+                { id = "noclip", label = "Noclip", icon = "fas fa-ghost", type = "toggle", active = bStates.noclip },
+                { id = "infiammo", label = "Inf. Ammo", icon = "fas fa-infinity", type = "toggle", active = bStates.infiammo },
+                { id = "goldencores", label = "Golden Core", icon = "fas fa-star", type = "toggle", active = bStates.goldencores },
+                { id = "superjump", label = "Super Jump", icon = "fas fa-arrow-circle-up", type = "toggle", active = bStates.superjump },
+                { id = "kill", label = "Kill", icon = "fas fa-skull", type = "action" },
+                { id = "self_revive", label = "Revive", icon = "fas fa-heartbeat", type = "action" },
+                { id = "self_heal", label = "Heal", icon = "fas fa-medkit", type = "action" },
+                { id = "set_model", label = "Set Model", icon = "fas fa-user-edit", type = "action" },
+                { id = "set_scale", label = "Set Scale", icon = "fas fa-arrows-alt-v", type = "action" },
+                { id = "freecam", label = "Freecam", icon = "fas fa-video", type = "toggle", active = bStates.freecam }
             }
         },
         {
             title = "WORLD TOGGLES",
+            icon = "fas fa-globe-americas",
             actions = {
-                { id = "clear_area", label = "Clear Area", type = "action" },
-                { id = "clear_weather", label = "Clear Weather", type = "action" },
-                { id = "freeze_time", label = "Freeze Time", type = "action" }
+                { id = "show_names", label = "Show Names", icon = "fas fa-id-badge", type = "toggle", active = WestRP.Admin.DevTools.IsShowNamesActive() },
+                { id = "show_blips", label = "Show Blips", icon = "fas fa-compass", type = "toggle", active = WestRP.Admin.DevTools.IsShowBlipsActive() },
+                { id = "dev_laser", label = "Dev Laser", icon = "fas fa-crosshairs", type = "toggle", active = WestRP.Admin.DevTools.IsLaserActive() }
             }
         },
         {
             title = "SPAWN",
+            icon = "fas fa-magic",
             actions = {
-                { id = "spawn_horse", label = "Spawn Horse", type = "action" },
-                { id = "spawn_wagon", label = "Spawn Wagon", type = "action" }
+                { id = "spawn_object", label = "Spawn Object", icon = "fas fa-cube", type = "action" },
+                { id = "spawn_vehicle", label = "Spawn Vehicle", icon = "fas fa-car", type = "action" },
+                { id = "spawn_ped", label = "Spawn Ped", icon = "fas fa-user-plus", type = "action" },
+                { id = "spawn_horse", label = "Spawn Horse", icon = "fas fa-horse-head", type = "action" }
             }
         },
         {
             title = "ALL PLAYERS",
+            icon = "fas fa-users-cog",
             actions = {
-                { id = "heal_all", label = "Heal All Players", type = "action" },
-                { id = "revive_all", label = "Revive All Players", type = "action" },
-                { id = "bring_all", label = "Bring All Players", type = "action" },
-                { id = "kick_all", label = "Kick All Players", type = "action" }
+                { id = "kick_all", label = "Kick All", icon = "fas fa-user-slash", type = "action" },
+                { id = "bring_all", label = "Bring All", icon = "fas fa-magnet", type = "action" },
+                { id = "revive_all", label = "Revive All", icon = "fas fa-heartbeat", type = "action" },
+                { id = "heal_all", label = "Heal All", icon = "fas fa-plus-circle", type = "action" }
             }
         },
         {
             title = "SERVER",
+            icon = "fas fa-server",
             actions = {
-                { id = "announce", label = "Announcement", type = "action" },
-                { id = "server_logs", label = "Server Logs", type = "action" }
+                { id = "start_restart", label = "Start Restart", icon = "fas fa-sync-alt", type = "action" },
+                { id = "cancel_restart", label = "Cancel Restart", icon = "fas fa-ban", type = "action" },
+                { id = "announce", label = "Announce", icon = "fas fa-bullhorn", type = "action" }
             }
         }
     }
@@ -395,6 +604,7 @@ function WestRP.Admin.Panel.Open(targetOverride)
         settingsQuickList[#settingsQuickList + 1] = {
             id = qa.id,
             label = qa.label,
+            icon = qa.icon or "fas fa-bolt",
             category = qa.category or "Geral",
             enabled = savedQuickActions[qa.id] ~= false
         }
