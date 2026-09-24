@@ -11,6 +11,70 @@ DatabaseAdapter = {
     sourceToChar = {}
 }
 
+---Executa auto-migração segura e idempotente do banco de dados na inicialização
+function DatabaseAdapter.RunMigrations()
+    CreateThread(function()
+        repeat Wait(100) until GetResourceState('oxmysql') == 'started'
+        
+        -- Helper para testar existência de coluna no schema ativo
+        local function ColumnExists(colName)
+            local query = [[
+                SELECT 1 FROM information_schema.COLUMNS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'characters' 
+                AND COLUMN_NAME = ? 
+                LIMIT 1
+            ]]
+            local res = MySQL.query.await(query, { colName })
+            return res and #res > 0
+        end
+
+        local migrationsApplied = 0
+
+        if not ColumnExists('karma') then
+            MySQL.query.await('ALTER TABLE `characters` ADD COLUMN `karma` INT NOT NULL DEFAULT 0')
+            migrationsApplied = migrationsApplied + 1
+        end
+
+        if not ColumnExists('karma_tier') then
+            MySQL.query.await('ALTER TABLE `characters` ADD COLUMN `karma_tier` VARCHAR(32) NOT NULL DEFAULT "neutral"')
+            migrationsApplied = migrationsApplied + 1
+        end
+
+        if not ColumnExists('bounty_price') then
+            MySQL.query.await('ALTER TABLE `characters` ADD COLUMN `bounty_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00')
+            migrationsApplied = migrationsApplied + 1
+        end
+
+        -- Verifica a existência do índice idx_character_karma
+        local checkIndexQuery = [[
+            SELECT 1 FROM information_schema.STATISTICS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'characters' 
+            AND INDEX_NAME = 'idx_character_karma' 
+            LIMIT 1
+        ]]
+        local indexRes = MySQL.query.await(checkIndexQuery)
+        if not (indexRes and #indexRes > 0) then
+            pcall(function()
+                MySQL.query.await('CREATE INDEX `idx_character_karma` ON `characters` (`charidentifier`, `karma`)')
+                migrationsApplied = migrationsApplied + 1
+            end)
+        end
+
+        if migrationsApplied > 0 then
+            print(string.format("^2[westrp_karma] Auto-Migration: %d atualizações de schema aplicadas com sucesso na tabela `characters`.^0", migrationsApplied))
+        else
+            if Config.Debug then
+                print("^2[westrp_karma] Auto-Migration: Banco de dados íntegro e sincronizado.^0")
+            end
+        end
+    end)
+end
+
+-- Inicializa as migrações automáticas
+DatabaseAdapter.RunMigrations()
+
 ---Carrega ou inicializa a entidade moral de um personagem a partir do banco de dados
 ---@param charIdentifier integer
 ---@param source integer

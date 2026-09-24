@@ -174,7 +174,9 @@ sequenceDiagram
 
 ## 6. Persistência e Esquema de Dados
 
-### 6.1 DDL (`schema.sql`)
+### 6.1 DDL e Auto-Migration (`DatabaseAdapter.RunMigrations`)
+
+O `DatabaseAdapter` executa de forma autônoma e assíncrona na inicialização a verificação das colunas e índices necessários na tabela `characters`, eliminando a necessidade de comandos manuais no terminal:
 
 ```sql
 ALTER TABLE `characters` 
@@ -186,6 +188,7 @@ CREATE INDEX idx_character_karma ON `characters` (`charidentifier`, `karma`);
 ```
 
 ### 6.2 Política de Escrita (`DatabaseAdapter`)
+* **Auto-Migration:** No startup, o `DatabaseAdapter` inspeciona `information_schema.COLUMNS` e `information_schema.STATISTICS` para aplicar atualizações pendentes automaticamente.
 * O servidor mantém uma lista de entidades modificadas (`dirty`).
 * A thread de sincronização executa um loop a cada $N$ segundos (padrão: 60s), gerando uma única transação em lote.
 * Na desconexão (`playerDropped`) ou desligamento do servidor (`onResourceStop` e `txAdmin:events:serverStopping`), todas as entidades pendentes são persistidas de forma síncrona com `MySQL.transaction.await` antes da desalocação do cache.

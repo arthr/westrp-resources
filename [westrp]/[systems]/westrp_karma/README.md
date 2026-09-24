@@ -54,15 +54,14 @@ westrp_karma/
 
 ## 🚀 Instalação e Inicialização
 
-### 1. Migração de Banco de Dados
-Execute o script `schema.sql` no banco de dados do seu servidor para criar as colunas e índices necessários na tabela `characters`:
+### 1. Migração de Banco de Dados (100% Automática)
+O `westrp_karma` possui um mecanismo integrado de **Auto-Migration** no `DatabaseAdapter`.
+Assim que o resource inicia pela primeira vez, ele verifica a integridade da tabela `characters` e cria automaticamente as colunas (`karma`, `karma_tier`, `bounty_price`) e o índice (`idx_character_karma`) através do `oxmysql`.
 
-```bash
-mysql -u root -p vorpv2 < resources/[westrp]/[systems]/westrp_karma/schema.sql
-```
+> **Nota:** Não é necessário rodar comandos manuais no terminal! O arquivo `schema.sql` é mantido apenas como documentação e referência DDL para DBAs.
 
 ### 2. Ativação no `server.cfg`
-Certifique-se de iniciar o `westrp_karma` após as dependências do core (`westrp_core` e `oxmysql`):
+Certifique-se apenas de iniciar o `westrp_karma` após as dependências do core (`westrp_core` e `oxmysql`):
 
 ```cfg
 ensure oxmysql
