@@ -54,7 +54,8 @@ body {
   position: fixed;
   left: 36px;
   top: 48px;
-  width: 350px;
+  width: min(350px, 92vw);
+  max-height: min(85vh, 650px);
   background: var(--bg-dock);
   border: 1px solid var(--border-dock);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 1px rgba(255, 255, 255, 0.08);
@@ -594,10 +595,10 @@ body {
 
 .panel-modal {
   position: relative;
-  width: 1160px;
-  max-width: 95vw;
-  height: 720px;
-  max-height: 90vh;
+  width: min(1180px, 94vw);
+  height: min(740px, 88vh);
+  min-width: 320px;
+  min-height: 460px;
   background: var(--bg-dock);
   border: 1px solid var(--border-dock);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.96), 0 0 0 1px rgba(212, 175, 55, 0.2), inset 0 0 0 1px rgba(212, 175, 55, 0.08);
@@ -647,21 +648,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: clamp(10px, 1.4vh, 14px) clamp(14px, 1.8vw, 20px);
   background: var(--bg-header);
   border-bottom: 1px solid var(--border-dock);
   flex-shrink: 0;
+  gap: 12px;
 }
 
 .panel-header-brand {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .panel-tag {
   font-family: var(--font-serif);
-  font-size: 0.65rem;
+  font-size: clamp(0.55rem, 0.8vw, 0.65rem);
   letter-spacing: 2px;
   color: var(--accent-gold);
   text-transform: uppercase;
@@ -670,17 +673,21 @@ body {
 
 .panel-title {
   font-family: var(--font-serif);
-  font-size: 1.15rem;
+  font-size: clamp(0.95rem, 1.2vw, 1.15rem);
   font-weight: 700;
   letter-spacing: 1.5px;
   color: var(--text-title);
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .panel-header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(8px, 1vw, 12px);
+  flex-shrink: 0;
 }
 
 .panel-search-wrap {
@@ -691,13 +698,13 @@ body {
   border: 1px solid var(--border-separator);
   border-radius: 2px;
   padding: 5px 10px;
-  width: 220px;
+  width: clamp(140px, 16vw, 220px);
   transition: border-color 0.15s, width 0.15s;
 }
 
 .panel-search-wrap:focus-within {
   border-color: var(--border-gold);
-  width: 260px;
+  width: clamp(180px, 20vw, 260px);
 }
 
 .panel-search-icon {
@@ -756,7 +763,7 @@ body {
 }
 
 .panel-sidebar {
-  width: 230px;
+  width: clamp(180px, 22vw, 230px);
   background: rgba(8, 7, 6, 0.75);
   border-right: 1px solid var(--border-separator);
   display: flex;
@@ -996,10 +1003,11 @@ body {
 
 .panel-content {
   flex: 1;
-  padding: 16px 20px;
+  padding: clamp(10px, 1.8vh, 18px) clamp(12px, 2vw, 22px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -1181,8 +1189,8 @@ body {
 /* --- MODO 1: VITRINE / GRID DE CARDS --- */
 .panel-grid-view {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: clamp(10px, 1.2vw, 14px);
 }
 
 .grid-card {
@@ -1339,12 +1347,13 @@ body {
 /* --- MODO 3: CRAFTING / BANCADA --- */
 .panel-craft-view {
   display: flex;
-  gap: 16px;
+  gap: clamp(10px, 1.5vw, 16px);
   height: 100%;
+  min-height: 0;
 }
 
 .craft-recipe-list {
-  width: 320px;
+  width: clamp(200px, 32%, 300px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1723,34 +1732,45 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: clamp(8px, 1.2vh, 12px) clamp(14px, 1.8vw, 20px);
   background: var(--bg-header);
   border-top: 1px solid var(--border-dock);
   flex-shrink: 0;
+  gap: 12px;
 }
 
 .panel-footer-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 #panel-selected-name {
   font-family: var(--font-serif);
-  font-size: 0.88rem;
+  font-size: clamp(0.8rem, 1vw, 0.88rem);
   font-weight: 700;
   color: var(--text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .panel-selected-desc {
   font-size: 0.7rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .panel-footer-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(8px, 1vw, 12px);
+  flex-shrink: 0;
 }
 
 .panel-stepper {
@@ -1872,8 +1892,8 @@ body {
 
 .dashboard-overview-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: clamp(8px, 1vw, 12px);
 }
 
 .kpi-card {
@@ -1960,7 +1980,7 @@ body {
 
 .actions-group-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr));
   gap: 8px;
 }
 
@@ -2064,7 +2084,7 @@ body {
 
 .settings-positions-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr));
   gap: 10px;
 }
 
@@ -2219,25 +2239,23 @@ body {
 
 .dialog-backdrop {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(4, 4, 4, 0.78);
-  backdrop-filter: blur(4px);
+  inset: 0;
+  background: transparent;
+  backdrop-filter: none;
   z-index: 1;
 }
 
 .dialog-modal {
   position: relative;
   z-index: 2;
-  width: 500px;
-  max-width: 90vw;
+  width: min(520px, 92vw);
+  max-height: min(85vh, 650px);
+  overflow-y: auto;
   background: linear-gradient(180deg, rgba(22, 20, 18, 0.98) 0%, rgba(14, 12, 11, 0.99) 100%);
   border: 1px solid var(--border-gold);
   border-radius: 2px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(212, 175, 55, 0.16);
-  padding: 24px 28px;
+  padding: clamp(16px, 2.5vh, 24px) clamp(18px, 2.5vw, 28px);
   display: flex;
   flex-direction: column;
   animation: dialogFadeIn 0.15s ease-out;
@@ -2425,5 +2443,150 @@ body {
 .dialog-btn-primary:hover {
   background: rgba(212, 175, 55, 0.4);
   box-shadow: 0 0 14px rgba(212, 175, 55, 0.3);
+}
+
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES (ADAPTAÇÃO UNIVERSAL MULTI-RESOLUÇÃO)
+   Target: 720p (1280x720), 768p (1366x768), 1080p (1920x1080), 2K (2560x1440), 4K & Ultrawide
+   ========================================================================== */
+
+/* Telas menores ou janelas compactas (<= 960px de largura) */
+@media (max-width: 960px) {
+  .panel-modal {
+    width: 96vw;
+    height: 92vh;
+  }
+  .panel-sidebar {
+    width: 170px;
+  }
+  .panel-sidebar-brand {
+    padding: 10px 8px;
+  }
+  .panel-sidebar-name {
+    font-size: 0.72rem;
+  }
+  .panel-tab-btn {
+    padding: 8px 10px;
+    font-size: 0.72rem;
+  }
+  .panel-header-actions {
+    gap: 8px;
+  }
+  .panel-meta-pill {
+    display: none !important;
+  }
+  .craft-recipe-list {
+    width: 190px;
+  }
+}
+
+/* Telas muito estreitas (<= 768px de largura) */
+@media (max-width: 768px) {
+  .panel-body {
+    flex-direction: column;
+  }
+  .panel-sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 110px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-separator);
+  }
+  .panel-sidebar-brand,
+  .panel-sidebar-operator {
+    display: none !important;
+  }
+  .panel-tabs-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 4px;
+    gap: 4px;
+  }
+  .panel-tab-btn {
+    width: auto;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+  .panel-tab-btn.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--border-gold);
+  }
+  .panel-craft-view {
+    flex-direction: column;
+  }
+  .craft-recipe-list {
+    width: 100%;
+    max-height: 140px;
+  }
+  .panel-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .panel-footer-controls {
+    justify-content: space-between;
+  }
+}
+
+/* Alturas reduzidas (ex: 720p / 768p com barras do Windows, <= 740px de altura) */
+@media (max-height: 740px) {
+  .panel-modal {
+    height: 94vh;
+  }
+  .panel-header {
+    padding: 8px 14px;
+  }
+  .panel-sidebar-brand {
+    padding: 8px 6px;
+  }
+  .panel-sidebar-logo {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 4px;
+  }
+  .sidebar-logo-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .panel-content {
+    padding: 8px 12px;
+  }
+  .panel-footer {
+    padding: 6px 14px;
+  }
+  .dock-container {
+    top: 24px;
+  }
+  .dock-header {
+    padding: 8px 10px;
+  }
+  .dock-viewport {
+    max-height: 35vh;
+  }
+  .dock-info-box {
+    padding: 6px 10px;
+  }
+}
+
+/* Monitores de Altíssima Resolução (2K / 4K / Ultrawide >= 2560px de largura) */
+@media (min-width: 2560px) {
+  .panel-modal {
+    width: 1380px;
+    height: 840px;
+  }
+  .panel-sidebar {
+    width: 280px;
+  }
+  .panel-title {
+    font-size: 1.35rem;
+  }
+  .panel-tab-btn {
+    padding: 12px 18px;
+    font-size: 0.9rem;
+  }
+  .dock-container {
+    width: 400px;
+  }
 }
 

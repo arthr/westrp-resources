@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WestRP UI Engine — Component Playground & Sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Estilos do Sandbox de Teste (Visível apenas em modo navegador/desenvolvimento) */
+    .sandbox-bg {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #1c1a17 0%, #0d0c0b 100%);
+      z-index: 0;
+    }
+    .sandbox-bg::after {
+      content: "WESTRP UI COMPONENT SANDBOX";
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: rgba(212, 175, 55, 0.25);
+      font-weight: 700;
+      pointer-events: none;
+    }
+    .sandbox-toolbar {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(13, 12, 11, 0.95);
+      padding: 10px 16px;
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+      z-index: 99999;
+      justify-content: center;
+      max-width: 95vw;
+    }
+    .sandbox-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      color: #d8cebc;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.15s ease;
+    }
+    .sandbox-btn:hover {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: #d4af37;
+      color: #ffffff;
+    }
+    .sandbox-btn.btn-close {
+      background: rgba(220, 53, 69, 0.2);
+      border-color: rgba(220, 53, 69, 0.5);
+      color: #ff8888;
+    }
+    .sandbox-btn.btn-close:hover {
+      background: rgba(220, 53, 69, 0.4);
+      color: #fff;
+    }
+    .sandbox-log {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      width: 320px;
+      max-height: 180px;
+      background: rgba(8, 7, 6, 0.9);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 10px;
+      color: #8c8474;
+      overflow-y: auto;
+      z-index: 99998;
+      pointer-events: none;
+    }
+    .sandbox-log-title {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      color: #cba332;
+      margin-bottom: 4px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      padding-bottom: 2px;
+    }
+    .sandbox-log-item {
+      margin-bottom: 2px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .sandbox-log-item.gold { color: #d4af37; }
+    .sandbox-log-item.green { color: #50c878; }
+  </style>
+</head>
+<body>
+  <div class="sandbox-bg"></div>
+
+  <!-- Janela de Log do Sandbox -->
+  <div class="sandbox-log" id="sandbox-log">
+    <div class="sandbox-log-title">CONSOLE DE CALLBACKS NUI</div>
+    <div id="sandbox-log-entries"></div>
+  </div>
+
+  <!-- Barra de Ferramentas de Teste do Sandbox -->
+  <div class="sandbox-toolbar">
+    <button class="sandbox-btn" onclick="runSim('dock')">Dock Lateral (350px)</button>
+    <button class="sandbox-btn" onclick="runSim('panel_grid')">Panel: Grid (Loja)</button>
+    <button class="sandbox-btn" onclick="runSim('panel_table')">Panel: Table (Livro)</button>
+    <button class="sandbox-btn" onclick="runSim('panel_craft')">Panel: Craft (Forja)</button>
+    <button class="sandbox-btn" onclick="runSim('panel_queue')">Panel: Queue (Fila)</button>
+    <button class="sandbox-btn" onclick="runSim('panel_dashboard')">Panel: Dashboard</button>
+    <button class="sandbox-btn" onclick="runSim('panel_settings')">Panel: Settings</button>
+    <button class="sandbox-btn" onclick="runSim('dialog')">Dialog (Formulário)</button>
+    <button class="sandbox-btn" onclick="runSim('toasts')">Toasts (Notificações)</button>
+    <button class="sandbox-btn btn-close" onclick="runSim('close_all')">✕ Fechar Todos</button>
+  </div>
+
+  <!-- ============================================================
+       1. CONTAINER HUD DOCK LATERAL (ROCKSTAR NATIVE 350px)
+       ============================================================ -->
+  <div id="dock-container" class="dock-container" style="display: none;">
+    <header class="dock-header">
+      <div class="dock-header-brand">
+        <span class="dock-category-tag" id="dock-tag">FRONTIER</span>
+        <h2 class="dock-title" id="dock-title">REGISTRO</h2>
+      </div>
+      <div class="dock-counter-pill" id="dock-item-counter">1 / 1</div>
+    </header>
+
+    <div class="dock-tabs-bar" id="dock-tabs-bar" style="display: none;">
+      <button class="tab-arrow-btn" id="btn-tab-prev" title="Aba Anterior (◄)">◄</button>
+      <div class="tab-title-wrap">
+        <span class="tab-index-badge" id="dock-tab-index">ABA 1 / 1</span>
+        <h3 class="current-tab-name" id="current-tab-name">GERAL</h3>
+      </div>
+      <button class="tab-arrow-btn" id="btn-tab-next" title="Próxima Aba (►)">►</button>
+    </div>
+
+    <div class="dock-breadcrumb" id="dock-breadcrumb" style="display: none;">
+      <span class="breadcrumb-back-key">◂ BACKSPACE</span>
+      <span class="breadcrumb-title" id="dock-breadcrumb-title">SUBMENU</span>
+    </div>
+
+    <div class="dock-viewport" id="dock-viewport" tabindex="0"></div>
+
+    <div class="dock-info-box" id="dock-info-box">
+      <p id="dock-info-text">Selecione uma opção para interagir.</p>
+    </div>
+
+    <footer class="dock-footer-keys">
+      <div class="k-group"><span class="k-box">▲▼</span> <span class="k-label">Navegar</span></div>
+      <div class="k-group" id="k-tabs-legend"><span class="k-box">◄►</span> <span class="k-label">Abas/Opções</span></div>
+      <div class="k-group"><span class="k-box">↵</span> <span class="k-label">Executar</span></div>
+      <div class="k-group"><span class="k-box">BACKSPACE</span> <span class="k-label">Voltar</span></div>
+      <div class="k-group"><span class="k-box">ESC</span> <span class="k-label">Fechar</span></div>
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       2. CONTAINER HUD PANEL (MODAL / WORKSPACE DE ALTA INTERATIVIDADE)
+       ============================================================ -->
+  <div id="panel-container" class="panel-container" style="display: none;">
+    <div class="panel-backdrop" id="panel-backdrop"></div>
+    <div class="panel-modal">
+      <header class="panel-header">
+        <div class="panel-header-brand">
+          <span class="panel-tag" id="panel-tag">ESTABELECIMENTO</span>
+          <h1 class="panel-title" id="panel-title">BANCADA DE CRIAÇÃO</h1>
+        </div>
+        
+        <div class="panel-header-actions">
+          <div class="panel-search-wrap" id="panel-search-wrap">
+            <span class="panel-search-icon">🔍</span>
+            <input type="text" id="panel-search-input" placeholder="Buscar registros..." autocomplete="off">
+          </div>
+
+          <div class="panel-meta-pill" id="panel-meta-pill" style="display: none;">
+            <span id="panel-meta-text">Saldo: $ 0.00</span>
+          </div>
+
+          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (ESC)">✕</button>
+        </div>
+      </header>
+
+      <div class="panel-body">
+        <aside class="panel-sidebar" id="panel-sidebar">
+          <div class="panel-sidebar-brand" id="panel-sidebar-brand" style="display: none;">
+            <div class="panel-sidebar-logo" id="panel-sidebar-logo">
+              <svg viewBox="0 0 24 24" class="sidebar-logo-icon">
+                <path fill="currentColor" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </div>
+            <div class="panel-sidebar-titles">
+              <h2 class="panel-sidebar-name" id="panel-sidebar-name">WESTRP SERVER</h2>
+              <span class="panel-sidebar-badge" id="panel-sidebar-badge">ADMIN MENU</span>
+            </div>
+          </div>
+
+          <nav class="panel-tabs-list" id="panel-tabs-list"></nav>
+
+          <div class="panel-sidebar-operator" id="panel-sidebar-operator" style="display: none;">
+            <div class="operator-avatar" id="operator-avatar">
+              <span class="avatar-initials" id="operator-initials">AD</span>
+            </div>
+            <div class="operator-info">
+              <span class="operator-name" id="operator-name">Operador</span>
+              <button class="operator-status-btn" id="operator-status-btn" title="Alternar Status de Serviço">
+                <span class="status-dot on" id="operator-status-dot"></span>
+                <span class="status-text" id="operator-status-text">Em Serviço</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <main class="panel-content" id="panel-content">
+          <div class="panel-dashboard-view" id="panel-dashboard-view" style="display: none;">
+            <div class="dashboard-header">
+              <div class="dashboard-header-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.01-4.09l-2.49-1.46C16.29 17.94 14.28 19 12 19zm1-11v4.41l3.58 2.07-.84 1.45L11.5 13.9V8h1.5z"/></svg>
+              </div>
+              <div class="dashboard-header-text">
+                <h2 class="dashboard-title" id="dashboard-title">DASHBOARD</h2>
+                <p class="dashboard-subtitle" id="dashboard-subtitle">Visão geral do servidor e atalhos rápidos da administração</p>
+              </div>
+            </div>
+
+            <div class="dashboard-section-title">
+              <span class="sec-icon">📊</span>
+              <span>SERVER OVERVIEW</span>
+            </div>
+            <div class="dashboard-overview-grid" id="dashboard-overview-grid"></div>
+
+            <div class="dashboard-section-title" style="margin-top: 18px;">
+              <span class="sec-icon">⚡</span>
+              <span>ADMIN ACTIONS</span>
+            </div>
+            <div class="dashboard-actions-container" id="dashboard-actions-container"></div>
+          </div>
+
+          <div class="panel-settings-view" id="panel-settings-view" style="display: none;">
+            <div class="settings-header">
+              <div class="settings-header-icon">⚙️</div>
+              <div class="settings-header-text">
+                <h2 class="settings-title">SETTINGS</h2>
+                <p class="settings-subtitle">Personalize as preferências operacionais e atalhos do Hot Menu</p>
+              </div>
+            </div>
+
+            <div class="settings-scroll-area">
+              <div class="settings-group">
+                <div class="settings-group-header">
+                  <h4 class="settings-group-title">POSIÇÃO DO HOT MENU</h4>
+                  <p class="settings-group-desc">Selecione o ancoramento da janela rápida de Quick Actions na tela.</p>
+                </div>
+                <div class="settings-positions-grid" id="settings-positions-grid"></div>
+              </div>
+
+              <div class="settings-group" style="margin-top: 22px;">
+                <div class="settings-group-header">
+                  <h4 class="settings-group-title">ATALHOS & VISIBILIDADE</h4>
+                  <p class="settings-group-desc">Ative ou desative as ações rápidas exibidas no Hot Menu lateral.</p>
+                </div>
+                <div class="settings-actions-list" id="settings-actions-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-filter-bar" id="panel-filter-bar" style="display: none;"></div>
+          <div class="panel-grid-view" id="panel-grid-view" style="display: none;"></div>
+
+          <div class="panel-table-view" id="panel-table-view" style="display: none;">
+            <table class="panel-data-table" id="panel-data-table">
+              <thead id="panel-table-head"></thead>
+              <tbody id="panel-table-body"></tbody>
+            </table>
+          </div>
+
+          <div class="panel-craft-view" id="panel-craft-view" style="display: none;">
+            <div class="craft-recipe-list" id="craft-recipe-list"></div>
+            <div class="craft-details-card" id="craft-details-card">
+              <h3 class="craft-details-title" id="craft-details-title">Selecione uma receita</h3>
+              <p class="craft-details-desc" id="craft-details-desc">Escolha uma receita na lista à esquerda para visualizar os materiais necessários.</p>
+              <div class="craft-reqs-wrap">
+                <span class="craft-reqs-label">MATERIAIS EXIGIDOS</span>
+                <div class="craft-reqs-list" id="craft-reqs-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-queue-view" id="panel-queue-view" style="display: none;">
+            <div class="queue-items-list" id="queue-items-list"></div>
+          </div>
+
+          <div class="panel-pagination-bar" id="panel-pagination-bar" style="display: none;">
+            <span class="pagination-summary" id="pagination-summary">Exibindo 0 registros</span>
+            <div class="pagination-controls">
+              <button class="pagination-btn" id="btn-page-prev" title="Página Anterior (◄)">◄</button>
+              <span class="pagination-page-indicator" id="pagination-page-indicator">Página 1 / 1</span>
+              <button class="pagination-btn" id="btn-page-next" title="Próxima Página (►)">►</button>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <footer class="panel-footer" id="panel-footer">
+        <div class="panel-footer-info" id="panel-footer-info">
+          <span id="panel-selected-name">Nenhum item selecionado</span>
+          <span class="panel-selected-desc" id="panel-selected-desc"></span>
+        </div>
+
+        <div class="panel-footer-controls">
+          <div class="panel-stepper" id="panel-stepper">
+            <button class="stepper-btn" id="btn-stepper-minus">-</button>
+            <span class="stepper-val" id="stepper-val">1</span>
+            <button class="stepper-btn" id="btn-stepper-plus">+</button>
+          </div>
+          <button class="panel-cta-btn" id="panel-cta-btn">CONFIRMAR</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       3. CONTAINER HUD DIALOG (MODAL DE ENTRADA / FORMULÁRIO RDR2)
+       ============================================================ -->
+  <div id="dialog-container" class="dialog-container" style="display: none;">
+    <div class="dialog-backdrop" id="dialog-backdrop"></div>
+    <div class="dialog-modal">
+      <header class="dialog-header">
+        <span class="dialog-tag" id="dialog-tag">ADMINISTRAÇÃO</span>
+        <h2 class="dialog-title" id="dialog-title">FORMULÁRIO</h2>
+        <p class="dialog-subtitle" id="dialog-subtitle"></p>
+        <button class="dialog-close-btn" id="dialog-close-btn" title="Cancelar (ESC)">✕</button>
+      </header>
+
+      <div class="dialog-body">
+        <form id="dialog-form" class="dialog-form" autocomplete="off" onsubmit="return false;">
+          <div id="dialog-form-fields" class="dialog-fields-list"></div>
+        </form>
+      </div>
+
+      <footer class="dialog-footer">
+        <button type="button" class="dialog-btn-secondary" id="dialog-btn-cancel">CANCELAR</button>
+        <button type="button" class="dialog-btn-primary" id="dialog-btn-submit">CONFIRMAR</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- Motor Oficial -->
+  <script src="js/app.js"></script>
+
+  <!-- Script de Simulação e Interação do Sandbox -->
+  <script>
+    // Intercepta e loga os callbacks NUI simulados
+    const oldFetch = window.fetch;
+    window.fetch = async function(url, options) {
+      if (typeof url === 'string' && url.includes('westrp_ui')) {
+        const endpoint = url.split('/').pop();
+        const payload = options && options.body ? JSON.parse(options.body) : {};
+        logCallback(endpoint, payload);
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return oldFetch.apply(this, arguments);
+    };
+
+    function logCallback(endpoint, data) {
+      const container = document.getElementById('sandbox-log-entries');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = 'sandbox-log-item ' + (endpoint.includes('select') || endpoint.includes('confirm') ? 'green' : 'gold');
+      const time = new Date().toLocaleTimeString();
+      el.textContent = `[${time}] ${endpoint}: ` + JSON.stringify(data);
+      container.prepend(el);
+      while (container.children.length > 8) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function runSim(type) {
+      if (type === 'close_all') {
+        window.postMessage({ action: 'westrp_ui:close' }, '*');
+        window.postMessage({ action: 'westrp_ui:closePanel' }, '*');
+        window.postMessage({ action: 'westrp_ui:closeDialog' }, '*');
+        return;
+      }
+
+      if (type === 'dock') {
+        window.postMessage({
+          action: 'westrp_ui:open',
+          options: {
+            id: 'sandbox_dock',
+            title: 'SMITHFIELD SALOON',
+            tag: 'VALENTINE • FRONTIER',
+            tabs: [
+              {
+                id: 'drinks',
+                name: 'BEBIDAS',
+                items: [
+                  { id: 'bourbon', label: 'Bourbon Envelhecido', badge: '$ 3.50', badgeType: 'gold', description: 'Recupera estamina do cavaleiro.' },
+                  { id: 'beer', label: 'Cerveja Gelada da Casa', badge: '$ 1.00', badgeType: 'gold', description: 'Caneca servida na hora do barril.' },
+                  { id: 'smoke', label: 'Permitir Fumar no Balcão', type: 'toggle', checked: true, description: 'Alterna a política de fumo.' },
+                  { id: 'rounds', label: 'Quantidade por Rodada', type: 'slider', min: 1, max: 10, value: 2, description: 'Número de doses servidas.' },
+                  { id: 'danger_duel', label: 'Desafiar para Duelo', badge: 'PERIGO', badgeType: 'danger', danger: true, description: 'Ação crítica de confronto armado.' }
+                ]
+              },
+              {
+                id: 'music',
+                name: 'MÚSICA & SERVIÇOS',
+                items: [
+                  { id: 'piano', label: 'Melodia do Pianista', type: 'slider', options: ['Silêncio', 'Ragtime Animado', 'Valsa do Saloon'], valueIndex: 1 },
+                  { id: 'bath', label: 'Banho Quente', badge: '$ 2.00', badgeType: 'gold' }
+                ]
+              }
+            ]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_grid') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'FERRARIA DE VALENTINE',
+            tag: 'ESTABELECIMENTO ARTESANAL',
+            subtitle: 'Saldo: $ 850.00',
+            tabs: [{
+              id: 'weapons',
+              label: 'Armamentos Prontos',
+              badge: 'VITRINE',
+              viewType: 'grid',
+              pageSize: 6,
+              filters: [
+                { id: 'all', label: 'Todos os Produtos', default: true },
+                { id: 'cut', label: 'Lâminas', key: 'category', value: 'cut' },
+                { id: 'fire', label: 'Fogo', key: 'category', value: 'fire' }
+              ],
+              items: [
+                { id: 'weapon_thrown_tomahawk', title: 'Tomahawk de Caça', category: 'cut', price: 35.0, stock: 8, badge: 'POPULAR', badgeType: 'gold', subtitle: 'Lâmina de aço temperado para arremesso.' },
+                { id: 'weapon_melee_knife', title: 'Faca Bowie Rústica', category: 'cut', price: 18.0, stock: 12, badge: 'NOVO', badgeType: 'green', subtitle: 'Empunhadura em osso de cervo.' },
+                { id: 'weapon_thrown_molotov', title: 'Coquetel Molotov', category: 'fire', price: 25.0, stock: 5, badge: 'PERIGO', badgeType: 'danger', subtitle: 'Garrafa com óleo e pavio.' }
+              ]
+            }]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_table') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'LIVRO-RAZÃO CONTÁBIL',
+            tag: 'DEPARTAMENTO DO XERIFE',
+            tabs: [{
+              id: 'ledger',
+              label: 'Registros',
+              badge: 'OFICIAL',
+              viewType: 'table',
+              pageSize: 5,
+              columns: [
+                { key: 'code', label: 'Nº', width: '12%', align: 'center' },
+                { key: 'date', label: 'DATA', width: '15%' },
+                { key: 'desc', label: 'OPERAÇÃO / CRIME', width: '38%' },
+                { key: 'client', label: 'CIDADÃO', width: '20%' },
+                { key: 'status', label: 'STATUS', width: '15%', align: 'center', type: 'pill' }
+              ],
+              rows: [
+                { id: 'r1', code: '#101', date: '24/09', desc: 'Desordem em Estabelecimento', client: 'Arthur Morgan', status: 'PAGO', status_type: 'on' },
+                { id: 'r2', code: '#102', date: '24/09', desc: 'Roubo de Ovelhas', client: 'Micah Bell', status: 'PROCURADO', status_type: 'danger' },
+                { id: 'r3', code: '#103', date: '23/09', desc: 'Porte Ilegal de Dinamite', client: 'Bill Williamson', status: 'PENDENTE', status_type: 'off' }
+              ]
+            }]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_craft') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'FORJA DE ARMAS',
+            tag: 'MANUFATURA MANUAL',
+            tabs: [
+              {
+                id: 'craft_tab',
+                label: 'Receitas',
+                badge: 'FORJA',
+                viewType: 'craft',
+                items: [
+                  {
+                    id: 'craft_knife',
+                    title: 'Faca de Caça Rústica',
+                    subtitle: 'Forja tradicional temperada em água fria.',
+                    requirements: [
+                      { item: 'resource_iron', label: 'Minério de Ferro', current: 6, required: 2 },
+                      { item: 'resource_coal', label: 'Carvão Mineral', current: 8, required: 1 },
+                      { item: 'resource_wood', label: 'Madeira de Pinho', current: 4, required: 1 }
+                    ]
+                  },
+                  {
+                    id: 'craft_axe',
+                    title: 'Machado de Lenhador',
+                    subtitle: 'Lâmina pesada para corte rápido.',
+                    requirements: [
+                      { item: 'resource_iron', label: 'Minério de Ferro', current: 6, required: 5 },
+                      { item: 'resource_coal', label: 'Carvão Mineral', current: 8, required: 2 },
+                      { item: 'leather_strip', label: 'Tiras de Couro', current: 1, required: 3 }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'queue_tab',
+                label: 'Fila de Produção',
+                badge: 'PRODUÇÃO',
+                viewType: 'queue',
+                items: []
+              }
+            ]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_queue') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'LINHA DE PRODUÇÃO',
+            tag: 'ESTABELECIMENTO FABRIL',
+            tabs: [{
+              id: 'queue_tab',
+              label: 'Fila de Produção',
+              badge: 'PRODUÇÃO',
+              viewType: 'queue',
+              items: [
+                {
+                  id: 'job_1',
+                  item: 'craft_knife',
+                  title: 'Faca de Caça Rústica',
+                  subtitle: 'Forjando na bigorna',
+                  totalQty: 3,
+                  completedQty: 1,
+                  durationPerUnit: 10,
+                  remainingTime: 20,
+                  totalDuration: 30,
+                  status: 'in_progress'
+                },
+                {
+                  id: 'job_2',
+                  item: 'lockpick',
+                  title: 'Gazua de Aço Reforçado',
+                  subtitle: 'Lote concluído pronto para retirada',
+                  totalQty: 2,
+                  completedQty: 2,
+                  durationPerUnit: 5,
+                  remainingTime: 0,
+                  totalDuration: 10,
+                  status: 'completed'
+                }
+              ]
+            }]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_dashboard') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'COCKPIT ADMINISTRATIVO',
+            tag: 'TELEMETRIA & COMANDO',
+            tabs: [{
+              id: 'dashboard',
+              label: 'Dashboard',
+              icon: 'fas fa-tachometer-alt',
+              badge: 'SERVER',
+              viewType: 'dashboard',
+              stats: {
+                online: 32,
+                maxClients: 64,
+                uptime: '08h 15m',
+                peak24h: 56,
+                peakAllTime: 128
+              },
+              actionGroups: [
+                {
+                  title: 'TELEPORT & MOVIMENTAÇÃO',
+                  actions: [
+                    { id: 'tpm', label: 'Ir para Marcador (TPM)', icon: 'fa-map-pin', type: 'action' },
+                    { id: 'copy_coords', label: 'Copiar Coordenadas', icon: 'fa-copy', type: 'action' }
+                  ]
+                },
+                {
+                  title: 'OPERADOR (SELF)',
+                  actions: [
+                    { id: 'godmode', label: 'Modo Deus (GodMode)', icon: 'fa-shield-alt', type: 'toggle', active: true },
+                    { id: 'noclip', label: 'Modo Voo (NoClip)', icon: 'fa-rocket', type: 'toggle', active: false },
+                    { id: 'heal', label: 'Curar-se', icon: 'fa-medkit', type: 'action' }
+                  ]
+                }
+              ]
+            }]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_settings') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'PREFERÊNCIAS OPERACIONAIS',
+            tag: 'SISTEMA WESTRP',
+            tabs: [{
+              id: 'settings',
+              label: 'Configurações',
+              icon: 'fas fa-cog',
+              badge: 'AJUSTES',
+              viewType: 'settings',
+              currentPosition: 'mid_left',
+              positions: [
+                { id: 'top_left', label: 'Top Left' },
+                { id: 'top_right', label: 'Top Right' },
+                { id: 'mid_left', label: 'Mid Left', active: true },
+                { id: 'mid_right', label: 'Mid Right' },
+                { id: 'bottom_left', label: 'Bottom Left' },
+                { id: 'bottom_right', label: 'Bottom Right' }
+              ],
+              quickActions: [
+                { id: 'noclip', label: 'Modo Voo (NoClip)', icon: 'fa-rocket', enabled: true },
+                { id: 'esp', label: 'GamerTags 3D (ESP)', icon: 'fa-id-badge', enabled: true },
+                { id: 'godmode', label: 'Modo Deus (GodMode)', icon: 'fa-shield-alt', enabled: true },
+                { id: 'blips', label: 'Radar de Jogadores', icon: 'fa-map-marker-alt', enabled: false }
+              ]
+            }]
+          }
+        }, '*');
+      }
+
+      else if (type === 'dialog') {
+        window.postMessage({
+          action: 'westrp_ui:openDialog',
+          options: {
+            id: 'sandbox_dialog',
+            tag: 'DEPARTAMENTO POLICIAL',
+            title: 'NOTIFICAÇÃO OFICIAL DE MULTA',
+            subtitle: 'Preencha os termos circunstanciados da autuação',
+            submitLabel: 'APLICAR MULTA',
+            cancelLabel: 'CANCELAR',
+            fields: [
+              {
+                id: 'infracao',
+                type: 'select',
+                label: 'Tipo de Infração',
+                required: true,
+                options: [
+                  { value: 'desordem', label: 'Perturbação do Sossego ($ 15.00)' },
+                  { value: 'dinamite', label: 'Porte Não Autorizado de Explosivo ($ 50.00)' }
+                ]
+              },
+              {
+                id: 'valor',
+                type: 'number',
+                label: 'Valor da Autuação ($)',
+                value: 20.0,
+                min: 5.0,
+                max: 300.0,
+                required: true
+              },
+              {
+                id: 'relatorio',
+                type: 'textarea',
+                label: 'Relatório Policial',
+                placeholder: 'Descreva os fatos e testemunhas...',
+                required: true
+              }
+            ]
+          }
+        }, '*');
+      }
+
+      else if (type === 'toasts') {
+        window.postMessage({ action: 'westrp_ui:toast', title: 'INFORMAÇÃO', message: 'Notificação elegante em ouro velho.', type: 'info', duration: 3000 }, '*');
+        setTimeout(() => {
+          window.postMessage({ action: 'westrp_ui:toast', title: 'SUCESSO', message: 'Ação executada e validada pelo servidor!', type: 'success', duration: 3000 }, '*');
+        }, 600);
+        setTimeout(() => {
+          window.postMessage({ action: 'westrp_ui:toast', title: 'ALERTA', message: 'Atenção: Área de fronteira com patrulha armada.', type: 'alert', duration: 3000 }, '*');
+        }, 1200);
+        setTimeout(() => {
+          window.postMessage({ action: 'westrp_ui:toast', title: 'PERIGO', message: 'Tentativa de transação não autorizada.', type: 'error', duration: 3500 }, '*');
+        }, 1800);
+      }
+    }
+  </script>
+</body>
+</html>

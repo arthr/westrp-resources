@@ -12,12 +12,14 @@ ui_page 'html/index.html'
 
 files {
     'html/index.html',
+    'html/test.html',
     'html/css/style.css',
     'html/js/app.js'
 }
 
 client_scripts {
-    'client/main.lua'
+    'client/main.lua',
+    'client/showcase.lua'
 }
 
 exports {
