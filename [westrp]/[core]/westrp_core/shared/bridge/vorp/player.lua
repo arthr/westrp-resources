@@ -22,6 +22,29 @@ if isServer then
         return VorpCore
     end
 
+    ---Retorna o grupo ativo do jogador (prioriza grupo da conta user.getGroup e fallback em char.group)
+    ---@param source number
+    ---@return string
+    function WestRP.Shared.Bridge.Player.GetGroup(source)
+        local core = GetVorpCore()
+        if not core then return "user" end
+
+        local user = core.getUser(source)
+        if not user then return "user" end
+
+        local userGroup = user.getGroup
+        if userGroup and userGroup ~= "" and userGroup ~= "user" then
+            return tostring(userGroup)
+        end
+
+        local char = user.getUsedCharacter
+        if char and char.group and char.group ~= "" and char.group ~= "user" then
+            return tostring(char.group)
+        end
+
+        return (userGroup and userGroup ~= "") and tostring(userGroup) or ((char and char.group) and tostring(char.group) or "user")
+    end
+
     ---Retorna os dados unificados do personagem do jogador
     ---@param source number
     ---@return table|nil
@@ -35,6 +58,10 @@ if isServer then
         local char = user.getUsedCharacter
         if not char then return nil end
 
+        local userGroup = user.getGroup
+        local charGroup = char.group or "user"
+        local effectiveGroup = (userGroup and userGroup ~= "" and userGroup ~= "user") and userGroup or charGroup
+
         return {
             source = source,
             identifier = char.identifier,
@@ -43,7 +70,7 @@ if isServer then
             lastname = char.lastname or "",
             job = char.job or "unemployed",
             jobGrade = char.jobGrade or 0,
-            group = char.group or "user",
+            group = effectiveGroup,
             money = char.money or 0.0,
             gold = char.gold or 0.0,
             rol = char.rol or 0.0,

@@ -233,7 +233,9 @@ function WestRP.Admin.Panel.AnnounceDialog()
             { id = "message", label = "Mensagem do Anúncio", type = "textarea", placeholder = "Digite a mensagem do comunicado...", required = true }
         },
         onSubmit = function(values)
-            TriggerServerEvent("westrp_admin:server:executeAction", { action = "announce", payload = { message = values.message } })
+            if values and values.message and values.message ~= "" then
+                TriggerServerEvent("westrp_admin:server:executeAction", { action = "announce", payload = { message = values.message } })
+            end
             Wait(200)
             WestRP.Admin.Panel.Open()
         end,

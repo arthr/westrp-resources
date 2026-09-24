@@ -555,6 +555,11 @@ body {
   border-left-color: var(--accent-green);
 }
 
+.toast-msg.gold, .toast-msg.announce {
+  border-left-color: var(--accent-gold);
+  border-color: rgba(212, 175, 55, 0.45);
+}
+
 @keyframes toastFade {
   from {
     opacity: 0;

@@ -43,6 +43,7 @@ A camada Bridge isola todos os resources de sistema (`[systems]`) de qualquer de
 | `Respawn(source)` | Server | Força respawn limpo com transição de tela |
 | `SetJob(source, job, grade, label)` | Server | Altera o emprego, graduação e label do personagem |
 | `SetGroup(source, group)` | Server | Altera a permissão administrativa do usuário e personagem |
+| `GetGroup(source)` | Server | Retorna o grupo ativo do jogador (priorizando a conta e com fallback no personagem) |
 | `WhitelistUser(identifier)` | Server | Adiciona identificador à whitelist |
 | `UnwhitelistUser(identifier)` | Server | Remove identificador da whitelist |
 
@@ -56,6 +57,13 @@ A camada Bridge isola todos os resources de sistema (`[systems]`) de qualquer de
 | `CanCarryItem(source, itemName, count)` | Server | Valida se há espaço/capacidade para carregar o item |
 | `GiveWeapon(source, weaponName)` | Server | Concede arma de fogo ou corpo a corpo com validação de limite |
 | `ClearInventory(source)` | Server | Remove atomicamente todos os itens, armas e munições |
+
+### World Bridge (`WestRP.Shared.Bridge.World`)
+
+| Método | Tipo | Descrição |
+| :--- | :---: | :--- |
+| `BroadcastAnnouncement(title, message, duration)` | Server | Transmite anúncio com a notificação Top nativa do RDR3 para todos os jogadores |
+| `NotifySimpleTop(source, title, subtitle, duration)` | Server/Client | Dispara notificação nativa Top do RDR3 com banner e áudio chime |
 
 ---
 

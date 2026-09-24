@@ -14,7 +14,14 @@ function WestRP.Server.Admin.Security.GetPlayerRole(source)
         return "root"
     end
 
-    -- 2. Verifica grupo do personagem via Bridge do WestRP
+    -- 2. Verifica grupo da conta/personagem via Bridge do WestRP
+    if WestRP.Shared.Bridge.Player.GetGroup then
+        local userGroup = WestRP.Shared.Bridge.Player.GetGroup(source)
+        if userGroup and Config.Roles[string.lower(userGroup)] then
+            return string.lower(userGroup)
+        end
+    end
+
     local char = WestRP.Shared.Bridge.Player.GetCharacter(source)
     if char and char.group and Config.Roles[string.lower(char.group)] then
         return string.lower(char.group)

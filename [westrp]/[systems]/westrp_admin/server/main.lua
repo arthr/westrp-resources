@@ -256,3 +256,47 @@ RegisterNetEvent("westrp_admin:server:cancelRestart", function()
         WestRP.Server.Admin.Logger.Log("Server", "Restart Cancelado", "Agendamento de reinicialização cancelado", _source)
     end
 end)
+
+--------------------------------------------------------------------------------
+-- COMANDOS DE ANÚNCIO (CONSOLE / CHAT)
+--------------------------------------------------------------------------------
+RegisterCommand("announce", function(source, args, raw)
+    local msg = table.concat(args, " ")
+    if not msg or msg == "" then
+        if source > 0 then
+            WestRP.Shared.Bridge.Player.Notify(source, "Uso correto: /announce [mensagem]", 4000)
+        else
+            print("[WestRP Admin] Uso correto: announce [mensagem]")
+        end
+        return
+    end
+
+    if source > 0 then
+        if not WestRP.Server.Admin.Security.CanExecute(source, "announce") then
+            return
+        end
+    end
+
+    WestRP.Server.Admin.World.Announce(source, msg)
+end, false)
+
+RegisterCommand("anuncio", function(source, args, raw)
+    local msg = table.concat(args, " ")
+    if not msg or msg == "" then
+        if source > 0 then
+            WestRP.Shared.Bridge.Player.Notify(source, "Uso correto: /anuncio [mensagem]", 4000)
+        else
+            print("[WestRP Admin] Uso correto: anuncio [mensagem]")
+        end
+        return
+    end
+
+    if source > 0 then
+        if not WestRP.Server.Admin.Security.CanExecute(source, "announce") then
+            return
+        end
+    end
+
+    WestRP.Server.Admin.World.Announce(source, msg)
+end, false)
+

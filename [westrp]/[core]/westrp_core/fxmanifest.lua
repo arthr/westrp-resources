@@ -15,6 +15,7 @@ shared_scripts {
     'shared/callback.lua',
     'shared/bridge/vorp/player.lua',
     'shared/bridge/vorp/inventory.lua',
+    'shared/bridge/vorp/world.lua',
     'shared/bridge/bridge.lua'
 }
 

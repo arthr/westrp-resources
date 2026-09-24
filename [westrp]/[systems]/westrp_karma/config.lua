@@ -16,8 +16,8 @@ Config.BatchInterval = 60000
 
 -- Parâmetros de segurança e verificação física no servidor
 Config.Security = {
-    MaxDistance = 300.0,       -- Distância máxima permitida para tiros/agressões
-    TeleportThreshold = 15.0,  -- Tolerância máxima de desync espacial entre coordenadas client e server
+    MaxDistance = 300.0,         -- Distância máxima permitida para tiros/agressões
+    TeleportThreshold = 15.0,    -- Tolerância máxima de desync espacial entre coordenadas client e server
     EnforceFatalIntegrity = true -- Confere se a entidade atingida está de fato morta/incapacitada
 }
 
@@ -33,19 +33,19 @@ Config.Penalties = {
 
 -- Valores padrão de recompensa moral (Delta positivo)
 Config.Rewards = {
-    WantedBanditKill = 15,         -- Eliminar criminoso procurado / forasteiro hostil
-    DeliverBounty = 50,            -- Entregar foragido à justiça
-    RevivePlayer = 20,             -- Reanimar/socorrer cidadão ferido
-    CommunityWork = 10             -- Atividades cívicas, caridade ou limpeza
+    WantedBanditKill = 15, -- Eliminar criminoso procurado / forasteiro hostil
+    DeliverBounty = 50,    -- Entregar foragido à justiça
+    RevivePlayer = 20,     -- Reanimar/socorrer cidadão ferido
+    CommunityWork = 10     -- Atividades cívicas, caridade ou limpeza
 }
 
 -- Apresentação Visual no HUD Nativo (RDR2 DataBinding)
 Config.UI = {
-    UseNativeHonorBar = true,      -- Habilita a barra nativa de Honra do RDR2 via DataBinding
-    HonorDisplayDuration = 4500,   -- Tempo em milissegundos que a barra de honra fica visível ao alterar o karma
-    PlayNativeAudio = true,        -- Reproduz os efeitos sonoros originais do RDR2 (sino angelical vs acorde sombrio)
-    NotifyBountyChange = true      -- Emite alerta quando o jogador atinge elegibilidade para caçadores de recompensa
+    UseNativeHonorBar = true,    -- Habilita a barra nativa de Honra do RDR2 via DataBinding
+    HonorDisplayDuration = 4500, -- Tempo em milissegundos que a barra de honra fica visível ao alterar o karma
+    PlayNativeAudio = true,      -- Reproduz os efeitos sonoros originais do RDR2 (sino angelical vs acorde sombrio)
+    NotifyBountyChange = true    -- Emite alerta quando o jogador atinge elegibilidade para caçadores de recompensa
 }
 
 -- Depuração
-Config.Debug = false
+Config.Debug = true

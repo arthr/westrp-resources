@@ -1811,6 +1811,10 @@
   const toastContainer = document.getElementById('toast-container');
 
   function showToast(title, message, type = 'info', duration = 3500) {
+    try {
+      playUiTick(type === 'error' || type === 'alert' ? 'error' : 'confirm');
+    } catch (e) {}
+
     const toast = document.createElement('div');
     toast.className = `toast-msg ${type}`;
     toast.innerHTML = `<strong>${title}</strong><br>${message}`;

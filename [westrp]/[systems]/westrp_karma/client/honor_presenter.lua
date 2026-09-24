@@ -13,22 +13,21 @@ HonorPresenter = {
 
 ---Inicializa os contêineres do DataBinding nativo para a barra de honra do RDR2
 function HonorPresenter.Init()
-    local ok, res = pcall(function()
-        local rpgContainer = DatabindingGetDataContainerFromPath("RPGStatusIcons")
-        if rpgContainer == 0 then
-            rpgContainer = DatabindingAddDataContainerFromPath("", "RPGStatusIcons")
+    local ok, rpgContainer, icon, state = pcall(function()
+        local container = DatabindingGetDataContainerFromPath("RPGStatusIcons")
+        if container == 0 then
+            container = DatabindingAddDataContainerFromPath("", "RPGStatusIcons")
         end
-        
-        local icon = DatabindingAddDataContainer(rpgContainer, "HonorIcon")
-        local state = DatabindingAddDataInt(icon, "State", 8) -- Padrão: Neutro
-        
-        return rpgContainer, icon, state
-    end)
 
+        local iconContainer = DatabindingAddDataContainer(container, "HonorIcon")
+        local stateData = DatabindingAddDataInt(iconContainer, "State", 8)
+
+        return container, iconContainer, stateData
+    end)
     if ok then
-        HonorPresenter.container = res[1]
-        HonorPresenter.iconContainer = res[2]
-        HonorPresenter.stateData = res[3]
+        HonorPresenter.container = rpgContainer
+        HonorPresenter.iconContainer = icon
+        HonorPresenter.stateData = state
     end
 end
 

@@ -239,6 +239,10 @@ function ShowToast(title, message, type, duration)
     })
 end
 
+RegisterNetEvent('westrp_ui:client:showToast', function(title, message, type, duration)
+    ShowToast(title, message, type, duration)
+end)
+
 -- ============================================================================
 -- 5. SISTEMA DE DIALOG MODAL / FORMULÁRIO TIPADO
 -- ============================================================================
