@@ -1,35 +1,44 @@
 ---@class KarmaConfig
 Config = {}
 
--- Limites universais do sistema moral
+-- Limites universais da escala moral
 Config.MinKarma = -1000
 Config.MaxKarma = 1000
 Config.DefaultKarma = 0
 
 -- Janela temporal de legítima defesa (em segundos)
--- Se um jogador A agredir B, B pode retaliar dentro dessa janela sem sofrer perda moral
-Config.SelfDefenseDuration = 180
+-- Se uma entidade agredir o jogador, ele tem essa janela para revidar sem punição moral
+Config.SelfDefenseDuration = 45
 
 -- Persistência em lote (Unit of Work / Batch Write)
 -- Intervalo em milissegundos para consolidar dados 'dirty' no oxmysql
 Config.BatchInterval = 60000
 
--- Parâmetros de segurança e verificação física no servidor
-Config.Security = {
-    MaxDistance = 300.0,         -- Distância máxima permitida para tiros/agressões
-    TeleportThreshold = 15.0,    -- Tolerância máxima de desync espacial entre coordenadas client e server
-    EnforceFatalIntegrity = true -- Confere se a entidade atingida está de fato morta/incapacitada
-}
-
--- Valores padrão de penalidade moral (Delta negativo)
+-- Valores padrão de penalidade moral (Delta negativo para atitudes não provocadas)
 Config.Penalties = {
+    -- PvP (Jogador vs Jogador)
     PlayerKillUnprovoked = -120,   -- Assassinato não provocado de outro jogador (PK)
-    PlayerAssaultUnprovoked = -15, -- Dano injustificado contra outro jogador
-    LawmanKill = -80,              -- Assassinato de autoridade/delegado (NPC ou Player)
-    InnocentNpcKill = -35,         -- Assassinato de pedestre/civil NPC inocente
-    InnocentNpcAssault = -5,       -- Dano ou agressão contra civil inocente
+    PlayerKnockoutUnprovoked = -25,-- Nocaute injustificado de outro jogador
+    PlayerAssaultUnprovoked = -15, -- Agressão corporal injustificada contra outro jogador
+
+    -- Homens da Lei / Autoridades (Xerifes, Policiais, Guardas)
+    LawmanKill = -80,              -- Assassinato de homem da lei
+    LawmanKnockout = -35,          -- Nocaute / asfixia contra homem da lei
+    LawmanAssault = -15,           -- Agressão armada ou corporal contra autoridade
+
+    -- Civis Inocentes
+    CivilianKill = -35,            -- Assassinato de cidadão inocente
+    CivilianKnockout = -10,        -- Nocaute / asfixia de civil inocente
+    CivilianAssault = -5,          -- Agressão menor contra civil inocente
+
+    -- Crimes Gerais
     Robbery = -40                  -- Assalto a mão armada ou roubo
 }
+
+-- Aliases de compatibilidade
+Config.Penalties.InnocentNpcKill = Config.Penalties.CivilianKill
+Config.Penalties.InnocentNpcKnockout = Config.Penalties.CivilianKnockout
+Config.Penalties.InnocentNpcAssault = Config.Penalties.CivilianAssault
 
 -- Valores padrão de recompensa moral (Delta positivo)
 Config.Rewards = {
@@ -39,13 +48,11 @@ Config.Rewards = {
     CommunityWork = 10     -- Atividades cívicas, caridade ou limpeza
 }
 
--- Apresentação Visual no HUD Nativo (RDR2 DataBinding)
+-- Apresentação Visual no HUD Nativo (Desativado: Foco 100% em Logs e Depuração)
 Config.UI = {
-    UseNativeHonorBar = true,    -- Habilita a barra nativa de Honra do RDR2 via DataBinding
-    HonorDisplayDuration = 4500, -- Tempo em milissegundos que a barra de honra fica visível ao alterar o karma
-    PlayNativeAudio = true,      -- Reproduz os efeitos sonoros originais do RDR2 (sino angelical vs acorde sombrio)
-    NotifyBountyChange = true    -- Emite alerta quando o jogador atinge elegibilidade para caçadores de recompensa
+    ShowNotifications = false,     -- Desativa avisos e banners na tela do jogador
+    PlayNativeAudio = false        -- Desativa efeitos sonoros no cliente
 }
 
--- Depuração
+-- Depuração e Diagnóstico
 Config.Debug = true

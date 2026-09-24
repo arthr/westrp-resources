@@ -15,25 +15,14 @@
 ---@field baseBounty number Valor monetário padrão colocado pela lei sobre a cabeça do criminoso
 ---@field color string Código de cor hexadecimal ou classe CSS para representação visual
 
----@class CombatReportPayload
----@field isPlayer boolean Indica se o alvo é um jogador (true) ou NPC (false)
----@field victimServerId integer? Server ID da vítima (se for jogador)
----@field victimModel integer? Hash numérico do modelo da entidade alvo (especialmente para NPCs)
----@field isFatal boolean Flag indicando se a agressão resultou em óbito/incapacitação
+---@class CombatActionPayload
+---@field targetType "PLAYER" | "CIVILIAN" | "LAWMAN" | "ANIMAL" Categoria do alvo atingido
+---@field actionType "ASSAULT" | "KNOCKOUT" | "KILL" Gravidade da ação executada
+---@field initiative "UNPROVOKED" | "SELF_DEFENSE" Iniciativa da agressão (jogador iniciou ou revidou)
+---@field isNegative boolean Flag determinando se a ação constitui atitude moral negativa
 ---@field weaponHash integer Hash numérico da arma empregada no disparo/golpe
----@field attackerCoords vector3 Vetor tridimensional do agressor no instante da ação
----@field victimCoords vector3 Vetor tridimensional da vítima no instante do impacto
----@field distance number Distância euclidiana calculada no client
-
----@class AggressionRecord
----@field attackerSrc integer Server ID do agressor original
----@field victimSrc integer Server ID da vítima
----@field timestamp integer Momento Unix em segundos do registro da agressão
----@field expiresAt integer Momento Unix em segundos após o qual a legítima defesa expira
-
----@class CombatVerificationResult
----@field valid boolean Flag que indica aprovação em todos os filtros de segurança
----@field reason string Código de erro ou justificativa do veredito (ex: 'APPROVED', 'DISTANCE_EXCEEDED')
+---@field victimServerId integer? Server ID da vítima (se for jogador)
+---@field wasKnockedOut boolean? Indica se o alvo já estava previamente nocauteado
 
 ---@class KarmaUpdatePayload
 ---@field currentKarma integer Pontuação moral atualizada

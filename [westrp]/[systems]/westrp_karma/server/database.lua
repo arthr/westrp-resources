@@ -1,22 +1,71 @@
 -- ====================================================================
--- WestRP Karma — Infrastructure: DatabaseAdapter (Unit of Work)
--- File: server/infrastructure/database_adapter.lua
+-- WestRP Karma — Server: Database & Unit of Work (oxmysql)
+-- Arquivo: server/database.lua
 -- ====================================================================
 
----@class DatabaseAdapter
----@field private entities table<integer, KarmaEntity> Chave: charIdentifier
----@field private sourceToChar table<integer, integer> Chave: source, Valor: charIdentifier
-DatabaseAdapter = {
-    entities = {},
-    sourceToChar = {}
+---@class KarmaData
+---@field charIdentifier integer Identificador imutável do personagem
+---@field source integer ID da sessão de rede ativa do jogador
+---@field karma integer Pontuação numérica atual [-1000, 1000]
+---@field tier KarmaTier Objeto do patamar moral atual
+---@field bountyPrice number Valor da recompensa
+---@field isDirty boolean Flag de pendência para gravação em disco
+
+---@class Database
+Database = {
+    entities = {},     ---@type table<integer, KarmaData> [charIdentifier] = entity
+    sourceToChar = {}  ---@type table<integer, integer> [source] = charIdentifier
 }
 
----Executa auto-migração segura e idempotente do banco de dados na inicialização
-function DatabaseAdapter.RunMigrations()
+-- --------------------------------------------------------------------
+-- HELPER DE ENTIDADE MORAL (EM MEMÓRIA)
+-- --------------------------------------------------------------------
+
+local function CreateKarmaEntity(charIdentifier, source, initialKarma, bountyPrice)
+    local karma = TierEvaluator.Clamp(initialKarma or Config.DefaultKarma)
+    local tier = TierEvaluator.Resolve(karma)
+
+    local self = {
+        charIdentifier = charIdentifier,
+        source = source,
+        karma = karma,
+        tier = tier,
+        bountyPrice = bountyPrice or 0.00,
+        isDirty = false
+    }
+
+    function self:ApplyDelta(delta)
+        if delta == 0 then return false, self.tier end
+        local oldTier = self.tier
+        self.karma = TierEvaluator.Clamp(self.karma + delta)
+        self.tier = TierEvaluator.Resolve(self.karma)
+        self.isDirty = true
+        return (oldTier.id ~= self.tier.id), oldTier
+    end
+
+    function self:SetKarma(newKarma)
+        local oldTier = self.tier
+        self.karma = TierEvaluator.Clamp(newKarma)
+        self.tier = TierEvaluator.Resolve(self.karma)
+        self.isDirty = true
+        return (oldTier.id ~= self.tier.id), oldTier
+    end
+
+    function self:MarkClean()
+        self.isDirty = false
+    end
+
+    return self
+end
+
+-- --------------------------------------------------------------------
+-- MIGRAÇÕES AUTOMÁTICAS E IDEMPOTENTES DO BANCO DE DADOS
+-- --------------------------------------------------------------------
+
+function Database.RunMigrations()
     CreateThread(function()
         repeat Wait(100) until GetResourceState('oxmysql') == 'started'
-        
-        -- Helper para testar existência de coluna no schema ativo
+
         local function ColumnExists(colName)
             local query = [[
                 SELECT 1 FROM information_schema.COLUMNS 
@@ -46,7 +95,6 @@ function DatabaseAdapter.RunMigrations()
             migrationsApplied = migrationsApplied + 1
         end
 
-        -- Verifica a existência do índice idx_character_karma
         local checkIndexQuery = [[
             SELECT 1 FROM information_schema.STATISTICS 
             WHERE TABLE_SCHEMA = DATABASE() 
@@ -64,27 +112,27 @@ function DatabaseAdapter.RunMigrations()
 
         if migrationsApplied > 0 then
             print(string.format("^2[westrp_karma] Auto-Migration: %d atualizações de schema aplicadas com sucesso na tabela `characters`.^0", migrationsApplied))
-        else
-            if Config.Debug then
-                print("^2[westrp_karma] Auto-Migration: Banco de dados íntegro e sincronizado.^0")
-            end
+        elseif Config.Debug then
+            print("^2[westrp_karma] Auto-Migration: Banco de dados íntegro e sincronizado.^0")
         end
     end)
 end
 
--- Inicializa as migrações automáticas
-DatabaseAdapter.RunMigrations()
+Database.RunMigrations()
 
----Carrega ou inicializa a entidade moral de um personagem a partir do banco de dados
+-- --------------------------------------------------------------------
+-- OPERAÇÕES DE CARREGAMENTO E SESSÃO
+-- --------------------------------------------------------------------
+
+---Carrega ou inicializa a entidade moral de um personagem
 ---@param charIdentifier integer
 ---@param source integer
----@return KarmaEntity
-function DatabaseAdapter.Load(charIdentifier, source)
-    -- Verifica se já está em memória
-    if DatabaseAdapter.entities[charIdentifier] then
-        local entity = DatabaseAdapter.entities[charIdentifier]
-        entity:UpdateSource(source)
-        DatabaseAdapter.sourceToChar[source] = charIdentifier
+---@return KarmaData
+function Database.Load(charIdentifier, source)
+    if Database.entities[charIdentifier] then
+        local entity = Database.entities[charIdentifier]
+        entity.source = source
+        Database.sourceToChar[source] = charIdentifier
         return entity
     end
 
@@ -99,9 +147,9 @@ function DatabaseAdapter.Load(charIdentifier, source)
         initialBounty = tonumber(result[1].bounty_price) or 0.00
     end
 
-    local entity = KarmaEntity.New(charIdentifier, source, initialKarma, initialBounty)
-    DatabaseAdapter.entities[charIdentifier] = entity
-    DatabaseAdapter.sourceToChar[source] = charIdentifier
+    local entity = CreateKarmaEntity(charIdentifier, source, initialKarma, initialBounty)
+    Database.entities[charIdentifier] = entity
+    Database.sourceToChar[source] = charIdentifier
 
     if Config.Debug then
         print(string.format("[westrp_karma] Personagem %d carregado: Karma=%d, Tier=%s", charIdentifier, entity.karma, entity.tier.name))
@@ -110,39 +158,44 @@ function DatabaseAdapter.Load(charIdentifier, source)
     return entity
 end
 
----Recupera a entidade ativa pela sessão de rede (source)
+---Obtém a entidade pelo ID da sessão de rede (source)
 ---@param source integer
----@return KarmaEntity?
-function DatabaseAdapter.GetBySource(source)
-    local charIdentifier = DatabaseAdapter.sourceToChar[source]
-    if not charIdentifier then return nil end
-    return DatabaseAdapter.entities[charIdentifier]
+---@return KarmaData?
+function Database.GetBySource(source)
+    local charIdentifier = Database.sourceToChar[source]
+    if not charIdentifier then
+        local resolvedCharId = Karma.GetCharIdentifier(source)
+        if resolvedCharId then
+            return Database.Load(resolvedCharId, source)
+        end
+        return nil
+    end
+    return Database.entities[charIdentifier]
 end
 
----Remove o mapeamento de sessão quando o jogador desconecta e força persistência imediata
+---Descarrega o jogador ao desconectar e persiste dados pendentes
 ---@param source integer
-function DatabaseAdapter.Unload(source)
-    local charIdentifier = DatabaseAdapter.sourceToChar[source]
+function Database.Unload(source)
+    local charIdentifier = Database.sourceToChar[source]
     if not charIdentifier then return end
 
-    local entity = DatabaseAdapter.entities[charIdentifier]
+    local entity = Database.entities[charIdentifier]
     if entity and entity.isDirty then
         local updateQuery = 'UPDATE `characters` SET `karma` = ?, `karma_tier` = ?, `bounty_price` = ? WHERE `charidentifier` = ?'
         MySQL.update.await(updateQuery, { entity.karma, entity.tier.id, entity.bountyPrice, entity.charIdentifier })
         entity:MarkClean()
     end
 
-    DatabaseAdapter.sourceToChar[source] = nil
-    -- Mantém a entidade em cache temporário ou descarta
-    DatabaseAdapter.entities[charIdentifier] = nil
+    Database.sourceToChar[source] = nil
+    Database.entities[charIdentifier] = nil
 end
 
----Consolida todas as entidades marcadas como 'dirty' em uma única transação no MySQL
-function DatabaseAdapter.FlushSync()
+---Consolidação síncrona de todas as entidades marcadas como 'dirty' (Unit of Work)
+function Database.FlushSync()
     local dirtyQueries = {}
     local dirtyEntities = {}
 
-    for _, entity in pairs(DatabaseAdapter.entities) do
+    for _, entity in pairs(Database.entities) do
         if entity.isDirty then
             table.insert(dirtyQueries, {
                 query = 'UPDATE `characters` SET `karma` = ?, `karma_tier` = ?, `bounty_price` = ? WHERE `charidentifier` = ?',
@@ -167,11 +220,12 @@ function DatabaseAdapter.FlushSync()
     end
 end
 
----Thread periódica para consolidação em lote (Batching)
+-- --------------------------------------------------------------------
+-- THREAD PERIÓDICA DE PERSISTÊNCIA EM LOTE
+-- --------------------------------------------------------------------
 CreateThread(function()
     while true do
         Wait(Config.BatchInterval or 60000)
-        DatabaseAdapter.FlushSync()
-        SelfDefensePool.PurgeExpired()
+        Database.FlushSync()
     end
 end)

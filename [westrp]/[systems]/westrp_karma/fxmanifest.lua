@@ -12,23 +12,19 @@ shared_scripts {
     '@westrp_core/init.lua',
     'config.lua',
     'shared/types.lua',
-    'shared/tiers.lua'
+    'shared/tiers.lua',
+    'shared/weapons.lua'
 }
 
 client_scripts {
     'client/combat_detector.lua',
-    'client/honor_presenter.lua',
     'client/main.lua'
 }
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
-    'server/domain/karma_entity.lua',
-    'server/domain/self_defense_pool.lua',
-    'server/security/combat_verifier.lua',
-    'server/infrastructure/database_adapter.lua',
-    'server/infrastructure/framework_adapter.lua',
-    'server/services/karma_service.lua',
+    'server/database.lua',
+    'server/karma.lua',
     'server/main.lua'
 }
 

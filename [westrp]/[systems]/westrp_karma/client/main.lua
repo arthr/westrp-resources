@@ -13,14 +13,17 @@ RegisterNetEvent('westrp_karma:client:onKarmaUpdated', function(payload)
     localKarma = payload.currentKarma
     localTier = payload.tier or TierEvaluator.Resolve(localKarma)
 
-    -- Apresenta visualmente no HUD nativo caso haja variação
-    if payload.delta and payload.delta ~= 0 then
-        HonorPresenter.Show(localKarma, payload.delta)
+    -- Foco exclusivo em logs sem poluição de UI na tela
+    if Config.Debug or (payload.delta and payload.delta ~= 0) then
+        print(string.format("^2[westrp_karma:client] Sincronização de Karma: %d (Delta: %d) | Tier: %s | Motivo: %s^0", 
+            localKarma, payload.delta or 0, localTier.name, payload.reason or "SYNC"))
     end
+end)
 
-    if Config.Debug then
-        print(string.format("[westrp_karma] Karma atualizado: %d (Delta: %d) | Tier: %s", localKarma, payload.delta or 0, localTier.name))
-    end
+-- Solicita sincronização com o servidor logo na inicialização do client
+CreateThread(function()
+    Wait(2000)
+    TriggerServerEvent('westrp_karma:server:requestSync')
 end)
 
 -- ====================================================================
@@ -38,6 +41,13 @@ end)
 -- Comando informativo local para o jogador inspecionar seu próprio alinhamento
 RegisterCommand('karma', function()
     local tier = localTier
-    print(string.format("^3[Karma WestRP]^0 Sua moralidade atual: ^2%d^0 (%s)", localKarma, tier.name))
-    HonorPresenter.Show(localKarma, 1) -- Revela a barra nativa
+
+    -- Log no console F8
+    print(string.format("^3[Karma WestRP] Sua moralidade atual: %d (%s)^0", localKarma, tier.name))
+
+    -- Mensagem informativa apenas no Chat
+    TriggerEvent('chat:addMessage', {
+        color = { 218, 165, 32 },
+        args = { "[Karma WestRP]", string.format("Sua moralidade atual: %d (%s).", localKarma, tier.name) }
+    })
 end, false)
