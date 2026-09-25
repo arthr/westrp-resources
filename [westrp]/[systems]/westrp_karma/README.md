@@ -1,19 +1,17 @@
-# WestRP Karma (`westrp_karma`)
+# WestRP Karma — Dynamic Morality & Combat Detection Engine
+> **Subsistema de Moralidade e Registro de Conduta para RedM (WestRP)**
 
-> **Dynamic Morality, Systemic Karma & Combat Self-Defense Engine for WestRP**  
-> Desenvolvido pela Equipe de Engenharia WestRP para ambientes RedM (VORP Core).
+O **`westrp_karma`** é um módulo de alta performance construído especificamente para o ecossistema `[westrp]`. Ele gerencia a reputação social de personagens com persistência assíncrona, máquina de estados finitos para eventos físicos de combate e resmon 0.00ms em idle.
 
 ---
 
-## 📖 Visão Geral
+## 🌟 Características Principais
 
-O **`westrp_karma`** é um módulo de infraestrutura moral para servidores de RedM Roleplay. Ele introduz um sistema de pontuação ética contínua ($-1000$ a $+1000$) que reflete o alinhamento moral de cada habitante da fronteira (desde santos benfeitores até flagelos desalmados).
-
-O sistema resolve problemas históricos de servidores de RP:
-1. **Fim do Griefing de Legítima Defesa:** O agressor inicial é identificado em um buffer temporal (`SelfDefensePool`); a vítima que revida não sofre penalidades morais.
-2. **Alta Escalabilidade (Zero Lag de I/O):** Mutações de estado ocorrem em memória e são gravadas em lote via *Unit of Work* com `oxmysql`, eliminando travamentos de banco de dados em tiroteios.
-3. **Imersão Nativa:** Renderiza a clássica **Barra de Honra do RDR2** via `DataBinding` nativo sem necessidade de NUI pesado, acompanhada pelos efeitos sonoros originais do jogo.
-4. **Impacto Real no Mundo:** Aplica descontos e sobretaxas em lojas da cidade, altera o comportamento de NPCs e gera contratos automáticos de caça a recompensa para foras-da-lei conhecidos.
+* **Performance 0.00ms (Idle):** Integrado ao `WestRP.Client.TickManager`, adaptando o intervalo de execução para 1.5s fora de combate e acelerando para 150ms durante brigas ativas.
+* **Máquina de Estados de Combate (FSM):** Rastreia de forma determinística transições entre `ACTIVE`, `KNOCKED_OUT`, `EXECUTED` e `KILLED`.
+* **Filtro de Física de Ragdoll:** Descarta automaticamente colisões com o solo após nocautes, evitando falsos disparos de execução.
+* **Resolvedor de Armas Multi-Acoplamento:** Detecta coldres primários, secundários, armas longas de costas e ombro (`attachPoint` 0, 1, 2, 3), garantindo que armas de fogo nunca sejam tratadas como mãos vazias.
+* **Zero-Trust & Persistência em Lote:** O cliente reporta apenas intenções e evidências físicas; o servidor valida e consolida em lote a cada 60s via `oxmysql`.
 
 ---
 
@@ -21,61 +19,41 @@ O sistema resolve problemas históricos de servidores de RP:
 
 ```text
 westrp_karma/
-├── fxmanifest.lua                  # Manifesto com ordenação estrita de scripts
-├── config.lua                      # Configuração geral de balanceamento e tempos
-├── schema.sql                      # Migração DDL para a tabela characters
-├── README.md                       # Este arquivo
-├── docs/                           # Documentação detalhada
-│   ├── SDD.md                      # Software Design Document formal
-│   ├── ARCHITECTURE.md             # Desenho da Arquitetura Hexagonal
-│   └── API.md                      # Contratos de Exports e Eventos
-├── shared/                         # Código compartilhado entre client e server
-│   ├── types.lua                   # Tipos e interfaces EmmyLua (LuaLS)
-│   └── tiers.lua                   # Tabela de Tiers e avaliador puro de domínio
-├── client/                         # Camada de apresentação e detecção
-│   ├── combat_detector.lua         # Listener de impacto de dano (CEventNetworkEntityDamage)
-│   ├── honor_presenter.lua         # Driver da barra nativa do RDR2 (DataBinding)
-│   └── main.lua                    # Ciclo de vida e sincronização no cliente
-└── server/                         # Camada de domínio, segurança e infraestrutura
-    ├── domain/
-    │   ├── karma_entity.lua        # Objeto de domínio do Karma com dirty tracking
-    │   └── self_defense_pool.lua   # Buffer de autodefesa com Lazy GC
-    ├── security/
-    │   └── combat_verifier.lua     # Filtro anti-cheat, anti-teleport e distâncias
-    ├── infrastructure/
-    │   ├── database_adapter.lua    # Unit of Work / Batching com oxmysql
-    │   └── framework_adapter.lua   # Bridge isolada para VORP Core
-    ├── services/
-    │   └── karma_service.lua       # Orquestrador de regras de negócio
-    └── main.lua                    # Bootstrap do servidor e exports
+├── config.lua               # Configurações globais e valores de penalidade/recompensa
+├── fxmanifest.lua           # Manifesto Cerulean com dependência do westrp_core
+├── schema.sql               # Migração segura da coluna characters.karma
+├── README.md                # Visão geral do módulo
+├── docs/
+│   ├── ARCHITECTURE.md      # Desenho de arquitetura e fluxo de dados
+│   ├── SDD.md               # Software Design Document & Matriz Moral
+│   └── ROADMAP.md           # Planejamento de fases e evolução
+├── shared/
+│   ├── tiers.lua            # Patamares morais determinísticos (-1000 a +1000)
+│   ├── types.lua            # Anotações estritas de tipo EmmyLua
+│   └── weapons.lua          # Dicionário e resolvedor de armas
+├── client/
+│   ├── controllers/
+│   │   └── hud.lua          # Controlador NUI, mira livre (PC) e telemetria
+│   ├── listeners/
+│   │   └── game_events.lua  # Listener de CEventNetworkEntityDamage e agressões
+│   ├── pipeline/
+│   │   ├── stages.lua       # 8 estágios atômicos da pipeline de confronto
+│   │   └── engine.lua       # Motor sequencial e Step-Ladder Logger (F8/txAdmin)
+│   ├── services/
+│   │   ├── state_evaluator.lua # Avaliação de Morte vs Nocaute e classes de alvos
+│   │   └── combat_watcher.lua  # Observador corporal (TickManager 0.00ms) e GC
+│   └── main.lua             # Ciclo de vida (OnLoad/OnUnload), sync e comando /karma
+└── server/
+    ├── database.lua         # Persistência oxmysql, cache e Unit of Work
+    └── main.lua             # Regras morais, legítima defesa, /setkarma e exports
 ```
 
 ---
 
-## 🚀 Instalação e Inicialização
+## 🕹️ Comandos & Exports
 
-### 1. Migração de Banco de Dados (100% Automática)
-O `westrp_karma` possui um mecanismo integrado de **Auto-Migration** no `DatabaseAdapter`.
-Assim que o resource inicia pela primeira vez, ele verifica a integridade da tabela `characters` e cria automaticamente as colunas (`karma`, `karma_tier`, `bounty_price`) e o índice (`idx_character_karma`) através do `oxmysql`.
-
-> **Nota:** Não é necessário rodar comandos manuais no terminal! O arquivo `schema.sql` é mantido apenas como documentação e referência DDL para DBAs.
-
-### 2. Ativação no `server.cfg`
-Certifique-se apenas de iniciar o `westrp_karma` após as dependências do core (`westrp_core` e `oxmysql`):
-
-```cfg
-ensure oxmysql
-ensure vorp_core
-ensure westrp_core
-...
-ensure westrp_karma
-```
-
----
-
-## 📚 Documentação Técnica
-
-Para mais detalhes sobre o design e integrações:
-* [Software Design Document (SDD)](docs/SDD.md)
-* [Guia de Arquitetura Hexagonal](docs/ARCHITECTURE.md)
-* [Referência de API e Exports](docs/API.md)
+* `/karma` (Cliente): Exibe a moralidade atual e o respectivo patamar no chat e no F8.
+* `/setkarma [id] [valor]` (Admin/Server): Define diretamente a pontuação de um jogador.
+* `exports.westrp_karma:GetPlayerKarma(source)`: Retorna o número de karma do personagem.
+* `exports.westrp_karma:GetPlayerTier(source)`: Retorna a tabela do patamar moral atual.
+* `exports.westrp_karma:ModifyKarma(source, amount, reason)`: Aplica variação moral com evento e sincronização.

@@ -1,31 +1,31 @@
----@meta
 -- ====================================================================
--- WestRP Karma — Domain Types & Data Contracts
+-- WestRP Karma — Shared Types (EmmyLua Strict Annotations)
 -- File: shared/types.lua
 -- ====================================================================
 
 ---@class KarmaTier
----@field id string Identificador unívoco do tier (ex: 'saint', 'honorable', 'neutral', 'outlaw', 'scourge')
----@field name string Nome legível e amigável para exibição em menus/HUD
----@field min integer Limite inferior inclusivo da pontuação moral [-1000, 1000]
----@field max integer Limite superior inclusivo da pontuação moral [-1000, 1000]
----@field nativeState integer Mapeamento visual para o HonorIcon nativo (1 = Mais sombrio, 16 = Mais honrado)
----@field shopDiscount number Multiplicador de preço nas lojas (-0.15 = 15% desc., +0.25 = 25% acréscimo)
----@field bountyEligible boolean Flag que indica se o jogador pode receber cartaz de caça a recompensa
----@field baseBounty number Valor monetário padrão colocado pela lei sobre a cabeça do criminoso
----@field color string Código de cor hexadecimal ou classe CSS para representação visual
+---@field id string
+---@field name string
+---@field minKarma integer
+---@field maxKarma integer
+---@field shopDiscount number
+---@field bountyEligible boolean
+---@field baseBounty number
 
 ---@class CombatActionPayload
----@field targetType "PLAYER" | "CIVILIAN" | "LAWMAN" | "ANIMAL" Categoria do alvo atingido
----@field actionType "ASSAULT" | "KNOCKOUT" | "KILL" Gravidade da ação executada
----@field initiative "UNPROVOKED" | "SELF_DEFENSE" Iniciativa da agressão (jogador iniciou ou revidou)
----@field isNegative boolean Flag determinando se a ação constitui atitude moral negativa
----@field weaponHash integer Hash numérico da arma empregada no disparo/golpe
----@field victimServerId integer? Server ID da vítima (se for jogador)
----@field wasKnockedOut boolean? Indica se o alvo já estava previamente nocauteado
+---@field targetType "CIVILIAN" | "LAWMAN" | "PLAYER" | "ANIMAL"
+---@field actionType "KILL" | "KNOCKOUT" | "ASSAULT"
+---@field initiative "UNPROVOKED" | "SELF_DEFENSE"
+---@field isNegative boolean
+---@field weaponHash integer
+---@field victimServerId integer?
+---@field wasKnockedOut boolean
+---@field wasAssaulted boolean
 
----@class KarmaUpdatePayload
----@field currentKarma integer Pontuação moral atualizada
----@field delta integer Quantidade adicionada ou deduzida
----@field tier KarmaTier Objeto do patamar moral correspondente
----@field reason string Descritivo da ação geradora do evento
+---@class CharacterKarmaData
+---@field charIdentifier integer
+---@field source integer
+---@field karma integer
+---@field tier KarmaTier
+---@field isDirty boolean
+---@field lastSaved integer

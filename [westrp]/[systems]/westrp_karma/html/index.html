@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>WestRP Karma — Live Combat Telemetry HUD</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="karma-hud" class="hud-container hidden">
+    <!-- Header: Status do Jogador -->
+    <header class="hud-header">
+      <div class="hud-title-bar">
+        <span class="hud-badge-brand">WESTRP</span>
+        <h1 class="hud-title">KARMA TELEMETRY</h1>
+        <div id="hud-status-indicator" class="status-dot idle" title="Status de Combate"></div>
+      </div>
+      <div class="hud-player-stats">
+        <div class="stat-pill">
+          <span class="stat-label">KARMA</span>
+          <span id="player-karma" class="stat-val neutral">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">PATAMAR</span>
+          <span id="player-tier" class="stat-val">Neutro</span>
+        </div>
+      </div>
+      <div class="hud-meta-row">
+        <span class="meta-item"><strong id="combat-state">FORA DE COMBATE</strong></span>
+        <span class="meta-divider">•</span>
+        <span id="player-weapon" class="meta-weapon" title="Arma Detectada">WEAPON_UNARMED</span>
+      </div>
+    </header>
+
+    <!-- Cartão de Alvo em Foco -->
+    <section id="target-card" class="target-card target-empty">
+      <div class="target-header">
+        <span class="section-tag">ALVO EM FOCO / MIRA</span>
+        <span id="target-fsm-badge" class="fsm-badge">NONE</span>
+      </div>
+      <div id="target-details" class="target-details">
+        <span class="target-none-hint">Nenhum Ped em combate direto ou mira próxima</span>
+      </div>
+    </section>
+
+    <!-- Feed de Decisões e Eventos em Tempo Real -->
+    <section class="events-feed-section">
+      <div class="feed-header">
+        <span class="section-tag">FEED DE EVENTOS & DECISÕES</span>
+        <span class="feed-counter" id="log-count">0 eventos</span>
+      </div>
+      <div id="logs-container" class="logs-container">
+        <!-- Itens inseridos dinamicamente pelo script.js -->
+        <div class="log-empty-placeholder">Aguardando eventos físicos de combate...</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -8,6 +8,14 @@ author 'WestRP Engineering Team'
 description 'Dynamic Morality, Systemic Karma & Combat Self-Defense Engine for WestRP'
 version '1.0.0'
 
+ui_page 'html/index.html'
+
+files {
+    'html/index.html',
+    'html/style.css',
+    'html/script.js'
+}
+
 shared_scripts {
     '@westrp_core/init.lua',
     'config.lua',
@@ -17,14 +25,18 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/combat_detector.lua',
+    'client/services/state_evaluator.lua',
+    'client/controllers/hud.lua',
+    'client/pipeline/stages.lua',
+    'client/pipeline/engine.lua',
+    'client/services/combat_watcher.lua',
+    'client/listeners/game_events.lua',
     'client/main.lua'
 }
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/database.lua',
-    'server/karma.lua',
     'server/main.lua'
 }
 

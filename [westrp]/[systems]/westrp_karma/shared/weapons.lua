@@ -6,8 +6,6 @@
 ---@class Weapons
 Weapons = {}
 
--- Hash nativa de desarmado no RDR2 / RedM: joaat("WEAPON_UNARMED")
--- Em inteiro assinado de 32-bit (Lua FXServer): -1569615261 (0xA2719263)
 local UNARMED_HASH_SIGNED = -1569615261
 local UNARMED_HASH_UNSIGNED = 0xA2719263
 
@@ -68,7 +66,7 @@ local WEAPON_REGISTRY = {
     [GetHashKey("WEAPON_THROWN_THROWING_KNIVES")] = "WEAPON_THROWN_THROWING_KNIVES (Facas de Arremesso)"
 }
 
----Verifica se a arma corresponde a mãos vazias / combate desarmado
+---Verifica se a hash corresponde a mãos vazias / desarmado
 ---@param hash integer?
 ---@return boolean
 function Weapons.IsUnarmed(hash)
@@ -83,12 +81,11 @@ function Weapons.IsUnarmed(hash)
         return true
     end
 
-    -- Normalização de hash unsigned vs signed 32-bit
     local normalized = (hNum < 0) and (hNum + 0x100000000) or hNum
     return normalized == UNARMED_HASH_UNSIGNED
 end
 
----Retorna o nome legível e formatado da arma para exibição de logs e depuração
+---Retorna o nome legível da arma formatado para logs
 ---@param hash integer?
 ---@return string
 function Weapons.GetWeaponLabel(hash)
@@ -97,12 +94,10 @@ function Weapons.GetWeaponLabel(hash)
     end
 
     local hNum = tonumber(hash) or 0
-
     if WEAPON_REGISTRY[hNum] then
         return WEAPON_REGISTRY[hNum]
     end
 
-    -- Tenta chave assinada se veio não-assinada ou vice-versa
     local altHash = (hNum > 0x7FFFFFFF) and (hNum - 0x100000000) or (hNum + 0x100000000)
     if WEAPON_REGISTRY[altHash] then
         return WEAPON_REGISTRY[altHash]

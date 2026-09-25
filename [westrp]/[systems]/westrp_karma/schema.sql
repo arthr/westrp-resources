@@ -1,21 +1,23 @@
 -- ====================================================================
--- WestRP Karma — Database Migration Schema
--- Resource: westrp_karma
--- Framework: VORP Core (tabela: characters)
+-- WestRP Karma — Database Schema & Auto-Migration
+-- File: schema.sql
 -- ====================================================================
 
--- Adiciona as colunas necessárias na tabela characters caso não existam
-ALTER TABLE `characters` 
-ADD COLUMN IF NOT EXISTS `karma` INT NOT NULL DEFAULT 0,
-ADD COLUMN IF NOT EXISTS `karma_tier` VARCHAR(32) NOT NULL DEFAULT 'neutral',
-ADD COLUMN IF NOT EXISTS `bounty_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00;
-
--- Cria índice composto para leitura rápida de integridade e consultas em lote
-SET @exist := (SELECT COUNT(*) FROM information_schema.statistics 
-               WHERE table_schema = DATABASE() 
-               AND table_name = 'characters' 
-               AND index_name = 'idx_character_karma');
-SET @sqlstmt := IF(@exist = 0, 'CREATE INDEX `idx_character_karma` ON `characters` (`charidentifier`, `karma`)', 'SELECT 1');
-PREPARE stmt FROM @sqlstmt;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Adiciona a coluna 'karma' na tabela 'characters' se ainda não existir
+SET @dbname = DATABASE();
+SET @tablename = "characters";
+SET @columnname = "karma";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  "ALTER TABLE characters ADD COLUMN karma INT NOT NULL DEFAULT 0 COMMENT 'Pontuação moral dinâmica do personagem [-1000 a +1000]';"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
