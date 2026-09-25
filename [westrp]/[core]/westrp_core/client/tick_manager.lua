@@ -21,9 +21,12 @@ function WestRP.Client.TickManager.CreateTask(name, fn, initialInterval)
         WestRP.Client.TickManager.RemoveTask(name)
     end
 
+    local owner = GetInvokingResource() or GetCurrentResourceName()
+
     ---@type TaskContext
     local task = {
         name = name,
+        owner = owner,
         interval = initialInterval or 1000,
         isRunning = true,
         SetInterval = function(self, ms)
@@ -38,12 +41,19 @@ function WestRP.Client.TickManager.CreateTask(name, fn, initialInterval)
 
     CreateThread(function()
         while task.isRunning do
+            if not task.isRunning then break end
             local ok, err = pcall(fn, task)
             if not ok then
+                local errStr = tostring(err or "")
+                if string.find(errStr, "script host failed") or string.find(errStr, "function reference") or not task.isRunning then
+                    task.isRunning = false
+                    break
+                end
                 WestRP.Shared.Logger.Error("TICK", "Erro na execução da tarefa '%s': %s", name, err)
                 task.isRunning = false
                 break
             end
+            if not task.isRunning then break end
             Wait(task.interval)
         end
         activeTasks[name] = nil
@@ -85,8 +95,18 @@ function WestRP.Client.TickManager.StopAll()
     activeTasks = {}
 end
 
-AddEventHandler('onResourceStop', function(resName)
+local function handleResourceStop(resName)
     if resName == GetCurrentResourceName() then
         WestRP.Client.TickManager.StopAll()
+    else
+        for name, task in pairs(activeTasks) do
+            if task.owner == resName then
+                task.isRunning = false
+                activeTasks[name] = nil
+            end
+        end
     end
-end)
+end
+
+AddEventHandler('onResourceStop', handleResourceStop)
+AddEventHandler('onClientResourceStop', handleResourceStop)
