@@ -19,8 +19,16 @@ function CombatWatcher.Start()
     local function RunMainLoop(task)
         local playerPed = PlayerPedId()
         local now = GetGameTimer()
-        local inCombat = (now - KarmaState.lastCombatTime) < 8000
-        local desiredInterval = inCombat and 250 or 600
+
+        local isAiming = IsPlayerFreeAiming(PlayerId())
+        local hasBleedingVictims = (next(KarmaState.bleedingVictims) ~= nil)
+        local isDirectCombat = (now - KarmaState.lastCombatTime) < 8000
+            or IsPedInMeleeCombat(playerPed)
+            or IsPedInCombat(playerPed, 0)
+            or isAiming
+        local inCombat = isDirectCombat or hasBleedingVictims
+
+        local desiredInterval = inCombat and (isAiming and 100 or 200) or 500
 
         -- Observador ativo de combate corpo a corpo
         local inMelee = IsPedInMeleeCombat(playerPed)
@@ -52,14 +60,78 @@ function CombatWatcher.Start()
                         estimatedDelta = 0,
                         killerSource = playerPed
                     }
-                    CombatPipeline.Run(ctx)
+                    pcall(CombatPipeline.Run, ctx)
                 end
                 KarmaState.lastMeleeHealth[meleeTarget] = curHp
             end
         end
 
+        -- Observador de ameaças armadas reais (inimigos hostis atirando ou empunhando armas contra o jogador)
+        local pCoords = GetEntityCoords(playerPed)
+        local peds = GetGamePool('CPed')
+        for i = 1, #peds do
+            local ped = peds[i]
+            if ped ~= playerPed and DoesEntityExist(ped) and not IsPedAPlayer(ped) then
+                local vCoords = GetEntityCoords(ped)
+                if #(pCoords - vCoords) < 45.0 then
+                    -- Se o ped estiver em combate contra o jogador
+                    if IsPedInCombat(ped, playerPed) then
+                        KarmaState.lastCombatTime = now
+                        local isLawman = (KarmaState.ClassifyTarget(ped) == "LAWMAN")
+                        local playerStarted = KarmaState.playerAggressions and (KarmaState.playerAggressions[ped] ~= nil)
+
+                        if not isLawman and not playerStarted then
+                            local isShooting = IsPedShooting(ped)
+                            local isArmedWithGun = IsPedArmed(ped, 4) -- 4 = empunhando arma de fogo
+
+                            -- Se estiver disparando OU em combate ativo empunhando arma de fogo
+                            if isShooting or isArmedWithGun then
+                                KarmaState.recentAimThreats[ped] = now
+                                if isShooting then
+                                    KarmaState.recentAttackers[ped] = now
+                                    if Config.Debug then
+                                        print(string.format("^5[DEBUG]^7 [^3KARMA_GUNFIGHT^7] Disparo ativo detectado de Ped #%d contra jogador (Legítima Defesa imediata)^0", ped))
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Observador de óbito tardio para alvos feridos por armas de fogo ou em sangramento (Task 3.2)
+        if hasBleedingVictims then
+            for victimPed, bleedData in pairs(KarmaState.bleedingVictims) do
+                if DoesEntityExist(victimPed) and KarmaState.IsPedActuallyDead(victimPed) and not KarmaState.deadPeds[victimPed] then
+                    ---@type CombatContext
+                    local ctx = {
+                        victim = victimPed,
+                        culprit = bleedData.author,
+                        args = nil,
+                        playerPed = playerPed,
+                        isAuthor = (bleedData.author == playerPed),
+                        isDead = true,
+                        isKnockedOut = false,
+                        isAssault = false,
+                        targetType = "UNKNOWN",
+                        weaponHash = bleedData.weaponHash,
+                        weaponLabel = "",
+                        actionType = "KILL",
+                        initiative = "UNPROVOKED",
+                        victimServerId = nil,
+                        estimatedDelta = 0,
+                        killerSource = bleedData.author
+                    }
+                    pcall(CombatPipeline.Run, ctx)
+                end
+            end
+        end
+
         -- Atualiza interface visual do HUD
-        KarmaHUD:UpdateFrame(playerPed, inCombat)
+        pcall(function()
+            KarmaHUD:UpdateFrame(playerPed, inCombat)
+        end)
 
         if task and task.SetInterval then
             task:SetInterval(desiredInterval)
@@ -105,6 +177,24 @@ function CombatWatcher.Start()
         for ped, atkTime in pairs(KarmaState.recentAttackers) do
             if not DoesEntityExist(ped) or (now - atkTime) > ((Config.SelfDefenseDuration or 45) * 1000) then
                 KarmaState.recentAttackers[ped] = nil
+            end
+        end
+
+        for ped, threatTime in pairs(KarmaState.recentAimThreats) do
+            if not DoesEntityExist(ped) or (now - threatTime) > 30000 then
+                KarmaState.recentAimThreats[ped] = nil
+            end
+        end
+
+        for ped, aggTime in pairs(KarmaState.playerAggressions) do
+            if not DoesEntityExist(ped) or (now - aggTime) > ((Config.SelfDefenseDuration or 45) * 1000) then
+                KarmaState.playerAggressions[ped] = nil
+            end
+        end
+
+        for ped, bleedData in pairs(KarmaState.bleedingVictims) do
+            if not DoesEntityExist(ped) or (now - (bleedData.assaultTimestamp or 0)) > 45000 then
+                KarmaState.bleedingVictims[ped] = nil
             end
         end
 

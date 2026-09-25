@@ -223,10 +223,14 @@ function Karma.ProcessCombatAction(attackerSrc, payload)
     -- 2. CASO DE ATITUDE NEGATIVA NÃO PROVOCADA (Iniciada pelo jogador)
     local delta = 0
     local reason = ""
+    local isHeadshot = payload.isHeadshot == true
 
     if payload.targetType == "PLAYER" then
         if payload.actionType == "KILL" then
-            if payload.wasKnockedOut then
+            if isHeadshot then
+                delta = -150
+                reason = "Assassinato de cidadão com tiro na cabeça (PK Headshot)"
+            elseif payload.wasKnockedOut then
                 delta = -95
                 reason = "Execução de cidadão desacordado"
             elseif payload.wasAssaulted then
@@ -241,50 +245,82 @@ function Karma.ProcessCombatAction(attackerSrc, payload)
             reason = "Nocaute injustificado de outro cidadão"
         else
             delta = Config.Penalties.PlayerAssaultUnprovoked or -15
-            reason = "Agressão corporal armada contra cidadão"
+            reason = "Agressão armada contra cidadão"
         end
     elseif payload.targetType == "LAWMAN" then
+        local killBase = Config.Penalties.LawmanKill or -80
+        local assaultBase = Config.Penalties.LawmanAssault or -15
+        local knockoutBase = Config.Penalties.LawmanKnockout or -35
+        local headshotPenalty = -100
+
         if payload.actionType == "KILL" then
-            if payload.wasKnockedOut then
+            if payload.wasAssaulted or payload.isBleedoutPromotion then
+                local fullPenalty = isHeadshot and headshotPenalty or killBase
+                delta = fullPenalty - assaultBase
+                if delta > 0 then delta = 0 end
+                reason = isHeadshot
+                    and "Óbito de autoridade por tiro na cabeça (Headshot pós-agressão)"
+                    or "Óbito de autoridade por ferimentos balísticos (Bleedout)"
+            elseif isHeadshot then
+                delta = headshotPenalty
+                reason = "Assassinato de autoridade com tiro na cabeça (Headshot)"
+            elseif payload.wasKnockedOut then
                 delta = -45
                 reason = "Execução de autoridade desacordada"
-            elseif payload.wasAssaulted then
-                delta = (Config.Penalties.LawmanKill or -80) - (Config.Penalties.LawmanAssault or -15)
-                reason = "Assassinato de homem da lei"
             else
-                delta = Config.Penalties.LawmanKill or -80
+                delta = killBase
                 reason = "Assassinato de homem da lei"
             end
         elseif payload.actionType == "KNOCKOUT" then
-            delta = Config.Penalties.LawmanKnockout or -35
+            delta = knockoutBase
             reason = "Nocaute / asfixia contra homem da lei"
         else
-            delta = Config.Penalties.LawmanAssault or -15
+            delta = assaultBase
             reason = "Agressão contra autoridade da lei"
         end
     else -- "CIVILIAN"
+        local killBase = Config.Penalties.CivilianKill or -35
+        local assaultBase = Config.Penalties.CivilianAssault or -5
+        local knockoutBase = Config.Penalties.CivilianKnockout or -10
+        local headshotPenalty = -45
+
         if payload.actionType == "KILL" then
-            if payload.wasKnockedOut then
+            if payload.wasAssaulted or payload.isBleedoutPromotion then
+                local fullPenalty = isHeadshot and headshotPenalty or killBase
+                delta = fullPenalty - assaultBase
+                if delta > 0 then delta = 0 end
+                reason = isHeadshot
+                    and "Óbito por tiro na cabeça (Headshot pós-agressão de civil)"
+                    or "Óbito confirmado por ferimentos de civil (Sangramento/Bleedout)"
+            elseif isHeadshot then
+                delta = headshotPenalty
+                reason = "Assassinato de civil inocente com tiro na cabeça (Headshot)"
+            elseif payload.wasKnockedOut then
                 delta = -25
                 reason = "Execução de civil desacordado"
-            elseif payload.wasAssaulted then
-                delta = (Config.Penalties.CivilianKill or -35) - (Config.Penalties.CivilianAssault or -5)
-                reason = "Assassinato de civil inocente"
             else
-                delta = Config.Penalties.CivilianKill or -35
+                delta = killBase
                 reason = "Assassinato de civil inocente"
             end
         elseif payload.actionType == "KNOCKOUT" then
-            delta = Config.Penalties.CivilianKnockout or -10
+            delta = knockoutBase
             reason = "Nocaute / asfixia de civil inocente"
         else
-            delta = Config.Penalties.CivilianAssault or -5
-            reason = "Agressão corporal contra civil inocente"
+            delta = assaultBase
+            reason = "Agressão contra civil inocente"
         end
     end
 
-    LogWarn("KARMA_SERVER", "ATITUDE NEGATIVA: Jogador [%d] -> Alvo: [%s] | Ação: [%s] | Arma: %s | Delta: %d pts | Motivo: %s",
-        attackerSrc, payload.targetType, payload.actionType, weaponLabel, delta, reason)
+    local ballisticStr = ""
+    if payload.distanceMeters and payload.distanceMeters > 0 then
+        ballisticStr = string.format(" | Distância: %.1fm", payload.distanceMeters)
+    end
+    if isHeadshot then
+        ballisticStr = ballisticStr .. " | [CRÍTICO: HEADSHOT]"
+    end
+
+    LogWarn("KARMA_SERVER", "ATITUDE NEGATIVA: Jogador [%d] -> Alvo: [%s] | Ação: [%s] | Arma: %s%s | Delta: %d pts | Motivo: %s",
+        attackerSrc, payload.targetType, payload.actionType, weaponLabel, ballisticStr, delta, reason)
 
     local success, newKarma = Karma.Modify(attackerSrc, delta, reason)
     if success and newKarma and Config.Debug then
@@ -293,8 +329,134 @@ function Karma.ProcessCombatAction(attackerSrc, payload)
 end
 
 -- ====================================================================
+-- CANAL AUTORITATIVO DE PVP (DUAL-CHANNEL ARCHITECTURE)
+-- ====================================================================
+
+---@type table<integer, number> Timestamp da última morte PvP processada por vítima (debounce de 4 segundos)
+local recentPvPDeaths = {}
+
+---@type table<string, { timestamp: number, isHeadshot: boolean?, weaponHash: integer? }> Rastreamento de agressões PvP
+local recentPvPAggression = {}
+
+---Registra agressão iniciada entre dois jogadores (para checagem posterior de legítima defesa e headshots)
+RegisterNetEvent('westrp_karma:server:reportPvPAggression', function(targetServerId, isHeadshot, weaponHash)
+    local attackerSrc = tonumber(source)
+    targetServerId = tonumber(targetServerId)
+    if not attackerSrc or not targetServerId or attackerSrc == targetServerId then return end
+    local key = string.format("%d_%d", attackerSrc, targetServerId)
+    recentPvPAggression[key] = {
+        timestamp = os.time(),
+        isHeadshot = (isHeadshot == true),
+        weaponHash = tonumber(weaponHash) or 0
+    }
+    if Config.Debug then
+        LogDebug("KARMA_PVP", "Agressão PvP registrada: Atacante [%d] -> Alvo [%d] | Headshot: %s | Arma: %s",
+            attackerSrc, targetServerId, tostring(isHeadshot), tostring(weaponHash or 0))
+    end
+end)
+
+---Processa a morte autoritativa de um jogador real em combate PvP
+---@param victimSource integer Server ID do jogador que faleceu (vítima)
+---@param killerServerId integer? Server ID do causador do dano fatal
+---@param deathCause integer? Hash da arma ou causa da morte
+function Karma.HandlePvPDeath(victimSource, killerServerId, deathCause)
+    victimSource = tonumber(victimSource)
+    killerServerId = tonumber(killerServerId)
+    if not victimSource or victimSource <= 0 then return end
+
+    local now = os.time()
+
+    -- 1. Deduplicação com janela deslizante de 4s (evita duplicar vorp_core e baseevents)
+    if recentPvPDeaths[victimSource] and (now - recentPvPDeaths[victimSource]) < 4 then
+        if Config.Debug then
+            LogDebug("KARMA_PVP", "Morte PvP duplicada descartada para Vítima [%d] (debounce ativo)", victimSource)
+        end
+        return
+    end
+    recentPvPDeaths[victimSource] = now
+
+    -- 2. Descarte de suicídios, quedas, acidentes ambientais ou causador inválido
+    if not killerServerId or killerServerId <= 0 or killerServerId == victimSource then
+        if Config.Debug then
+            LogDebug("KARMA_PVP", "Morte não atribuível a outro jogador: Vítima [%d] (Causa: %s)",
+                victimSource, tostring(deathCause or 0))
+        end
+        return
+    end
+
+    -- 3. Resolução da arma utilizada
+    local weaponHash = tonumber(deathCause) or 0
+    local aggressionKeyKillerToVictim = string.format("%d_%d", killerServerId, victimSource)
+    local killerAggression = recentPvPAggression[aggressionKeyKillerToVictim]
+    if (weaponHash == 0 or Weapons.IsUnarmed(weaponHash)) and killerAggression and killerAggression.weaponHash and killerAggression.weaponHash ~= 0 then
+        weaponHash = killerAggression.weaponHash
+    end
+    local weaponLabel = Weapons.GetWeaponLabel(weaponHash)
+
+    -- 4. Análise de Legítima Defesa PvP (A vítima agrediu o assassino nos últimos 45 segundos?)
+    local selfDefenseKey = string.format("%d_%d", victimSource, killerServerId)
+    local victimAggression = recentPvPAggression[selfDefenseKey]
+    local isSelfDefense = victimAggression and (now - victimAggression.timestamp) <= (Config.SelfDefenseDuration or 45)
+
+    if isSelfDefense then
+        LogInfo("KARMA_PVP", "LEGÍTIMA DEFESA PvP: Vítima [%d] foi eliminada pelo Jogador [%d] após tê-lo agredido (Arma: %s). Honra preservada (0 pts).",
+            victimSource, killerServerId, weaponLabel)
+
+        recentPvPAggression[selfDefenseKey] = nil
+
+        TriggerClientEvent('chat:addMessage', killerServerId, {
+            color = { 50, 205, 50 },
+            args = { "[Karma - Legítima Defesa]", "Você se defendeu legitimamente contra uma agressão. Nenhuma penalidade aplicada." }
+        })
+        return
+    end
+
+    -- 5. Assassinato Não Provocado de Cidadão (PK)
+    local isHeadshot = killerAggression and (killerAggression.isHeadshot == true) and (now - killerAggression.timestamp) <= 10
+    local delta = isHeadshot and -150 or (Config.Penalties.PlayerKillUnprovoked or -120)
+    local reason = isHeadshot
+        and string.format("Assassinato de cidadão com tiro na cabeça (PK Headshot com %s)", weaponLabel)
+        or string.format("Assassinato não provocado de cidadão (PK com %s)", weaponLabel)
+
+    LogWarn("KARMA_PVP", "ATITUDE NEGATIVA (PK%s): Assassino [%d] eliminou Vítima [%d] de forma injustificada | Arma: %s | Delta: %d pts",
+        isHeadshot and " HEADSHOT" or "", killerServerId, victimSource, weaponLabel, delta)
+
+    Karma.Modify(killerServerId, delta, reason)
+
+    -- Limpa o registro de agressão consumido
+    recentPvPAggression[aggressionKeyKillerToVictim] = nil
+
+    -- Notificação formal no chat do assassino
+    TriggerClientEvent('chat:addMessage', killerServerId, {
+        color = { 255, 69, 0 },
+        args = { "[Karma - Crime Severo]", string.format("Você assassinou um cidadão (%s). Sua honra foi severamente manchada (%d pts).", weaponLabel, delta) }
+    })
+end
+
+-- ====================================================================
 -- REGISTRO DE EVENTOS E CICLO DE VIDA DO RECURSO
 -- ====================================================================
+
+-- Listener Autoritativo do VORP Core para Morte de Jogadores
+RegisterNetEvent('vorp_core:Server:OnPlayerDeath', function(killerServerId, deathCause)
+    local victimSource = source
+    if Config.Debug then
+        LogDebug("KARMA_PVP", "vorp_core:Server:OnPlayerDeath recebido: Vítima [%s] | Assassino [%s] | Causa [%s]",
+            tostring(victimSource), tostring(killerServerId), tostring(deathCause))
+    end
+    Karma.HandlePvPDeath(victimSource, killerServerId, deathCause)
+end)
+
+-- Listener de Compatibilidade do BaseEvents para Morte de Jogadores
+RegisterNetEvent('baseevents:onPlayerKilled', function(killerId, data)
+    local victimSource = source
+    local weaponHash = data and data.weaponhash or 0
+    if Config.Debug then
+        LogDebug("KARMA_PVP", "baseevents:onPlayerKilled recebido: Vítima [%s] | Assassino [%s] | Arma [%s]",
+            tostring(victimSource), tostring(killerId), tostring(weaponHash))
+    end
+    Karma.HandlePvPDeath(victimSource, killerId, weaponHash)
+end)
 
 -- Evento de Seleção de Personagem no VORP Core
 AddEventHandler('vorp:SelectedCharacter', function(source, character)
@@ -304,8 +466,17 @@ AddEventHandler('vorp:SelectedCharacter', function(source, character)
     end
 end)
 
--- Evento de Desconexão de Jogador
+-- Evento de Desconexão de Jogador com Limpeza de Caches
 AddEventHandler('playerDropped', function(reason)
+    local src = tonumber(source)
+    if src then
+        recentPvPDeaths[src] = nil
+        for k, _ in pairs(recentPvPAggression) do
+            if k:find("^" .. src .. "_") or k:find("_" .. src .. "$") then
+                recentPvPAggression[k] = nil
+            end
+        end
+    end
     Karma.OnPlayerDrop(source)
 end)
 
@@ -351,7 +522,7 @@ RegisterNetEvent('westrp_karma:server:requestSync', function()
     end
 end)
 
--- Evento de Ação de Combate (Client -> Server)
+-- Evento de Ação de Combate PvE (Client -> Server)
 RegisterNetEvent('westrp_karma:server:onCombatAction', function(payload)
     local _source = source
     if not _source or _source <= 0 or not payload then return end

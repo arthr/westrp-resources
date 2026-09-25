@@ -227,6 +227,7 @@ body {
 
 .fsm-badge.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
 .fsm-badge.engaged { background: rgba(249, 115, 22, 0.25); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+.fsm-badge.pvp { background: rgba(168, 85, 247, 0.25); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
 .fsm-badge.knockout { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 .fsm-badge.kill, .fsm-badge.dead { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
@@ -326,9 +327,12 @@ body {
 }
 
 .log-badge.kill { background: rgba(230, 57, 70, 0.25); color: #ff6b6b; border: 1px solid rgba(230, 57, 70, 0.5); }
+.log-badge.headshot { background: rgba(185, 28, 28, 0.4); color: #fca5a5; border: 1px solid #ffd700; box-shadow: 0 0 6px rgba(255, 215, 0, 0.4); }
+.log-badge.bleedout { background: rgba(180, 83, 9, 0.35); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.6); }
 .log-badge.execution { background: rgba(168, 85, 247, 0.25); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.5); }
 .log-badge.knockout { background: rgba(245, 158, 11, 0.25); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.5); }
 .log-badge.defense { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+.log-badge.pvp { background: rgba(59, 130, 246, 0.3); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.6); }
 .log-badge.assault { background: rgba(249, 115, 22, 0.25); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.5); }
 .log-badge.filtered { background: rgba(100, 116, 139, 0.25); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.5); }
 .log-badge.pipe_halt { background: rgba(245, 158, 11, 0.22); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); }

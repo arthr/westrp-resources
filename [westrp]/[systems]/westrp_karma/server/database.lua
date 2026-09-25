@@ -92,11 +92,13 @@ function Database.Unload(source)
     if not entity then return end
 
     if entity.isDirty then
-        MySQL.update.await('UPDATE characters SET karma = ? WHERE charidentifier = ?', {
-            entity.karma,
-            entity.charIdentifier
-        })
+        local charId = entity.charIdentifier
+        local karmaVal = entity.karma
         entity.isDirty = false
+        MySQL.update('UPDATE characters SET karma = ? WHERE charidentifier = ?', {
+            karmaVal,
+            charId
+        })
     end
 
     cacheBySource[source] = nil

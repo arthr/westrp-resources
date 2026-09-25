@@ -89,7 +89,8 @@ window.addEventListener('message', (event) => {
         targetFsmBadgeEl.textContent = data.fsmState || 'ACTIVE';
         const fsmClass = (data.fsmState || '').toLowerCase();
         let badgeStyle = 'active';
-        if (fsmClass === 'knockout') badgeStyle = 'knockout';
+        if (fsmClass.includes('pvp')) badgeStyle = 'pvp';
+        else if (fsmClass === 'knockout') badgeStyle = 'knockout';
         else if (fsmClass === 'kill' || fsmClass === 'dead') badgeStyle = 'kill';
         else if (fsmClass === 'engaged') badgeStyle = 'engaged';
         targetFsmBadgeEl.className = 'fsm-badge ' + badgeStyle;
@@ -101,7 +102,7 @@ window.addEventListener('message', (event) => {
           </div>
           <div class="target-data-point">
             <span class="target-data-label">DISTÂNCIA</span>
-            <span class="target-data-val">${data.distance ? data.distance.toFixed(1) + 'm' : '—'}</span>
+            <span class="target-data-val">${(data.distance !== undefined && data.distance !== null) ? Number(data.distance).toFixed(1) + 'm' : '—'}</span>
           </div>
           <div class="target-data-point">
             <span class="target-data-label">ESTADO FÍSICO</span>

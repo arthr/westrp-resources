@@ -16,43 +16,48 @@ O **`westrp_karma`** é o subsistema de moralidade dinâmica, reputação social
 
 ---
 
-## 2. Diagrama de Fluxo de Dados e Camadas
+## 2. Diagrama de Fluxo de Dados e Camadas (Dual-Channel)
 
 ```text
-                            ┌────────────────────────┐
-                            │      CLIENT REDM       │
-                            │                        │
-                            │  CEventNetworkEntity-  │
-                            │         Damage         │
-                            │           │            │
-                            │           ▼            │
-                            │   [Combat Pipeline]    │
-                            │   - Stages & Engine    │
-                            │   - State Evaluator    │
-                            │   - Combat Watcher     │
-                            └───────────┬────────────┘
-                                        │
-                                        │ NetEvent Seguro:
-                                        │ 'westrp_karma:server:reportCombat'
-                                        │ (victimNetId, action, weaponHash)
-                                        ▼
-                            ┌────────────────────────┐
-                            │     SERVER PIPELINE    │
-                            │                        │
-                            │ 1. Rate-Limit & Sanity │
-                            │ 2. Distância Física    │
-                            │ 3. Legítima Defesa     │
-                            │ 4. Cálculo de Delta    │
-                            │ 5. Avaliação de Tier   │
-                            └───────────┬────────────┘
-                                        │
-                         ┌──────────────┴──────────────┐
-                         ▼                             ▼
-              ┌─────────────────────┐       ┌─────────────────────┐
-              │    Database Sync    │       │     Client Sync     │
-              │  (oxmysql / Cache)  │       │ (onKarmaUpdated)    │
-              │  - characters.karma │       │ - HUD / Notificação │
-              └─────────────────────┘       └─────────────────────┘
+ 🌲 CANAL PVE (Client-Driven / NPCs de IA)           ⚔️ CANAL PVP (Server-Authoritative)
+┌────────────────────────────────────────┐          ┌────────────────────────────────────────┐
+│             CLIENT REDM                │          │        CLIENT VÍTIMA / ENGINE          │
+│                                        │          │                                        │
+│     CEventNetworkEntityDamage          │          │        Óbito de Jogador Real           │
+│                  │                     │          │                   │                    │
+│                  ▼                     │          └───────────────────┼────────────────────┘
+│        [Stages: TargetType]            │                              │
+│         ├─ Alvo = Player? ──► [HALT]   │                              │ TriggerServerEvent
+│         └─ Alvo = NPC                  │                              │ - vorp_core:Server:OnPlayerDeath
+│                  │                     │                              │ - baseevents:onPlayerKilled
+│                  ▼                     │                              │
+│       [Pipeline PvE Completa]          │                              │
+│                  │                     │                              │
+│       NetEvent: onCombatAction         │                              │
+└──────────────────┬─────────────────────┘                              │
+                   │                                                    │
+                   ▼                                                    ▼
+       ┌────────────────────────────────────────────────────────────────────────┐
+       │                          SERVER CORE PIPELINE                          │
+       │                                                                        │
+       │  [PvE Handler: onCombatAction]          [PvP Handler: HandlePvPDeath]  │
+       │  - Sanidade & Rate-Limit                - Deduplicação (4s Debounce)   │
+       │  - Legítima Defesa PvE                  - Legítima Defesa PvP          │
+       │  - Consequência Moral NPC               - Avaliação de PK (-120 pts)   │
+       │                   │                                    │               │
+       │                   └─────────────────┬──────────────────┘               │
+       │                                     ▼                                  │
+       │                        [Karma.Modify Centralizado]                     │
+       │                                     │                                  │
+       └─────────────────────────────────────┼──────────────────────────────────┘
+                                             │
+                          ┌──────────────────┴──────────────────┐
+                          ▼                                     ▼
+               ┌─────────────────────┐               ┌─────────────────────┐
+               │    Database Sync    │               │     Client Sync     │
+               │  (oxmysql / Cache)  │               │ (onKarmaUpdated)    │
+               │  - characters.karma │               │ - HUD / Notificação │
+               └─────────────────────┘               └─────────────────────┘
 ```
 
 ---
@@ -76,6 +81,11 @@ A camada cliente foi modularizada seguindo as melhores práticas do RedM e do fr
 * **`client/services/combat_watcher.lua`:** Observador em segundo plano de combate corporal desarmado e coletor de lixo (GC) periódica com consumo de 0.00ms via `WestRP.Client.TickManager`.
 * **`client/controllers/hud.lua`:** Controlador do HUD de Telemetria NUI, inspecionando alvos via Mira Livre de mouse/teclado, trava de controle ou proximidade corporal.
 * **`client/main.lua`:** Ponto de entrada e orquestrador do ciclo de vida (`OnLoad` e `OnUnload`), sincronização de moralidade com o servidor, comandos (`/karma`, `/karmahud`) e exports públicos.
+
+### 3.4 Padrão Dual-Channel: Desacoplamento PvE vs PvP
+Para eliminar desincronizações de rede (*race conditions*) e sobreposição em confrontos simultâneos (tiroteios mistos entre facções e policiais NPCs), o sistema adota dois canais autônomos:
+* **Canal PvE (Client-Driven / IA de NPCs):** A pipeline funcional do cliente (`client/pipeline/`) processa exclusivamente o ecossistema de inteligência artificial (civis, autoridades e vida selvagem).
+* **Canal PvP (Server-Authoritative / VORP Core Bridge):** Mortes e execuções entre jogadores reais são arbitradas diretamente no servidor através dos eventos canônicos do framework (`vorp_core:Server:OnPlayerDeath` e `baseevents:onPlayerKilled`), eliminando discrepâncias entre o cliente do atacante e da vítima.
 
 ---
 

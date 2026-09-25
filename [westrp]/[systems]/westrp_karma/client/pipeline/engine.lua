@@ -40,9 +40,9 @@ function CombatPipeline.PrintHalt(ctx, failedStageIndex, reason)
     lines[#lines + 1] = string.format("Avaliando confronto em Ped #%d (Culprit: %s):", ctx.victim, tostring(ctx.culprit))
     for j = 1, failedStageIndex do
         if j < failedStageIndex then
-            lines[#lines + 1] = string.format("  ├─ [✓] %s", CombatStages.Names[j])
+            lines[#lines + 1] = string.format("  |-- [OK] %s", CombatStages.Names[j])
         else
-            lines[#lines + 1] = string.format("  └─ [✗] %s: %s -> Pipeline interrompida.", CombatStages.Names[j], reason or "Condição não satisfeita")
+            lines[#lines + 1] = string.format("  \\-- [X]  %s: %s -> Pipeline interrompida.", CombatStages.Names[j], reason or "Condição não satisfeita")
         end
     end
     LogDebug("KARMA_PIPE", table.concat(lines, "\n"))
@@ -56,11 +56,34 @@ function CombatPipeline.PrintSuccess(ctx, deltaFormatted)
     lines[#lines + 1] = string.format("Confronto em Ped #%d (Culprit: %s) -> %s CONFIRMADO:",
         ctx.victim, tostring(ctx.culprit), ctx.actionType)
     for j = 1, 7 do
-        lines[#lines + 1] = string.format("  ├─ [✓] %s", CombatStages.Names[j])
+        local extraInfo = ""
+        if j == 4 and ctx.ballistic and ctx.ballistic.weaponCategory then
+            extraInfo = string.format(" (%s | Família: %s)", ctx.weaponLabel, ctx.ballistic.weaponCategory)
+        elseif j == 5 and ctx.ballistic then
+            local tags = {}
+            if ctx.ballistic.isHeadshot then tags[#tags + 1] = "HEADSHOT" end
+            if ctx.ballistic.isBleedoutPromotion then tags[#tags + 1] = "BLEEDOUT" end
+            if ctx.ballistic.distanceMeters and ctx.ballistic.distanceMeters > 0 then
+                tags[#tags + 1] = string.format("%.1fm", ctx.ballistic.distanceMeters)
+            end
+            if #tags > 0 then
+                extraInfo = string.format(" [%s]", table.concat(tags, " | "))
+            end
+        end
+        lines[#lines + 1] = string.format("  |-- [OK] %s%s", CombatStages.Names[j], extraInfo)
     end
-    lines[#lines + 1] = string.format("  └─ [🚀] 8. Despacho: %s (Ped: %d%s) | Ação: %s | %s | %s | %s",
+
+    local ballisticSummary = ""
+    if ctx.ballistic and ctx.ballistic.distanceMeters and ctx.ballistic.distanceMeters > 0 then
+        ballisticSummary = string.format(" | %.1fm", ctx.ballistic.distanceMeters)
+    end
+    if ctx.ballistic and ctx.ballistic.isHeadshot then
+        ballisticSummary = ballisticSummary .. " | HEADSHOT"
+    end
+
+    lines[#lines + 1] = string.format("  \\-- [>>] 8. Despacho: %s (Ped: %d%s) | Ação: %s | %s | %s%s | %s",
         ctx.targetType, ctx.victim, ctx.victimServerId and (" | ServerID: " .. ctx.victimServerId) or "",
-        ctx.actionType, ctx.initiative, ctx.weaponLabel, deltaFormatted)
+        ctx.actionType, ctx.initiative, ctx.weaponLabel, ballisticSummary, deltaFormatted)
     LogInfo("KARMA_PIPE", table.concat(lines, "\n"))
 end
 
@@ -69,11 +92,30 @@ end
 ---@return boolean success, string? abortReason
 function CombatPipeline.Run(ctx)
     local stages = CombatStages.List
+    if not stages or #stages == 0 then
+        return false, "Nenhum estágio registrado na pipeline"
+    end
+
     for i = 1, #stages do
-        local ok, abortReason = stages[i](ctx)
+        local success, ok, abortReason, isSilentHalt = pcall(stages[i], ctx)
+        if not success then
+            local errMsg = tostring(ok)
+            print(string.format("^1[ERROR] [KARMA_PIPE] Exceção crítica no Estágio %d (%s): %s^0",
+                i, (CombatStages.Names and CombatStages.Names[i]) or "Desconhecido", errMsg))
+            TriggerServerEvent('westrp_karma:server:relayClientDebug', 'KARMA_PIPE_ERR',
+                string.format("Exceção crítica no Estágio %d (%s): %s", i, (CombatStages.Names and CombatStages.Names[i]) or "?", errMsg))
+            return false, errMsg
+        end
+
         if not ok then
             -- Se o jogador estiver envolvido no confronto ou for o autor
-            if ctx.isAuthor or ctx.culprit == ctx.playerPed or (ctx.killerSource and ctx.killerSource == ctx.playerPed) then
+            local isRelevant = ctx.isAuthor
+                or ctx.culprit == ctx.playerPed
+                or (ctx.killerSource and ctx.killerSource == ctx.playerPed)
+                or (KarmaState.bleedingVictims[ctx.victim] and KarmaState.bleedingVictims[ctx.victim].author == ctx.playerPed)
+                or (i > 1 and KarmaHUD:GetPlayerCurrentTarget(ctx.playerPed) == ctx.victim)
+
+            if isRelevant and not isSilentHalt then
                 if Config.Debug then
                     CombatPipeline.PrintHalt(ctx, i, abortReason)
                 end
@@ -82,7 +124,7 @@ function CombatPipeline.Run(ctx)
                     KarmaHUD:PushLog(
                         "pipe_halt",
                         "PIPE HALT",
-                        string.format("Ped #%d | Parou em: %s (%s)", ctx.victim, CombatStages.Names[i], abortReason or "Filtro acionado"),
+                        string.format("Ped #%d | Parou em: %s (%s)", ctx.victim, (CombatStages.Names and CombatStages.Names[i]) or tostring(i), abortReason or "Filtro acionado"),
                         "0 pts",
                         0
                     )

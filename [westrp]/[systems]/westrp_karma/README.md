@@ -24,9 +24,11 @@ westrp_karma/
 ├── schema.sql               # Migração segura da coluna characters.karma
 ├── README.md                # Visão geral do módulo
 ├── docs/
-│   ├── ARCHITECTURE.md      # Desenho de arquitetura e fluxo de dados
-│   ├── SDD.md               # Software Design Document & Matriz Moral
-│   └── ROADMAP.md           # Planejamento de fases e evolução
+│   ├── ARCHITECTURE.md             # Desenho de arquitetura e fluxo de dados
+│   ├── SDD.md                      # Software Design Document & Matriz Moral
+│   ├── SPEC_FIREARMS_COMBAT.md     # Especificação técnica balística e guia de tasks (SDD)
+│   ├── SPEC_DUAL_CHANNEL_PVE_PVP.md# Especificação de desacoplamento PvE vs PvP (SDD)
+│   └── ROADMAP.md                  # Planejamento de fases e evolução
 ├── shared/
 │   ├── tiers.lua            # Patamares morais determinísticos (-1000 a +1000)
 │   ├── types.lua            # Anotações estritas de tipo EmmyLua

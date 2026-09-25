@@ -104,15 +104,28 @@ function KarmaHUD:UpdateFrame(playerPed, inCombat)
     local targetPed = self:GetPlayerCurrentTarget(playerPed)
     if targetPed and DoesEntityExist(targetPed) and IsEntityAPed(targetPed) then
         local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(targetPed))
+        local isPlayer = IsPedAPlayer(targetPed)
+        local targetType = KarmaState.ClassifyTarget(targetPed)
         local isDead = KarmaState.deadPeds[targetPed] ~= nil or KarmaState.IsPedActuallyDead(targetPed)
         local isKnockedOut = not isDead and KarmaState.IsPedActuallyKnockedOut(targetPed)
         local isRagdoll = IsPedRagdoll(targetPed) or isKnockedOut
+
+        local displayPedId = tostring(targetPed)
+        if isPlayer then
+            local pIdx = NetworkGetPlayerIndexFromPed(targetPed)
+            local sId = (pIdx and pIdx ~= -1) and GetPlayerServerId(pIdx) or nil
+            if sId then
+                displayPedId = string.format("%d (ID: %d)", targetPed, sId)
+            end
+        end
 
         local fsmState = "ACTIVE"
         if isDead then
             fsmState = "DEAD"
         elseif isKnockedOut then
             fsmState = "KNOCKOUT"
+        elseif isPlayer then
+            fsmState = (inCombat or IsPedInCombat(targetPed, playerPed)) and "ENGAGED (PvP)" or "PLAYER (PvP)"
         elseif inCombat or IsPedInCombat(targetPed, playerPed) then
             fsmState = "ENGAGED"
         end
@@ -120,8 +133,8 @@ function KarmaHUD:UpdateFrame(playerPed, inCombat)
         SendNUIMessage({
             action = 'updateTarget',
             hasTarget = true,
-            pedId = targetPed,
-            targetType = KarmaState.ClassifyTarget(targetPed),
+            pedId = displayPedId,
+            targetType = targetType,
             distance = dist,
             fsmState = fsmState,
             isDead = isDead,

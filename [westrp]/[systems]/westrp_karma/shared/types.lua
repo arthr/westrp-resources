@@ -12,6 +12,14 @@
 ---@field bountyEligible boolean
 ---@field baseBounty number
 
+---@class BallisticDetails
+---@field weaponCategory "REVOLVER" | "PISTOL" | "REPEATER" | "RIFLE" | "SHOTGUN" | "SNIPER" | "BOW" | "THROWN" | "EXPLOSIVE" | "MELEE" | "UNARMED"
+---@field ammoHash integer?
+---@field damageBone integer?
+---@field isHeadshot boolean
+---@field distanceMeters number
+---@field isBleedoutPromotion boolean
+
 ---@class CombatActionPayload
 ---@field targetType "CIVILIAN" | "LAWMAN" | "PLAYER" | "ANIMAL"
 ---@field actionType "KILL" | "KNOCKOUT" | "ASSAULT"
@@ -21,6 +29,10 @@
 ---@field victimServerId integer?
 ---@field wasKnockedOut boolean
 ---@field wasAssaulted boolean
+---@field isHeadshot boolean?
+---@field distanceMeters number?
+---@field weaponCategory string?
+---@field isBleedoutPromotion boolean?
 
 ---@class CharacterKarmaData
 ---@field charIdentifier integer
