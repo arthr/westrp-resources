@@ -281,8 +281,8 @@ Config = {
     -- allows you to control population density of the world
     Multipliers              = {
         AnimalDensity         = {
-            enable = false, -- enable disable them
-            value = 0.0     -- default values can be adjusted in here 0.001 -> 1.0
+            enable = true, -- enable disable them
+            value = 0.5    -- default values can be adjusted in here 0.001 -> 1.0
         },
         HumanDensity          = {
             enable = false,
@@ -309,12 +309,12 @@ Config = {
             value = 0.0
         },
         ParkedVehicleDensity  = {
-            enable = false,
-            value = 0.0
+            enable = true,
+            value = 0.5
         },
         RandomVehicleDensity  = {
-            enable = false,
-            value = 0.0
+            enable = true,
+            value = 0.5
         },
 
     },
