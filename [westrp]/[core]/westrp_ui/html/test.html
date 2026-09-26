@@ -125,8 +125,10 @@
     <button class="sandbox-btn" onclick="runSim('panel_dashboard')">Panel: Dashboard</button>
     <button class="sandbox-btn" onclick="runSim('panel_settings')">Panel: Settings</button>
     <button class="sandbox-btn" onclick="runSim('dialog')">Dialog (Formulário)</button>
+    <button class="sandbox-btn" onclick="runSim('confirm')">Confirm (Modal)</button>
+    <button class="sandbox-btn" onclick="runSim('progress')">Progress Bar</button>
     <button class="sandbox-btn" onclick="runSim('toasts')">Toasts (Notificações)</button>
-    <button class="sandbox-btn btn-close" onclick="runSim('close_all')">✕ Fechar Todos</button>
+    <button class="sandbox-btn btn-close" onclick="runSim('close_all')">Fechar Todos</button>
   </div>
 
   <!-- ============================================================
@@ -184,7 +186,7 @@
         
         <div class="panel-header-actions">
           <div class="panel-search-wrap" id="panel-search-wrap">
-            <span class="panel-search-icon">🔍</span>
+            <span class="panel-search-icon"><svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg></span>
             <input type="text" id="panel-search-input" placeholder="Buscar registros..." autocomplete="off">
           </div>
 
@@ -192,7 +194,7 @@
             <span id="panel-meta-text">Saldo: $ 0.00</span>
           </div>
 
-          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (ESC)">✕</button>
+          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (ESC)"><svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
         </div>
       </header>
 
@@ -239,13 +241,13 @@
             </div>
 
             <div class="dashboard-section-title">
-              <span class="sec-icon">📊</span>
+              <span class="sec-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></span>
               <span>SERVER OVERVIEW</span>
             </div>
             <div class="dashboard-overview-grid" id="dashboard-overview-grid"></div>
 
             <div class="dashboard-section-title" style="margin-top: 18px;">
-              <span class="sec-icon">⚡</span>
+              <span class="sec-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></span>
               <span>ADMIN ACTIONS</span>
             </div>
             <div class="dashboard-actions-container" id="dashboard-actions-container"></div>
@@ -253,7 +255,9 @@
 
           <div class="panel-settings-view" id="panel-settings-view" style="display: none;">
             <div class="settings-header">
-              <div class="settings-header-icon">⚙️</div>
+              <div class="settings-header-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/></svg>
+              </div>
               <div class="settings-header-text">
                 <h2 class="settings-title">SETTINGS</h2>
                 <p class="settings-subtitle">Personalize as preferências operacionais e atalhos do Hot Menu</p>
@@ -344,7 +348,7 @@
         <span class="dialog-tag" id="dialog-tag">ADMINISTRAÇÃO</span>
         <h2 class="dialog-title" id="dialog-title">FORMULÁRIO</h2>
         <p class="dialog-subtitle" id="dialog-subtitle"></p>
-        <button class="dialog-close-btn" id="dialog-close-btn" title="Cancelar (ESC)">✕</button>
+        <button class="dialog-close-btn" id="dialog-close-btn" title="Cancelar (ESC)"><svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
       </header>
 
       <div class="dialog-body">
@@ -357,6 +361,49 @@
         <button type="button" class="dialog-btn-secondary" id="dialog-btn-cancel">CANCELAR</button>
         <button type="button" class="dialog-btn-primary" id="dialog-btn-submit">CONFIRMAR</button>
       </footer>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       4. MODAL DE CONFIRMAÇÃO RÁPIDA (ROCKSTAR STYLE CONFIRM)
+       ============================================================ -->
+  <div id="confirm-container" class="confirm-container" style="display: none;">
+    <div class="confirm-backdrop" id="confirm-backdrop"></div>
+    <div class="confirm-modal" id="confirm-modal">
+      <header class="confirm-header">
+        <span class="confirm-tag" id="confirm-tag">CONFIRMAÇÃO</span>
+        <h2 class="confirm-title" id="confirm-title">DESEJA CONTINUAR?</h2>
+      </header>
+      <div class="confirm-body">
+        <p class="confirm-message" id="confirm-message"></p>
+        <p class="confirm-submessage" id="confirm-submessage" style="display: none;"></p>
+      </div>
+      <footer class="confirm-footer">
+        <button type="button" class="confirm-btn-secondary" id="confirm-btn-cancel">CANCELAR</button>
+        <button type="button" class="confirm-btn-primary" id="confirm-btn-confirm">CONFIRMAR</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       5. ACTION PROGRESS BAR (ROCKSTAR NATIVE STYLE)
+       ============================================================ -->
+  <div id="progressbar-container" class="progressbar-container" style="display: none;">
+    <div class="progressbar-box">
+      <div class="progressbar-header">
+        <div class="progressbar-label-group">
+          <span class="progressbar-icon" id="progressbar-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg></span>
+          <span class="progressbar-label" id="progressbar-label">REALIZANDO AÇÃO...</span>
+        </div>
+        <span class="progressbar-percentage" id="progressbar-percentage">0%</span>
+      </div>
+      <div class="progressbar-track">
+        <div class="progressbar-fill" id="progressbar-fill"></div>
+      </div>
+      <div class="progressbar-footer" id="progressbar-footer">
+        <span class="progressbar-key-badge">ESC / BACKSPACE</span>
+        <span class="progressbar-cancel-label">Cancelar ação</span>
+      </div>
     </div>
   </div>
 
@@ -397,6 +444,8 @@
         window.postMessage({ action: 'westrp_ui:close' }, '*');
         window.postMessage({ action: 'westrp_ui:closePanel' }, '*');
         window.postMessage({ action: 'westrp_ui:closeDialog' }, '*');
+        window.postMessage({ action: 'westrp_ui:closeConfirm' }, '*');
+        window.postMessage({ action: 'westrp_ui:cancelProgress' }, '*');
         return;
       }
 
@@ -710,6 +759,31 @@
         setTimeout(() => {
           window.postMessage({ action: 'westrp_ui:toast', title: 'PERIGO', message: 'Tentativa de transação não autorizada.', type: 'error', duration: 3500 }, '*');
         }, 1800);
+      }
+
+      else if (type === 'confirm') {
+        window.postMessage({
+          action: 'westrp_ui:openConfirm',
+          options: {
+            title: 'DESEJA REALMENTE COMPRAR?',
+            message: 'Você está prestes a adquirir uma Faca de Caça Rústica por $ 15.00.',
+            submessage: 'Esta transação é definitiva e debitará da sua conta bancária.',
+            confirmText: 'CONFIRMAR COMPRA',
+            cancelText: 'DESISTIR'
+          }
+        }, '*');
+      }
+
+      else if (type === 'progress') {
+        window.postMessage({
+          action: 'westrp_ui:startProgress',
+          options: {
+            label: 'FORJANDO FACA DE CAÇA...',
+            duration: 4000,
+            icon: 'hammer',
+            canCancel: true
+          }
+        }, '*');
       }
     }
   </script>

@@ -708,8 +708,17 @@ body {
 }
 
 .panel-search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.8rem;
   opacity: 0.7;
+}
+
+.panel-search-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
 }
 
 .panel-search-wrap input {
@@ -747,6 +756,13 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.12s;
+}
+
+.panel-close-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  display: block;
 }
 
 .panel-close-btn:hover {
@@ -873,6 +889,12 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.panel-tab-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
 }
 
 .panel-tab-btn:hover {
@@ -1670,6 +1692,13 @@ body {
   gap: 4px;
 }
 
+.queue-time-remaining svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
 .queue-percentage {
   font-weight: 700;
   color: var(--accent-gold);
@@ -1890,6 +1919,18 @@ body {
   margin-top: 4px;
 }
 
+.sec-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sec-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
 .dashboard-overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
@@ -1924,6 +1965,12 @@ body {
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
+}
+
+.kpi-icon-wrap svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 
 .kpi-content {
@@ -2020,6 +2067,15 @@ body {
   color: var(--accent-gold);
   font-size: 0.85rem;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-tile-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
 }
 
 /* ==========================================================================
@@ -2041,7 +2097,22 @@ body {
 }
 
 .settings-header-icon {
-  font-size: 1.3rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 4px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-header-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
 .settings-title {
@@ -2167,6 +2238,15 @@ body {
   width: 18px;
   text-align: center;
   font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-row-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
 }
 
 .action-row-name {
@@ -2321,6 +2401,13 @@ body {
   transition: color 0.1s;
 }
 
+.dialog-close-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  display: block;
+}
+
 .dialog-close-btn:hover {
   color: var(--text-title);
 }
@@ -2443,6 +2530,295 @@ body {
 .dialog-btn-primary:hover {
   background: rgba(212, 175, 55, 0.4);
   box-shadow: 0 0 14px rgba(212, 175, 55, 0.3);
+}
+
+/* ==========================================================================
+   MODAL DE CONFIRMAÇÃO RÁPIDA (ROCKSTAR STYLE CONFIRM)
+   ========================================================================== */
+.confirm-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1005;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.confirm-modal {
+  position: relative;
+  z-index: 2;
+  width: 480px;
+  max-width: 90vw;
+  background: var(--bg-dock);
+  border: 1px solid var(--border-gold);
+  border-radius: 2px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95), inset 0 0 15px rgba(0, 0, 0, 0.7);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalScaleIn 0.16s ease-out;
+}
+
+.confirm-modal.is-danger {
+  border-color: var(--border-danger);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95), 0 0 20px rgba(220, 53, 69, 0.25);
+}
+
+.confirm-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-separator);
+  padding-bottom: 12px;
+}
+
+.confirm-tag {
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+}
+
+.confirm-modal.is-danger .confirm-tag {
+  color: var(--accent-danger);
+}
+
+.confirm-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-title);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.confirm-message {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.confirm-submessage {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 2px solid var(--accent-gold);
+  border-radius: 2px;
+}
+
+.confirm-modal.is-danger .confirm-submessage {
+  border-left-color: var(--accent-danger);
+  color: #ff9999;
+}
+
+.confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-separator);
+}
+
+.confirm-btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 18px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-transform: uppercase;
+}
+
+.confirm-btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--text-title);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.confirm-btn-primary {
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid var(--border-gold);
+  color: var(--text-title);
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 8px 24px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-transform: uppercase;
+}
+
+.confirm-btn-primary:hover {
+  background: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.3);
+}
+
+.confirm-modal.is-danger .confirm-btn-primary {
+  background: rgba(220, 53, 69, 0.25);
+  border-color: var(--border-danger);
+  color: #ffcccc;
+}
+
+.confirm-modal.is-danger .confirm-btn-primary:hover {
+  background: rgba(220, 53, 69, 0.5);
+  box-shadow: 0 0 14px rgba(220, 53, 69, 0.4);
+}
+
+/* ==========================================================================
+   ACTION PROGRESS BAR (ROCKSTAR NATIVE STYLE)
+   ========================================================================== */
+.progressbar-container {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 950;
+  pointer-events: none;
+  user-select: none;
+}
+
+.progressbar-box {
+  width: 420px;
+  max-width: 90vw;
+  background: rgba(13, 12, 11, 0.94);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.85), inset 0 0 12px rgba(0, 0, 0, 0.6);
+  border-radius: 2px;
+  padding: 12px 18px 10px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: progressSlideUp 0.18s ease-out;
+}
+
+@keyframes progressSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progressbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progressbar-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressbar-icon {
+  font-size: 0.95rem;
+  color: var(--accent-gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progressbar-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.progressbar-label {
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-title);
+  text-transform: uppercase;
+}
+
+.progressbar-percentage {
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.progressbar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressbar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #947822 0%, #d4af37 60%, #f3e5ab 100%);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+  border-radius: 1px;
+  transition: width 0.08s linear;
+}
+
+.progressbar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.progressbar-key-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #c0b7a6;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.progressbar-cancel-label {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  color: var(--text-muted);
 }
 
 /* ==========================================================================

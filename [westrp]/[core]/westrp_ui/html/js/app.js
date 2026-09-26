@@ -103,6 +103,30 @@
     return null;
   }
 
+  // --- DICIONÁRIO DE ÍCONES VETORIAIS NATIVOS (SEM EMOJIS) ---
+  const UI_ICONS = {
+    hammer: '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>',
+    search: '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>',
+    stats: '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
+    settings: '<svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/></svg>',
+    check: '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/></svg>',
+    close: '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
+    dot: '<svg viewBox="0 0 24 24" width="10" height="10"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg>'
+  };
+
+  function parseIconHtml(icon, defaultKey = 'bolt') {
+    if (!icon) return UI_ICONS[defaultKey] || '';
+    if (typeof icon === 'string') {
+      if (icon.includes('<svg')) return icon;
+      if (icon.includes('fa-') || icon.includes(' ')) return `<i class="${icon}"></i>`;
+      if (UI_ICONS[icon]) return UI_ICONS[icon];
+      return `<i class="fas fa-${icon}"></i>`;
+    }
+    return UI_ICONS[defaultKey] || '';
+  }
+
 
   // ==========================================================================
   // 2. MÓDULO A: DOCK LATERAL (ROCKSTAR 350px / TECLADO & CÂMERA LIVRE)
@@ -618,11 +642,7 @@
       if (tab.icon) {
         const iconSpan = document.createElement('span');
         iconSpan.className = 'panel-tab-icon';
-        if (tab.icon.startsWith('fa-') || tab.icon.includes(' ')) {
-          iconSpan.innerHTML = `<i class="${tab.icon}"></i>`;
-        } else {
-          iconSpan.textContent = tab.icon;
-        }
+        iconSpan.innerHTML = parseIconHtml(tab.icon, 'bolt');
         mainWrap.appendChild(iconSpan);
       }
 
@@ -921,11 +941,7 @@
 
         const iconWrap = document.createElement('div');
         iconWrap.className = 'kpi-icon-wrap';
-        if (stat.icon && (stat.icon.includes('fa-') || stat.icon.includes(' '))) {
-          iconWrap.innerHTML = `<i class="${stat.icon}"></i>`;
-        } else {
-          iconWrap.textContent = stat.icon || '📊';
-        }
+        iconWrap.innerHTML = parseIconHtml(stat.icon, 'stats');
         card.appendChild(iconWrap);
 
         const content = document.createElement('div');
@@ -973,10 +989,7 @@
 
         const header = document.createElement('div');
         header.className = 'actions-group-header';
-        let gIcon = group.icon || '▪';
-        if (gIcon.includes('fa-') || gIcon.includes(' ')) {
-          gIcon = `<i class="${gIcon}"></i>`;
-        }
+        let gIcon = parseIconHtml(group.icon, 'dot');
         header.innerHTML = `<span>${gIcon}</span> <span>${group.title || group.id}</span>`;
         groupEl.appendChild(header);
 
@@ -997,11 +1010,7 @@
 
           const iconSpan = document.createElement('span');
           iconSpan.className = 'action-tile-icon';
-          if (act.icon && (act.icon.includes('fa-') || act.icon.includes(' '))) {
-            iconSpan.innerHTML = `<i class="${act.icon}"></i>`;
-          } else {
-            iconSpan.textContent = act.icon || '⚡';
-          }
+          iconSpan.innerHTML = parseIconHtml(act.icon, 'bolt');
           tile.appendChild(iconSpan);
 
           const lblSpan = document.createElement('span');
@@ -1106,11 +1115,7 @@
 
         const iconSpan = document.createElement('span');
         iconSpan.className = 'action-row-icon';
-        if (act.icon && (act.icon.includes('fa-') || act.icon.includes(' '))) {
-          iconSpan.innerHTML = `<i class="${act.icon}"></i>`;
-        } else {
-          iconSpan.textContent = act.icon || '⚡';
-        }
+        iconSpan.innerHTML = parseIconHtml(act.icon, 'bolt');
         left.appendChild(iconSpan);
 
         const nameSpan = document.createElement('span');
@@ -1583,11 +1588,11 @@
       const timeText = document.createElement('span');
       timeText.className = 'queue-time-remaining';
       if (st === 'completed') {
-        timeText.textContent = `✓ Produção concluída (${totalQty} unidades prontas)`;
+        timeText.innerHTML = `${UI_ICONS.check} <span>Produção concluída (${totalQty} unidades prontas)</span>`;
       } else if (st === 'queued') {
         timeText.textContent = `Aguardando liberação da bancada...`;
       } else if (st === 'in_progress') {
-        timeText.textContent = `⏳ Restam ${remaining}s (Unidade ${Math.min(totalQty, completedQty + 1)} de ${totalQty})`;
+        timeText.innerHTML = `${UI_ICONS.clock} <span>Restam ${remaining}s (Unidade ${Math.min(totalQty, completedQty + 1)} de ${totalQty})</span>`;
       } else {
         timeText.textContent = `Lote cancelado`;
       }
@@ -1915,6 +1920,20 @@
     } else if (data.action === 'westrp_ui:closeDialog') {
       closeDialog('client_request');
     }
+
+    // --- MODAL DE CONFIRMAÇÃO RÁPIDA (CONFIRM) ---
+    else if (data.action === 'westrp_ui:openConfirm') {
+      openConfirm(data.options);
+    } else if (data.action === 'westrp_ui:closeConfirm') {
+      closeConfirm('client_request');
+    }
+
+    // --- ACTION PROGRESS BAR ---
+    else if (data.action === 'westrp_ui:startProgress') {
+      startProgress(data.options);
+    } else if (data.action === 'westrp_ui:cancelProgress') {
+      cancelProgress(data.reason);
+    }
   });
 
 
@@ -2116,7 +2135,199 @@
     dialogEl.backdrop.addEventListener('click', () => closeDialog('backdrop'));
   }
 
+  // ==========================================================================
+  // 8. MODAL DE CONFIRMAÇÃO RÁPIDA (ROCKSTAR STYLE CONFIRM)
+  // ==========================================================================
+  const confirmEl = {
+    container: document.getElementById('confirm-container'),
+    backdrop: document.getElementById('confirm-backdrop'),
+    modal: document.getElementById('confirm-modal'),
+    tag: document.getElementById('confirm-tag'),
+    title: document.getElementById('confirm-title'),
+    message: document.getElementById('confirm-message'),
+    submessage: document.getElementById('confirm-submessage'),
+    cancelBtn: document.getElementById('confirm-btn-cancel'),
+    confirmBtn: document.getElementById('confirm-btn-confirm'),
+  };
+
+  const confirmState = {
+    isOpen: false,
+    confirmId: 'default_confirm'
+  };
+
+  function openConfirm(options = {}) {
+    confirmState.isOpen = true;
+    confirmState.confirmId = options.id || 'default_confirm';
+
+    if (confirmEl.tag) confirmEl.tag.textContent = options.tag || 'CONFIRMAÇÃO';
+    if (confirmEl.title) confirmEl.title.textContent = options.title || 'DESEJA CONTINUAR?';
+    if (confirmEl.message) confirmEl.message.textContent = options.message || '';
+
+    if (confirmEl.submessage) {
+      if (options.submessage && options.submessage.trim() !== '') {
+        confirmEl.submessage.textContent = options.submessage;
+        confirmEl.submessage.style.display = 'block';
+      } else {
+        confirmEl.submessage.style.display = 'none';
+      }
+    }
+
+    if (confirmEl.cancelBtn) confirmEl.cancelBtn.textContent = options.cancelLabel || 'CANCELAR';
+    if (confirmEl.confirmBtn) confirmEl.confirmBtn.textContent = options.confirmLabel || 'CONFIRMAR';
+
+    if (confirmEl.modal) {
+      if (options.danger) {
+        confirmEl.modal.classList.add('is-danger');
+      } else {
+        confirmEl.modal.classList.remove('is-danger');
+      }
+    }
+
+    if (confirmEl.container) {
+      confirmEl.container.style.display = 'flex';
+    }
+
+    playUiTick(options.danger ? 'error' : 'confirm');
+  }
+
+  function closeConfirm(result) {
+    if (!confirmState.isOpen) return;
+    confirmState.isOpen = false;
+
+    if (confirmEl.container) {
+      confirmEl.container.style.display = 'none';
+    }
+
+    const isConfirmed = (result === 'confirm');
+    playUiTick(isConfirmed ? 'confirm' : 'back');
+
+    postData('westrp_ui:confirmResult', {
+      confirmId: confirmState.confirmId,
+      confirmed: isConfirmed
+    });
+  }
+
+  if (confirmEl.cancelBtn) {
+    confirmEl.cancelBtn.addEventListener('click', () => closeConfirm('cancel'));
+  }
+  if (confirmEl.confirmBtn) {
+    confirmEl.confirmBtn.addEventListener('click', () => closeConfirm('confirm'));
+  }
+  if (confirmEl.backdrop) {
+    confirmEl.backdrop.addEventListener('click', () => closeConfirm('backdrop'));
+  }
+
+
+  // ==========================================================================
+  // 9. ACTION PROGRESS BAR (ROCKSTAR NATIVE STYLE)
+  // ==========================================================================
+  const progressbarEl = {
+    container: document.getElementById('progressbar-container'),
+    label: document.getElementById('progressbar-label'),
+    icon: document.getElementById('progressbar-icon'),
+    percentage: document.getElementById('progressbar-percentage'),
+    fill: document.getElementById('progressbar-fill'),
+    footer: document.getElementById('progressbar-footer')
+  };
+
+  const progressState = {
+    isActive: false,
+    duration: 3000,
+    startTime: 0,
+    rafId: null,
+    canCancel: true
+  };
+
+  function startProgress(options = {}) {
+    if (progressState.isActive) {
+      cancelProgress('interrupted');
+    }
+
+    progressState.isActive = true;
+    progressState.duration = Math.max(200, Number(options.duration) || 3000);
+    progressState.canCancel = options.canCancel !== false;
+    progressState.startTime = performance.now();
+
+    if (progressbarEl.label) {
+      progressbarEl.label.textContent = options.label || 'REALIZANDO AÇÃO...';
+    }
+    if (progressbarEl.icon) {
+      progressbarEl.icon.innerHTML = parseIconHtml(options.icon, 'hammer');
+    }
+    if (progressbarEl.footer) {
+      progressbarEl.footer.style.display = progressState.canCancel ? 'flex' : 'none';
+    }
+    if (progressbarEl.fill) {
+      progressbarEl.fill.style.width = '0%';
+    }
+    if (progressbarEl.percentage) {
+      progressbarEl.percentage.textContent = '0%';
+    }
+    if (progressbarEl.container) {
+      progressbarEl.container.style.display = 'flex';
+    }
+
+    playUiTick('nav');
+
+    function tick(now) {
+      if (!progressState.isActive) return;
+
+      const elapsed = now - progressState.startTime;
+      const progress = Math.min(1.0, elapsed / progressState.duration);
+      const pct = Math.floor(progress * 100);
+
+      if (progressbarEl.fill) {
+        progressbarEl.fill.style.width = `${(progress * 100).toFixed(1)}%`;
+      }
+      if (progressbarEl.percentage) {
+        progressbarEl.percentage.textContent = `${pct}%`;
+      }
+
+      if (progress >= 1.0) {
+        progressState.isActive = false;
+        if (progressbarEl.container) {
+          progressbarEl.container.style.display = 'none';
+        }
+        playUiTick('confirm');
+        postData('westrp_ui:progressComplete', {});
+        return;
+      }
+
+      progressState.rafId = requestAnimationFrame(tick);
+    }
+
+    progressState.rafId = requestAnimationFrame(tick);
+  }
+
+  function cancelProgress(reason = 'cancelled') {
+    if (!progressState.isActive) return;
+
+    progressState.isActive = false;
+    if (progressState.rafId) {
+      cancelAnimationFrame(progressState.rafId);
+      progressState.rafId = null;
+    }
+
+    if (progressbarEl.container) {
+      progressbarEl.container.style.display = 'none';
+    }
+
+    playUiTick('error');
+    postData('westrp_ui:progressCancel', { reason: reason });
+  }
+
   window.addEventListener('keydown', (e) => {
+    if (confirmState.isOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeConfirm('cancel');
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        closeConfirm('confirm');
+      }
+      return;
+    }
+
     if (dialogState.isOpen) {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -2124,6 +2335,14 @@
       } else if (e.key === 'Enter' && e.target && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
         submitDialog();
+      }
+      return;
+    }
+
+    if (progressState.isActive && progressState.canCancel) {
+      if (e.key === 'Escape' || e.key === 'Backspace') {
+        e.preventDefault();
+        cancelProgress('user_cancelled');
       }
     }
   });

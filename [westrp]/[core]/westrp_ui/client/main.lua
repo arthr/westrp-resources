@@ -8,6 +8,13 @@ local currentActivePanel = nil
 local isDialogOpen = false
 local currentActiveDialog = nil
 
+local isConfirmOpen = false
+local currentActiveConfirm = nil
+
+local isProgressActive = false
+local currentProgressTask = nil
+local activeProgressProp = nil
+
 
 -- ============================================================================
 -- 1. CONTROLE DE FOCO E TECLAS (KEEP INPUT)
@@ -304,7 +311,215 @@ function IsDialogOpen()
 end
 
 -- ============================================================================
--- 6. NUI CALLBACKS RECEBIDOS DO JAVASCRIPT
+-- 6. SISTEMA DE MODAL DE CONFIRMAÇÃO RÁPIDA (OPEN CONFIRM)
+-- ============================================================================
+
+---Abre uma caixa de diálogo de confirmação binária (Sim/Não) estilizada
+---@param options { id?: string, title?: string, tag?: string, message: string, submessage?: string, confirmLabel?: string, cancelLabel?: string, danger?: boolean, onConfirm?: fun(), onCancel?: fun() }
+function OpenConfirm(options)
+    if not options then return end
+
+    currentActiveConfirm = {
+        id = options.id or 'default_confirm',
+        onConfirm = options.onConfirm,
+        onCancel = options.onCancel
+    }
+
+    isConfirmOpen = true
+    SetNuiFocus(true, true)
+    SetNuiFocusKeepInput(false)
+
+    SendNUIMessage({
+        action = 'westrp_ui:openConfirm',
+        options = {
+            id = options.id,
+            tag = options.tag,
+            title = options.title,
+            message = options.message,
+            submessage = options.submessage,
+            confirmLabel = options.confirmLabel,
+            cancelLabel = options.cancelLabel,
+            danger = options.danger == true
+        }
+    })
+end
+
+---Fecha a caixa de diálogo de confirmação
+function CloseConfirm()
+    if not isConfirmOpen then return end
+    isConfirmOpen = false
+
+    if not isPanelOpen and not isDialogOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    SendNUIMessage({
+        action = 'westrp_ui:closeConfirm'
+    })
+
+    if currentActiveConfirm and currentActiveConfirm.onCancel then
+        currentActiveConfirm.onCancel()
+    end
+    currentActiveConfirm = nil
+end
+
+---Retorna se a confirmação está aberta
+---@return boolean
+function IsConfirmOpen()
+    return isConfirmOpen
+end
+
+-- ============================================================================
+-- 7. SISTEMA DE ACTION PROGRESS BAR (BARRA DE PROGRESSO PROCEDURAL)
+-- ============================================================================
+
+local function StopProgressAnimationAndProp()
+    local ped = PlayerPedId()
+    ClearPedTasks(ped)
+
+    if activeProgressProp and DoesEntityExist(activeProgressProp) then
+        DeleteEntity(activeProgressProp)
+        activeProgressProp = nil
+    end
+end
+
+---Inicia uma barra de progresso procedural para ações no mundo
+---@param options { label: string, duration: number, icon?: string, canCancel?: boolean, useWhileDead?: boolean, disableControls?: { movement?: boolean, combat?: boolean }, animation?: { dict: string, name: string, flag?: number }, prop?: { model: string|number, bone: number, coords?: vector3, rotation?: vector3 }, onComplete?: fun(), onCancel?: fun(reason: string) }
+function StartProgressBar(options)
+    if not options then return end
+    local ped = PlayerPedId()
+
+    -- Se o jogador estiver morto ou morrendo e não for permitido
+    if not options.useWhileDead and IsPedDeadOrDying(ped, true) then
+        if options.onCancel then options.onCancel('dead') end
+        return
+    end
+
+    -- Se já houver barra ativa, cancela a anterior
+    if isProgressActive then
+        CancelProgressBar('interrupted')
+    end
+
+    isProgressActive = true
+    currentProgressTask = {
+        canCancel = options.canCancel ~= false,
+        useWhileDead = options.useWhileDead == true,
+        disableControls = options.disableControls or {},
+        startHealth = GetEntityHealth(ped),
+        onComplete = options.onComplete,
+        onCancel = options.onCancel
+    }
+
+    -- Toca animação se configurada
+    if options.animation and options.animation.dict and options.animation.name then
+        local dict = options.animation.dict
+        RequestAnimDict(dict)
+        local timeout = GetGameTimer() + 2000
+        while not HasAnimDictLoaded(dict) and GetGameTimer() < timeout do
+            Wait(10)
+        end
+        if HasAnimDictLoaded(dict) then
+            TaskPlayAnim(ped, dict, options.animation.name, 8.0, -8.0, -1, options.animation.flag or 1, 0, false, false, false)
+        end
+    end
+
+    -- Anexa prop se configurado
+    if options.prop and options.prop.model then
+        local modelHash = type(options.prop.model) == 'string' and joaat(options.prop.model) or options.prop.model
+        RequestModel(modelHash)
+        local timeout = GetGameTimer() + 2000
+        while not HasModelLoaded(modelHash) and GetGameTimer() < timeout do
+            Wait(10)
+        end
+        if HasModelLoaded(modelHash) then
+            local pCoords = GetEntityCoords(ped)
+            local propObj = CreateObject(modelHash, pCoords.x, pCoords.y, pCoords.z, true, true, false)
+            local bone = GetPedBoneIndex(ped, options.prop.bone or 0)
+            local offset = options.prop.coords or vector3(0.0, 0.0, 0.0)
+            local rot = options.prop.rotation or vector3(0.0, 0.0, 0.0)
+            AttachEntityToEntity(propObj, ped, bone, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, true, true, false, true, 1, true)
+            activeProgressProp = propObj
+        end
+    end
+
+    SendNUIMessage({
+        action = 'westrp_ui:startProgress',
+        options = {
+            label = options.label or "REALIZANDO AÇÃO...",
+            duration = options.duration or 3000,
+            icon = options.icon or "hammer",
+            canCancel = currentProgressTask.canCancel
+        }
+    })
+
+    -- Thread de observação de integridade (sono de 0ms enquanto ativa para desabilitar inputs com precisão)
+    CreateThread(function()
+        while isProgressActive and currentProgressTask do
+            local currentPed = PlayerPedId()
+
+            -- Se o jogador morreu
+            if not currentProgressTask.useWhileDead and IsPedDeadOrDying(currentPed, true) then
+                CancelProgressBar('dead')
+                break
+            end
+
+            -- Se o jogador sofreu dano físico
+            if GetEntityHealth(currentPed) < currentProgressTask.startHealth then
+                CancelProgressBar('damaged')
+                break
+            end
+
+            -- Desabilita combate se solicitado (padrão ativo)
+            if currentProgressTask.disableControls.combat ~= false then
+                DisableControlAction(0, 0x07CE1E0D, true) -- Attack 1
+                DisableControlAction(0, 0xF84FA74F, true) -- Attack 2
+                DisableControlAction(0, 0xF124618B, true) -- Aim
+                DisableControlAction(0, 0x1E0474EB, true) -- Melee
+                DisableControlAction(0, 0x4CC0E2FE, true) -- Weapon Wheel
+                DisablePlayerFiring(currentPed, true)
+            end
+
+            -- Desabilita movimentação se solicitado
+            if currentProgressTask.disableControls.movement then
+                DisableControlAction(0, 0x8FD015D8, true) -- Move LR
+                DisableControlAction(0, 0xD27782E3, true) -- Move UD
+                DisableControlAction(0, 0xD9D0E1C0, true) -- Jump
+                DisableControlAction(0, 0x8FF95D16, true) -- Sprint
+            end
+
+            Wait(0)
+        end
+    end)
+end
+
+---Cancela a barra de progresso ativa
+---@param reason? string Motivo do cancelamento (ex: 'moved', 'damaged', 'dead', 'cancelled')
+function CancelProgressBar(reason)
+    if not isProgressActive then return end
+    isProgressActive = false
+
+    StopProgressAnimationAndProp()
+
+    SendNUIMessage({
+        action = 'westrp_ui:cancelProgress',
+        reason = reason or 'cancelled'
+    })
+
+    if currentProgressTask and currentProgressTask.onCancel then
+        currentProgressTask.onCancel(reason or 'cancelled')
+    end
+    currentProgressTask = nil
+end
+
+---Retorna se há uma barra de progresso ativa no momento
+---@return boolean
+function IsProgressBarActive()
+    return isProgressActive
+end
+
+-- ============================================================================
+-- 8. NUI CALLBACKS RECEBIDOS DO JAVASCRIPT
 -- ============================================================================
 
 -- Callbacks do Dock
@@ -362,7 +577,7 @@ end)
 -- Callbacks do Dialog
 RegisterNUICallback('westrp_ui:dialogSubmit', function(data, cb)
     isDialogOpen = false
-    if not isPanelOpen then
+    if not isPanelOpen and not isConfirmOpen then
         SetNuiFocus(false, false)
         SetNuiFocusKeepInput(false)
     end
@@ -376,7 +591,7 @@ end)
 
 RegisterNUICallback('westrp_ui:dialogCancel', function(data, cb)
     isDialogOpen = false
-    if not isPanelOpen then
+    if not isPanelOpen and not isConfirmOpen then
         SetNuiFocus(false, false)
         SetNuiFocusKeepInput(false)
     end
@@ -388,13 +603,63 @@ RegisterNUICallback('westrp_ui:dialogCancel', function(data, cb)
     cb({ ok = true })
 end)
 
+-- Callbacks do Confirm
+RegisterNUICallback('westrp_ui:confirmResult', function(data, cb)
+    isConfirmOpen = false
+    if not isPanelOpen and not isDialogOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    if currentActiveConfirm then
+        if data.confirmed and currentActiveConfirm.onConfirm then
+            currentActiveConfirm.onConfirm()
+        elseif not data.confirmed and currentActiveConfirm.onCancel then
+            currentActiveConfirm.onCancel()
+        end
+    end
+    currentActiveConfirm = nil
+    cb({ ok = true })
+end)
+
+-- Callbacks do Progress Bar
+RegisterNUICallback('westrp_ui:progressComplete', function(data, cb)
+    if isProgressActive then
+        isProgressActive = false
+        StopProgressAnimationAndProp()
+
+        if currentProgressTask and currentProgressTask.onComplete then
+            currentProgressTask.onComplete()
+        end
+        currentProgressTask = nil
+    end
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('westrp_ui:progressCancel', function(data, cb)
+    if isProgressActive then
+        isProgressActive = false
+        StopProgressAnimationAndProp()
+
+        if currentProgressTask and currentProgressTask.onCancel then
+            currentProgressTask.onCancel(data.reason or 'user_cancelled')
+        end
+        currentProgressTask = nil
+    end
+    cb({ ok = true })
+end)
+
 -- Limpeza ao parar o recurso
 AddEventHandler('onResourceStop', function(resName)
     if resName == GetCurrentResourceName() then
-        if isDockOpen or isPanelOpen or isDialogOpen then
+        if isDockOpen or isPanelOpen or isDialogOpen or isConfirmOpen then
             SetNuiFocus(false, false)
             SetNuiFocusKeepInput(false)
             ClearScreenBlur()
+        end
+        if isProgressActive then
+            StopProgressAnimationAndProp()
+            isProgressActive = false
         end
     end
 end)
@@ -414,4 +679,12 @@ exports('IsPanelOpen', IsPanelOpen)
 exports('OpenDialog', OpenDialog)
 exports('CloseDialog', CloseDialog)
 exports('IsDialogOpen', IsDialogOpen)
+
+exports('OpenConfirm', OpenConfirm)
+exports('CloseConfirm', CloseConfirm)
+exports('IsConfirmOpen', IsConfirmOpen)
+
+exports('StartProgressBar', StartProgressBar)
+exports('CancelProgressBar', CancelProgressBar)
+exports('IsProgressBarActive', IsProgressBarActive)
 

@@ -732,7 +732,85 @@ WestRP.Client.UI.ShowToast(title, message, type, duration)
 
 ---
 
-## 7. Módulo E: Resolução Automática de Ícones
+## 7. Módulo E: Modal de Confirmação Rápida (OpenConfirm)
+
+O **Modal de Confirmação** (`OpenConfirm`) foi projetado para operações binárias (Sim/Não) com impacto crítico, como compras de alto valor, demissões, transferências e exclusões de registros:
+
+```lua
+WestRP.Client.UI.OpenConfirm({
+    id = 'confirmar_compra',
+    title = 'ADQUIRIR PROPRIEDADE',
+    tag = 'CARTÓRIO REGIONAL',
+    message = 'Deseja assinar a escritura do Rancho Emerald por $ 450.00?',
+    submessage = 'O valor será debitado da sua conta bancária imediatamente.',
+    confirmLabel = 'ASSINAR ESCRITURA',
+    cancelLabel = 'VOLTAR ATRÁS',
+    danger = false, -- Se true, adota tom de alerta vermelho carmesim
+    onConfirm = function()
+        print("Usuário confirmou!")
+    end,
+    onCancel = function()
+        print("Usuário cancelou!")
+    end
+})
+```
+
+---
+
+## 8. Módulo F: Action Progress Bar (ProgressBar)
+
+A **Barra de Progresso de Ação** (`ProgressBar` / `StartProgressBar`) exibe uma barra de evolução procedural para tarefas físicas no mundo (colher plantas, forjar armas, arrombar trincos, curar ferimentos).
+
+* **Zero Foco:** O jogador não fica com cursor preso na tela (`SetNuiFocus(false, false)`).
+* **Anti-Exploit Integrado:** Cancela automaticamente se o jogador sofrer dano físico ou morrer.
+* **Bloqueio Seletivo:** Desabilita disparo e golpes de combate durante a tarefa.
+
+```lua
+WestRP.Client.UI.ProgressBar({
+    label = 'FORJANDO FACA DE CAÇA...',
+    duration = 4500, -- Milissegundos
+    icon = '⚒',
+    canCancel = true, -- Permite cancelar via ESC ou BACKSPACE
+    disableControls = {
+        movement = true, -- Impede andar enquanto forja
+        combat = true    -- Impede atirar ou bater
+    },
+    animation = {
+        dict = 'amb_work@world_human_hammer@table@male_a@trans',
+        name = 'base_trans_wip_base',
+        flag = 1
+    },
+    onComplete = function()
+        WestRP.Client.UI.ShowToast("FORJA", "Você finalizou a lâmina!", "success")
+    end,
+    onCancel = function(reason)
+        WestRP.Client.UI.ShowToast("FORJA", "Ação cancelada: " .. reason, "alert")
+    end
+})
+```
+
+---
+
+## 9. Módulo G: Native Feeds Bridge (Rockstar C++ 0.00ms)
+
+O WestRP encapsula os feeds originais da Rockstar sem nenhuma dependência do VORP. Renderizados pela GPU do RDR2 diretamente pelo motor C++ (resmon 0.00ms constante):
+
+```lua
+-- No Cliente:
+WestRP.Client.Feed.ItemReceived("+1 Ouro Bruto", "Recurso Mineral", "inventory_items", "generic_item", 4000)
+WestRP.Client.Feed.Tip("Pressione [G] para interagir com o balcão.", 3500)
+WestRP.Client.Feed.Objective("Entregue os lingotes de ferro ao ferreiro.", 4000)
+WestRP.Client.Feed.Warning("PERIGO", "Território de lobos selvagens!", nil, nil, 4000)
+WestRP.Client.Feed.Top("VALENTINE", "Smithfield Saloon", 3500)
+
+-- No Servidor (disparando para um jogador):
+WestRP.Server.Feed.ItemReceived(source, "+1 Maçã Fresca", "Provisões", "inventory_items", "generic_item", 3500)
+WestRP.Server.Feed.Tip(source, "Você recebeu uma mensagem do xerife.", 4000)
+```
+
+---
+
+## 10. Módulo H: Resolução Automática de Ícones
 
 Graças à centralização em `westrp_assets`, você **nunca precisa saber em qual pasta o arquivo PNG está**.
 
@@ -744,7 +822,7 @@ Graças à centralização em `westrp_assets`, você **nunca precisa saber em qu
 
 ---
 
-## 8. Boas Práticas & Performance
+## 11. Boas Práticas & Performance
 
 1. **Sempre use Sono Dinâmico (Tick Manager):** Se o seu script tem POIs espaciais no mapa, nunca use `Citizen.Wait(0)` solto. Use o `WestRP.Client.TickManager` para dormir 1.5s longe de marcadores (0.00ms idle resmon).
 2. **Autoridade no Servidor:** A UI é apenas a camada de apresentação. Ao disparar uma compra ou produção no `onAction`, envie o evento para o servidor validar inventário, dinheiro e coordenadas (`WestRP.Server.Security`).

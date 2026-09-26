@@ -20,6 +20,8 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/lib/dataview.lua',
+    'client/feed.lua',
     'client/tick_manager.lua',
     'client/prompt_manager.lua',
     'client/ui_bridge.lua',
@@ -30,6 +32,7 @@ server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/database.lua',
     'server/security.lua',
+    'server/feed.lua',
     'server/main.lua'
 }
 

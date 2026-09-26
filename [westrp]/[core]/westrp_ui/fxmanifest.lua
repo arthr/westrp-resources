@@ -33,6 +33,12 @@ exports {
     'IsPanelOpen',
     'OpenDialog',
     'CloseDialog',
-    'IsDialogOpen'
+    'IsDialogOpen',
+    'OpenConfirm',
+    'CloseConfirm',
+    'IsConfirmOpen',
+    'StartProgressBar',
+    'CancelProgressBar',
+    'IsProgressBarActive'
 }
 

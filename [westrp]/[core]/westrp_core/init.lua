@@ -18,7 +18,9 @@ local function SetupClientUIBridge(core)
     local uiMethods = {
         'OpenDock', 'CloseDock', 'IsDockOpen', 'UpdateItem', 'ShowToast',
         'OpenPanel', 'ClosePanel', 'IsPanelOpen',
-        'OpenDialog', 'CloseDialog', 'IsDialogOpen'
+        'OpenDialog', 'CloseDialog', 'IsDialogOpen',
+        'OpenConfirm', 'CloseConfirm', 'IsConfirmOpen',
+        'StartProgressBar', 'ProgressBar', 'CancelProgressBar', 'IsProgressBarActive'
     }
 
     for _, method in ipairs(uiMethods) do

@@ -569,6 +569,35 @@ local function OpenMasterShowcaseMenu()
                         description = 'Dispara uma sequência de 4 toasts (Info, Sucesso, Alerta e Erro) com áudio procedural.'
                     },
                     {
+                        id = 'test_confirm',
+                        label = '5. Modal de Confirmação Rápida',
+                        badge = 'SIM/NÃO',
+                        badgeType = 'gold',
+                        description = 'Testa o modal binário de confirmação com visual Rockstar.'
+                    },
+                    {
+                        id = 'test_confirm_danger',
+                        label = '6. Confirmação Crítica (Perigo)',
+                        badge = 'PERIGO',
+                        badgeType = 'danger',
+                        danger = true,
+                        description = 'Testa confirmação em tom de alerta carmesim para exclusões/ações irreversíveis.'
+                    },
+                    {
+                        id = 'test_progressbar',
+                        label = '7. Action Progress Bar',
+                        badge = 'AÇÃO',
+                        badgeType = 'on',
+                        description = 'Testa barra de progresso procedural com cancelamento e desabilitação de combate.'
+                    },
+                    {
+                        id = 'test_feeds',
+                        label = '8. Bateria de Feeds Nativos Rockstar',
+                        badge = '0.00ms',
+                        badgeType = 'gold',
+                        description = 'Dispara Item Recebido, Tip, Objective e Warning via C++ nativo (sem Chromium).'
+                    },
+                    {
                         id = 'sep_panel_shortcuts',
                         label = 'ATALHOS DIRETOS DO PANEL',
                         type = 'separator'
@@ -611,6 +640,20 @@ local function OpenMasterShowcaseMenu()
                 OpenShowcaseDialog()
             elseif item.id == 'test_toasts' then
                 OpenShowcaseToasts()
+            elseif item.id == 'test_confirm' then
+                CloseDock()
+                Wait(200)
+                OpenShowcaseConfirm(false)
+            elseif item.id == 'test_confirm_danger' then
+                CloseDock()
+                Wait(200)
+                OpenShowcaseConfirm(true)
+            elseif item.id == 'test_progressbar' then
+                CloseDock()
+                Wait(200)
+                OpenShowcaseProgressBar(4000)
+            elseif item.id == 'test_feeds' then
+                OpenShowcaseFeeds()
             elseif item.id == 'quick_grid' then
                 CloseDock()
                 Wait(200)
@@ -633,7 +676,90 @@ local function OpenMasterShowcaseMenu()
 end
 
 -- ============================================================================
--- 6. REGISTRO DE COMANDOS DE CHAT / CONSOLE
+-- 6. SHOWCASE: MODAL DE CONFIRMAÇÃO RÁPIDA (OPEN CONFIRM)
+-- ============================================================================
+function OpenShowcaseConfirm(isDanger)
+    OpenConfirm({
+        id = 'showcase_confirm',
+        title = isDanger and 'EXCLUIR REGISTRO DEFINITIVO' or 'ADQUIRIR CAVALO PURO-SANGUE',
+        tag = isDanger and 'PERIGO • AÇÃO IRREVERSÍVEL' or 'ESTÁBULO DE VALENTINE',
+        message = isDanger 
+            and 'Deseja realmente apagar este histórico de ficha criminal? Todos os dados serão perdidos permanentemente.'
+            or 'Confirmar compra do garanhão Puro-Sangue Árabe pela quantia de $ 180.00 com sela de couro artesanal?',
+        submessage = isDanger
+            and 'Esta operação exige autorização de xerife ou juiz de paz.'
+            or 'O animal será transferido imediatamente para a sua baia privada no estábulo.',
+        confirmLabel = isDanger and 'SIM, EXCLUIR' or 'CONFIRMAR COMPRA',
+        cancelLabel = 'VOLTAR ATRÁS',
+        danger = isDanger == true,
+        onConfirm = function()
+            ShowToast("CONFIRMAÇÃO", isDanger and "Registro excluído com sucesso!" or "Compra confirmada! Vá até o estábulo.", "success")
+        end,
+        onCancel = function()
+            ShowToast("CANCELADO", "Operação cancelada pelo usuário.", "info")
+        end
+    })
+end
+
+-- ============================================================================
+-- 7. SHOWCASE: ACTION PROGRESS BAR
+-- ============================================================================
+function OpenShowcaseProgressBar(duration)
+    duration = duration or 4000
+    StartProgressBar({
+        label = "FORJANDO FACA DE CAÇA...",
+        duration = duration,
+        icon = "hammer",
+        canCancel = true,
+        disableControls = {
+            movement = true,
+            combat = true
+        },
+        onComplete = function()
+            ShowToast("FORJA CONCLUÍDA", "Você forjou uma Faca de Caça Rústica!", "success")
+            if exports['westrp_core'] then
+                local ok, core = pcall(function() return exports['westrp_core']:GetCoreObject() end)
+                if ok and core and core.Client and core.Client.Feed then
+                    core.Client.Feed.ItemReceived("+1 Faca de Caça", "Armamento Artesanal", "inventory_items", "generic_item", 3500)
+                end
+            end
+        end,
+        onCancel = function(reason)
+            ShowToast("FORJA INTERROMPIDA", "Ação cancelada: " .. tostring(reason), "alert")
+        end
+    })
+end
+
+-- ============================================================================
+-- 8. SHOWCASE: NATIVE FEEDS ROCKSTAR (0.00ms RESMON)
+-- ============================================================================
+function OpenShowcaseFeeds()
+    if not exports['westrp_core'] then return end
+    local ok, core = pcall(function() return exports['westrp_core']:GetCoreObject() end)
+    if not (ok and core and core.Client and core.Client.Feed) then return end
+    local Feed = core.Client.Feed
+
+    -- Feed 1: Item Recebido com ícone nativo
+    Feed.ItemReceived("+1 Pepita de Ouro", "Recurso Mineral", "inventory_items", "generic_item", 4000)
+
+    -- Feed 2: Dica contextual
+    SetTimeout(1200, function()
+        Feed.Tip("Pressione [G] para interagir com o balcão da ferraria.", 3500)
+    end)
+
+    -- Feed 3: Objetivo de missão
+    SetTimeout(2500, function()
+        Feed.Objective("Entregue os minérios ao ferreiro de Valentine.", 4000)
+    end)
+
+    -- Feed 4: Aviso nativo
+    SetTimeout(4000, function()
+        Feed.Warning("TERRITÓRIO HOSTIL", "Você entrou nas colinas de gangues rivais!", nil, nil, 4000)
+    end)
+end
+
+-- ============================================================================
+-- 9. REGISTRO DE COMANDOS DE CHAT / CONSOLE
 -- ============================================================================
 RegisterCommand('uitest', function(source, args)
     local sub = args[1] and string.lower(args[1]) or nil
@@ -647,6 +773,13 @@ RegisterCommand('uitest', function(source, args)
         OpenShowcaseDialog()
     elseif sub == 'toast' or sub == 'toasts' then
         OpenShowcaseToasts()
+    elseif sub == 'confirm' then
+        OpenShowcaseConfirm(args[2] == 'danger')
+    elseif sub == 'progress' or sub == 'progressbar' then
+        local dur = tonumber(args[2]) and (tonumber(args[2]) * 1000) or 4000
+        OpenShowcaseProgressBar(dur)
+    elseif sub == 'feed' or sub == 'feeds' then
+        OpenShowcaseFeeds()
     else
         OpenMasterShowcaseMenu()
     end
@@ -656,4 +789,17 @@ RegisterCommand('uishowcase', function()
     OpenMasterShowcaseMenu()
 end, false)
 
-print("^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7 ou ^3/uishowcase^7 para testar todos os componentes.")
+RegisterCommand('testconfirm', function(source, args)
+    OpenShowcaseConfirm(args[1] == 'danger')
+end, false)
+
+RegisterCommand('testprogress', function(source, args)
+    local dur = tonumber(args[1]) and (tonumber(args[1]) * 1000) or 4000
+    OpenShowcaseProgressBar(dur)
+end, false)
+
+RegisterCommand('testfeed', function()
+    OpenShowcaseFeeds()
+end, false)
+
+print("^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/testconfirm^7, ^3/testprogress^7 ou ^3/testfeed^7.")
