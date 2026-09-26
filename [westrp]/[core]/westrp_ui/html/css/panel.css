@@ -19,7 +19,7 @@
   height: 820px;
   max-height: 92vh;
   background: rgba(20, 20, 20, 0.95) var(--rdr-texture-bg);
-  border: 1px solid var(--rdr-color-border);
+  /* border: 1px solid var(--rdr-color-border); */
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), inset 0 0 50px rgba(0, 0, 0, 0.7);
   border-radius: var(--rdr-border-radius);
   display: flex;
@@ -34,6 +34,7 @@
     opacity: 0;
     transform: scale(0.97);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -431,7 +432,8 @@
 /* ==========================================================================
    VIEWPORT DO DASHBOARD & SETTINGS
    ========================================================================== */
-.dashboard-header, .settings-header {
+.dashboard-header,
+.settings-header {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -439,14 +441,16 @@
   border-bottom: 1px solid var(--rdr-color-border);
 }
 
-.dashboard-title, .settings-title {
+.dashboard-title,
+.settings-title {
   font-family: var(--rdr-font-decorative);
   font-size: var(--rdr-font-size-lg);
   color: var(--rdr-color-text);
   letter-spacing: 1px;
 }
 
-.dashboard-subtitle, .settings-subtitle {
+.dashboard-subtitle,
+.settings-subtitle {
   font-size: var(--rdr-font-size-xs);
   color: var(--rdr-color-text-muted);
 }
@@ -577,5 +581,3 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
-
-
