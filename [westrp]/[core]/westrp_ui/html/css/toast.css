@@ -1,0 +1,103 @@
+/**
+ * WestRP UI Engine — Toast Notifications
+ * 1:1 Red Dead Redemption 2 Theme (Authentic Frontier Dispatch / Telegram)
+ */
+
+#toast-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-item {
+  width: 340px;
+  max-width: 90vw;
+  background: rgba(18, 18, 18, 0.95) var(--rdr-texture-bg);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 25px rgba(0, 0, 0, 0.7);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  animation: slideInToast 0.22s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+@keyframes slideInToast {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-item.removing {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+/* Cabeçalho do Telegrama */
+.toast-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-tag {
+  font-family: var(--rdr-font-decorative);
+  font-size: 11px;
+  color: var(--rdr-color-text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.toast--error .toast-tag,
+.toast--alert .toast-tag {
+  color: var(--rdr-color-primary);
+}
+
+.toast-title {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-md);
+  color: var(--rdr-color-text);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+/* Divisória Autêntica RDR2 */
+.toast-divider {
+  width: 100%;
+  height: 2px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  margin: 8px 0;
+  opacity: var(--rdr-divider-opacity);
+}
+
+/* Mensagem */
+.toast-body {
+  display: flex;
+}
+
+.toast-message {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text);
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+

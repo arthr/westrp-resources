@@ -295,7 +295,17 @@ function OpenShowcasePanel(targetTabId)
                     { id = 'r5', code = '#205', date = '23/09', desc = 'Manutenção de Carroça', client = 'Sadie Adler', amount = '$ 15.00', status = 'CONCLUÍDO', status_type = 'on' },
                     { id = 'r6', code = '#206', date = '22/09', desc = 'Pensão do Estábulo (7d)', client = 'Charles Smith', amount = '$ 7.00', status = 'PENDENTE', status_type = 'off' },
                     { id = 'r7', code = '#207', date = '22/09', desc = 'Carga de Peles de Cervo', client = 'Javier Escuella', amount = '$ 54.00', status = 'CONCLUÍDO', status_type = 'on' }
-                }
+                },
+                footerText = 'Registros auditados pelo Tribunal de Saint Denis • Clique nos cabeçalhos das colunas para alternar ordenação (▲/▼)'
+            },
+
+            -- ABA 3: CONTROLES & COMPONENTES RDR2 (Sliders, Checkboxes, Dropdowns, Buttons, Cards)
+            {
+                id = 'controls_showcase',
+                label = 'Controles & Forms',
+                icon = 'fas fa-sliders-h',
+                badge = 'RDR2',
+                viewType = 'controls'
             },
 
             -- ABA 3: CRAFT (Bancada de Manufatura / Receitas)
@@ -771,6 +781,30 @@ RegisterCommand('uitest', function(source, args)
         OpenShowcasePanel(view)
     elseif sub == 'dialog' then
         OpenShowcaseDialog()
+    elseif sub == 'input' or sub == 'prompt' then
+        PromptInput({
+            title = 'DEPÓSITO NO BANCO DE VALENTINE',
+            description = 'Digite a quantia em dólares que deseja guardar:',
+            type = 'currency',
+            min = 1.00,
+            max = 1000.00,
+            placeholder = '0.00'
+        }, function(amount)
+            if amount then
+                ShowToast("BANCO DE VALENTINE", string.format("Depósito confirmado: $ %.2f", tonumber(amount) or 0), "success", 4000)
+            else
+                ShowToast("BANCO DE VALENTINE", "Operação cancelada pelo cliente.", "alert", 3000)
+            end
+        end)
+    elseif sub == 'nativehud' or sub == 'hud' then
+        if NativeHUD then
+            NativeHUD.SetHonor(15)
+            NativeHUD.ShowCash(150, 75)
+            NativeHUD.SetRank("FORASTEIRO", 3, 72.5)
+            NativeHUD.SetBounty("Bounty: $ 25.00", true)
+            NativeHUD.StartTimer(25, 8)
+            ShowToast("HUD NATIVO (0.00ms)", "Honra, Dinheiro, Rank, Bounty e Timer foram acionados nativamente!", "info", 5000)
+        end
     elseif sub == 'toast' or sub == 'toasts' then
         OpenShowcaseToasts()
     elseif sub == 'confirm' then

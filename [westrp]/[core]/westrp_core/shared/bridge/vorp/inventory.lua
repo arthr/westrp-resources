@@ -200,5 +200,29 @@ if isServer then
         end)
         return ok and (result ~= false)
     end
-end
+else
+    ---Abre o inventário do jogador no lado do cliente
+    function WestRP.Shared.Bridge.Inventory.OpenInventory()
+        TriggerEvent('vorp_inventory:openInventory')
+    end
 
+    ---Fecha o inventário do jogador no lado do cliente
+    function WestRP.Shared.Bridge.Inventory.CloseInventory()
+        TriggerEvent('vorp_inventory:CloseInv')
+    end
+
+    ---Retorna se o inventário está atualmente aberto
+    ---@return boolean
+    function WestRP.Shared.Bridge.Inventory.IsOpen()
+        return LocalPlayer.state.IsInvActive == true
+    end
+
+    -- Evento padrão do WestRP para abertura de inventário (usado pelo menu radial e teclas)
+    RegisterNetEvent('westrp:client:openInventory', function()
+        WestRP.Shared.Bridge.Inventory.OpenInventory()
+    end)
+
+    RegisterNetEvent('westrp:client:closeInventory', function()
+        WestRP.Shared.Bridge.Inventory.CloseInventory()
+    end)
+end

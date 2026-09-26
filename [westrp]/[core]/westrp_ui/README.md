@@ -39,6 +39,18 @@ O **WestRP UI Engine** (`westrp_ui`) é o ecossistema padronizado de interfaces 
 O motor de interface adota os seguintes princípios técnicos:
 
 * **Instância NUI Única (Single NUI Instance):** Todas as telas rodam no mesmo Chromium, eliminando o overhead de instanciar múltiplos iframes ou recursos NUI pesados.
+* **Arquitetura Modular em Vanilla JS (Caminho A):** Sem build steps (Vite/Webpack), sem dependências npm pesadas no client, carregamento instantâneo e 0.00ms resmon em idle.
+* **Design System Autêntico RDR2 (1:1 redm-vue-ui):**
+  - **Fontes Oficiais:** `Chinese Rocks` (títulos, headers, botões de ação e tags), `Hapna Slab Serif` (corpo, labels e descrições), `RDR Lino Regular` (subtítulos estilizados).
+  - **Divisória com Diamante Central (`divider.png`):** Linha carmesim nativa com losango central em todos os cabeçalhos, rodapés e seções.
+  - **Botões Rockstar Texturizados (`box.png` / `box-red.png`):** Moldura chanfrada de botões de ação com transição viva para carmesim no hover.
+  - **Texturas de Fundo & Bordas (`bg.png`, `crafting_outline.png`):** Pano de fundo rústico escurecido com acabamentos e contornos chanfrados.
+  - **Setas Nativas RDR2 (`arrow_left.png`, `arrow_right.png`):** Utilizadas na paginação e abas horizontais do Dock lateral.
+  - **Paleta de Cores Rockstar:**
+    - Primária: `#B62A2A` (Vermelho Rockstar) / `#B21214` (Vermelho Escuro)
+    - Fundo & Superfícies: `#141414` (Header), `#262626` (Surface), `#303030` (Hover), `#3a2323` (Surface Selecionada/Ativa)
+    - Tipografia: `#fafafa` (Texto Principal), `rgba(250, 250, 250, 0.7)` (Texto Secundário)
+    - Bordas: `#4d4d4d` / `#626262`
 * **Áudio Procedural Nativo (Web Audio API):** Não há arquivos `.mp3` ou `.ogg` pesados. Os cliques e confirmações de interface são sintetizados proceduralmente em tempo de execução via ondas senoidais filtradas.
 * **Desfoque Nativo 3D (`OJDominoBlur`):** O mundo 3D é desfocado diretamente pelo motor de pós-processamento da Rockstar Games (`AnimpostfxPlay`), garantindo 60+ FPS, zero escurecimento e estética Rockstar genuína.
 * **Resolução Dinâmica de Assets:** Integração transparente com `westrp_assets`. Se você passar `id = 'weapon_thrown_tomahawk'`, a interface resolve a imagem automaticamente a partir do repositório estático central.
@@ -55,7 +67,13 @@ Se o seu script importa `@westrp_core/init.lua` no `fxmanifest.lua`:
 WestRP.Client.UI.OpenDock({ ... })
 WestRP.Client.UI.OpenPanel({ ... })
 WestRP.Client.UI.OpenDialog({ ... })
+WestRP.Client.UI.PromptInput({ title = "SACAR", type = "currency" }, function(val) ... end)
 WestRP.Client.UI.ShowToast("TÍTULO", "Mensagem", "success")
+
+-- Camada de HUD Nativo (0.00ms via Scaleform)
+WestRP.Client.UI.NativeHUD.SetHonor(15)
+WestRP.Client.UI.NativeHUD.StartTimer(30, 10)
+WestRP.Client.UI.NativeHUD.ShowCash(100, 50)
 ```
 
 ### Opção B: Via Direct Exports (Fallback)
@@ -64,7 +82,10 @@ Funciona em qualquer resource sem dependência direta do SDK:
 exports['westrp_ui']:OpenDock({ ... })
 exports['westrp_ui']:OpenPanel({ ... })
 exports['westrp_ui']:OpenDialog({ ... })
+exports['westrp_ui']:PromptInput({ ... }, function(val) ... end)
 exports['westrp_ui']:ShowToast("TÍTULO", "Mensagem", "info")
+exports['westrp_ui']:NativeHUD_SetHonor(15)
+exports['westrp_ui']:NativeHUD_StartTimer(30, 10)
 ```
 
 ---

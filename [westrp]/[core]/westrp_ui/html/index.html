@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WestRP UI Engine (Dock & Panel)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/dock.css">
+  <link rel="stylesheet" href="css/panel.css">
+  <link rel="stylesheet" href="css/dialog.css">
+  <link rel="stylesheet" href="css/progress.css">
+  <link rel="stylesheet" href="css/toast.css">
 </head>
 <body>
 
@@ -207,13 +210,16 @@
           <!-- Viewport do Grid (Cards/Vitrine) -->
           <div class="panel-grid-view" id="panel-grid-view" style="display: none;"></div>
 
-          <!-- Viewport da Tabela (Ledger/Registros) -->
+          <!-- Viewport da Tabela (Ledger/Registros RdrTable) -->
           <div class="panel-table-view" id="panel-table-view" style="display: none;">
-            <table class="panel-data-table" id="panel-data-table">
+            <table class="rdr-table rdr-table--sortable rdr-table--default" id="panel-data-table">
               <thead id="panel-table-head"></thead>
               <tbody id="panel-table-body"></tbody>
             </table>
           </div>
+
+          <!-- Viewport de Controles & Componentes RDR2 (Playground / Controles) -->
+          <div class="panel-controls-view" id="panel-controls-view" style="display: none;"></div>
 
           <!-- Viewport de Crafting (Receita + Ingredientes) -->
           <div class="panel-craft-view" id="panel-craft-view" style="display: none;">
@@ -343,7 +349,13 @@
   <!-- Container Global de Notificações Toasts -->
   <div id="toast-container"></div>
 
-  <!-- Script do Motor NUI Generalizado -->
+  <!-- Scripts Modulares do Motor NUI -->
+  <script src="js/audio.js"></script>
+  <script src="js/components/toast.js"></script>
+  <script src="js/components/progress.js"></script>
+  <script src="js/components/dialog.js"></script>
+  <script src="js/components/dock.js"></script>
+  <script src="js/components/panel.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

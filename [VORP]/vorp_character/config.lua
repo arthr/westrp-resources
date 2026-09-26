@@ -953,7 +953,7 @@ Config.commands = {
     CoatClosed = { command = "ccoat" },
     Hat = { command = "hat" },
     EyeWear = { command = "eyewear" },
-    Mask = { command = "mask" },
+    Mask = { command = "mascara" },
     NeckWear = { command = "neckwear" },
     NeckTies = { command = "tie" },
     Shirt = { command = "shirt" },

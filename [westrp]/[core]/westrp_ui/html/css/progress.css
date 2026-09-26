@@ -1,0 +1,115 @@
+/**
+ * WestRP UI Engine — Action Progress Bar
+ * Substituto Oficial do vorp_progressbar (1:1 redm-vue-ui theme)
+ */
+
+.progressbar-container {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  pointer-events: none;
+}
+
+.progressbar-box {
+  width: 380px;
+  background: rgba(20, 20, 20, 0.95) var(--rdr-texture-bg);
+  border: 1px solid var(--rdr-color-border);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), inset 0 0 25px rgba(0, 0, 0, 0.7);
+  border-radius: 0;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeInProgress 0.2s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes fadeInProgress {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progressbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progressbar-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressbar-icon {
+  color: var(--rdr-color-primary);
+  display: flex;
+}
+
+.progressbar-label {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-sm);
+  font-weight: normal;
+  color: var(--rdr-color-text);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.progressbar-percentage {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text);
+  font-weight: normal;
+  letter-spacing: 1px;
+}
+
+.progressbar-track {
+  width: 100%;
+  height: 6px;
+  background: #0e0e0e;
+  border: 1px solid var(--rdr-color-border);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.progressbar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--rdr-color-primary-dark) 0%, var(--rdr-color-primary) 100%);
+  transition: width 0.08s linear;
+}
+
+.progressbar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.progressbar-key-badge {
+  background: #262626;
+  border: 1px solid var(--rdr-color-border);
+  color: var(--rdr-color-text);
+  font-size: 10px;
+  font-weight: normal;
+  padding: 1px 6px;
+  border-radius: 0;
+  font-family: var(--rdr-font-decorative);
+}
+
+.progressbar-cancel-label {
+  font-family: var(--rdr-font-body);
+  font-size: 11px;
+  color: var(--rdr-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+

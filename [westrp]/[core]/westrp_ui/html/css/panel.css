@@ -1,0 +1,581 @@
+/**
+ * WestRP UI Engine — Panel Central (1040px / Cursor Livre / Workspace)
+ * 1:1 Red Dead Redemption 2 Theme (Inspired by redm-vue-ui)
+ */
+
+.panel-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.panel-modal {
+  position: relative;
+  width: 1440px;
+  max-width: 95vw;
+  height: 820px;
+  max-height: 92vh;
+  background: rgba(20, 20, 20, 0.95) var(--rdr-texture-bg);
+  border: 1px solid var(--rdr-color-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), inset 0 0 50px rgba(0, 0, 0, 0.7);
+  border-radius: var(--rdr-border-radius);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  overflow: hidden;
+  animation: zoomInPanel 0.22s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes zoomInPanel {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   CABEÇALHO DO PANEL
+   ========================================================================== */
+.panel-header {
+  position: relative;
+  height: 64px;
+  padding: 0 24px;
+  background: var(--rdr-color-surface-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.panel-tag {
+  display: block;
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-primary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.panel-title {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xl);
+  font-weight: normal;
+  color: var(--rdr-color-text);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.panel-search-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(14, 14, 14, 0.8);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: var(--rdr-border-radius);
+  padding: 6px 12px;
+  gap: 8px;
+  transition: border-color var(--rdr-transition-fast), box-shadow var(--rdr-transition-fast);
+}
+
+.panel-search-wrap:focus-within {
+  border-color: var(--rdr-color-primary);
+  background: rgba(33, 33, 33, 0.85);
+}
+
+.panel-search-icon {
+  color: var(--rdr-color-text-muted);
+  display: flex;
+}
+
+#panel-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-sm);
+  color: var(--rdr-color-text);
+  width: 170px;
+}
+
+#panel-search-input::placeholder {
+  color: var(--rdr-color-text-muted);
+}
+
+.panel-meta-pill {
+  font-family: var(--font-mono);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--color-gold-light);
+  background: rgba(38, 38, 38, 0.8);
+  border: 1px solid var(--rdr-color-border);
+  padding: 5px 12px;
+  border-radius: var(--rdr-border-radius);
+}
+
+.panel-close-btn {
+  background: rgba(20, 20, 20, 0.7);
+  border: 1px solid var(--rdr-color-border);
+  color: var(--rdr-color-text-muted);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--rdr-font-decorative);
+  font-size: 14px;
+  transition: all var(--rdr-transition-fast);
+}
+
+.panel-close-btn:hover {
+  background: var(--rdr-color-primary);
+  border-color: var(--rdr-color-primary);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   CORPO PRINCIPAL (SIDEBAR + CONTENT)
+   ========================================================================== */
+.panel-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.panel-sidebar {
+  width: 260px;
+  background: rgba(16, 16, 16, 0.95);
+  border-right: 1px solid var(--rdr-color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-tabs-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panel-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+  border-radius: var(--rdr-border-radius);
+  color: var(--rdr-color-text-muted);
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background var(--rdr-transition-fast), color var(--rdr-transition-fast);
+}
+
+.panel-tab-btn:hover {
+  background: var(--rdr-color-surface-hover);
+  color: var(--rdr-color-text);
+  border-left: 3px solid var(--rdr-color-border-hover);
+}
+
+.panel-tab-btn.active {
+  background: var(--rdr-color-surface-red);
+  border-left: 4px solid var(--rdr-color-primary);
+  color: #ffffff;
+}
+
+.panel-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(12, 12, 12, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ==========================================================================
+   VISÃO 1: GRID VIEW (VITRINE / CARDS ESTILO REDM-VUE-UI)
+   ========================================================================== */
+.panel-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.grid-card {
+  background: var(--rdr-color-surface);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--rdr-transition-fast), border-color var(--rdr-transition-fast);
+  position: relative;
+}
+
+.grid-card:hover {
+  transform: translateY(-2px);
+  background: var(--rdr-color-surface-hover);
+  border-color: var(--rdr-color-border-hover);
+}
+
+.grid-card.selected {
+  border-color: var(--rdr-color-primary);
+  background: var(--rdr-color-surface-red);
+}
+
+.grid-card-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 8px;
+  object-fit: contain;
+}
+
+.grid-card-title {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-xs);
+  font-weight: 600;
+  color: var(--rdr-color-text);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.grid-card-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--rdr-color-primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   VISÃO 2: TABLE VIEW (LEDGER / REGISTROS)
+   ========================================================================== */
+.panel-table-view {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.panel-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--rdr-font-size-sm);
+}
+
+.panel-data-table th {
+  padding: 10px 14px;
+  background: #181818;
+  color: var(--rdr-color-text);
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: left;
+  border-bottom: 2px solid var(--rdr-color-primary);
+}
+
+.panel-data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--rdr-color-text-muted);
+}
+
+.panel-data-table tr:hover td {
+  background: rgba(182, 42, 42, 0.15);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   RODAPÉ DO PANEL (SELETOR DE QUANTIDADE & CTA REDM-VUE-UI)
+   ========================================================================== */
+.panel-footer {
+  position: relative;
+  height: 64px;
+  padding: 0 24px;
+  background: var(--rdr-color-surface-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.panel-footer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+#panel-selected-name {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-sm);
+  color: var(--rdr-color-text);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.panel-selected-desc {
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+}
+
+.panel-footer-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.panel-stepper {
+  display: flex;
+  align-items: center;
+  background: rgba(14, 14, 14, 0.8);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: var(--rdr-border-radius);
+}
+
+.stepper-btn {
+  background: none;
+  border: none;
+  color: var(--rdr-color-text-muted);
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color var(--rdr-transition-fast), background var(--rdr-transition-fast);
+}
+
+.stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--rdr-color-primary);
+}
+
+.stepper-val {
+  font-family: var(--font-mono);
+  font-size: var(--rdr-font-size-sm);
+  color: var(--rdr-color-text);
+  padding: 0 12px;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Botão Primário Rockstar com Textura box.png -> box-red.png */
+.panel-cta-btn {
+  background: var(--rdr-texture-box) no-repeat center / 100% 100%;
+  border: none;
+  color: #fafafa;
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-md);
+  padding: 8px 26px;
+  cursor: pointer;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+  transition: transform var(--rdr-transition-fast), filter var(--rdr-transition-fast);
+}
+
+.panel-cta-btn:hover {
+  background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
+  color: #ffffff;
+  transform: scale(1.02);
+}
+
+.panel-cta-btn:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   VIEWPORT DO DASHBOARD & SETTINGS
+   ========================================================================== */
+.dashboard-header, .settings-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rdr-color-border);
+}
+
+.dashboard-title, .settings-title {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-lg);
+  color: var(--rdr-color-text);
+  letter-spacing: 1px;
+}
+
+.dashboard-subtitle, .settings-subtitle {
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+}
+
+.dashboard-section-title {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-primary);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.dashboard-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.dashboard-stat-card {
+  background: var(--rdr-color-surface);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: var(--rdr-border-radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card-title {
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+  text-transform: uppercase;
+}
+
+.stat-card-value {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-lg);
+  color: var(--rdr-color-text);
+}
+
+/* ==========================================================================
+   VIEWPORT DE CONTROLES, FORMULÁRIOS & PLAYGROUND
+   ========================================================================== */
+.panel-controls-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.controls-section:has(.rdr-dropdown--open),
+.controls-section.has-open-dropdown {
+  z-index: 1000 !important;
+}
+
+.controls-section-title {
+  font-family: var(--rdr-font-title);
+  font-size: var(--rdr-font-size-md);
+  color: var(--rdr-color-text);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rdr-color-border);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.controls-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.controls-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.control-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.control-item:has(.rdr-dropdown--open),
+.control-item.has-open-dropdown {
+  z-index: 1000 !important;
+}
+
+.control-label {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-value-display {
+  font-family: var(--font-mono);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-primary);
+  margin-top: 4px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(16, 16, 16, 0.6);
+  padding: 18px;
+  border: 1px solid var(--rdr-color-border);
+}
+
+.cards-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+

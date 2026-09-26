@@ -4,29 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WestRP UI Engine — Component Playground & Sandbox</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/dock.css">
+  <link rel="stylesheet" href="css/panel.css">
+  <link rel="stylesheet" href="css/dialog.css">
+  <link rel="stylesheet" href="css/progress.css">
+  <link rel="stylesheet" href="css/toast.css">
   <style>
     /* Estilos do Sandbox de Teste (Visível apenas em modo navegador/desenvolvimento) */
     .sandbox-bg {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, #1c1a17 0%, #0d0c0b 100%);
+      background: radial-gradient(circle at center, #1e1e1e 0%, #0e0e0e 100%);
       z-index: 0;
     }
     .sandbox-bg::after {
-      content: "WESTRP UI COMPONENT SANDBOX";
+      content: "WESTRP UI COMPONENT SANDBOX (1:1 REDM-VUE-UI THEME)";
       position: absolute;
       top: 24px;
       left: 50%;
       transform: translateX(-50%);
-      font-family: 'Cinzel', serif;
-      font-size: 14px;
-      letter-spacing: 4px;
-      color: rgba(212, 175, 55, 0.25);
-      font-weight: 700;
+      font-family: var(--rdr-font-decorative);
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: rgba(182, 42, 42, 0.4);
+      font-weight: normal;
       pointer-events: none;
     }
     .sandbox-toolbar {
@@ -37,31 +40,31 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      background: rgba(13, 12, 11, 0.95);
+      background: rgba(18, 18, 18, 0.95);
       padding: 10px 16px;
-      border: 1px solid rgba(212, 175, 55, 0.4);
-      border-radius: 4px;
+      border: 1px solid var(--rdr-color-border);
+      border-radius: var(--rdr-border-radius);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
       z-index: 99999;
       justify-content: center;
       max-width: 95vw;
     }
     .sandbox-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      color: #d8cebc;
-      font-family: 'Cinzel', serif;
-      font-size: 11px;
+      background: rgba(40, 40, 40, 0.8);
+      border: 1px solid var(--rdr-color-border);
+      color: var(--rdr-color-text);
+      font-family: var(--rdr-font-decorative);
+      font-size: 13px;
       letter-spacing: 1px;
-      padding: 6px 12px;
+      padding: 6px 14px;
       cursor: pointer;
-      border-radius: 2px;
+      border-radius: var(--rdr-border-radius);
       transition: all 0.15s ease;
     }
     .sandbox-btn:hover {
-      background: rgba(212, 175, 55, 0.2);
-      border-color: #d4af37;
-      color: #ffffff;
+      background: var(--rdr-color-primary);
+      border-color: #e03838;
+      color: #fff;
     }
     .sandbox-btn.btn-close {
       background: rgba(220, 53, 69, 0.2);
@@ -117,17 +120,15 @@
 
   <!-- Barra de Ferramentas de Teste do Sandbox -->
   <div class="sandbox-toolbar">
+    <button class="sandbox-btn" style="background: rgba(182, 42, 42, 0.5); border-color: var(--rdr-color-primary);" onclick="runSim('panel_ultrawide')">PAINEL ULTRAWIDE (1440px): COMPONENTES</button>
+    <button class="sandbox-btn" onclick="runSim('panel_controls')">Controles RDR (Sliders/Checks/Dropdowns)</button>
+    <button class="sandbox-btn" onclick="runSim('panel_table')">Tabela Ordenável (Sortable RdrTable)</button>
     <button class="sandbox-btn" onclick="runSim('dock')">Dock Lateral (350px)</button>
-    <button class="sandbox-btn" onclick="runSim('panel_grid')">Panel: Grid (Loja)</button>
-    <button class="sandbox-btn" onclick="runSim('panel_table')">Panel: Table (Livro)</button>
-    <button class="sandbox-btn" onclick="runSim('panel_craft')">Panel: Craft (Forja)</button>
-    <button class="sandbox-btn" onclick="runSim('panel_queue')">Panel: Queue (Fila)</button>
-    <button class="sandbox-btn" onclick="runSim('panel_dashboard')">Panel: Dashboard</button>
-    <button class="sandbox-btn" onclick="runSim('panel_settings')">Panel: Settings</button>
+    <button class="sandbox-btn" onclick="runSim('panel_grid')">Vitrine (Grid Cards)</button>
     <button class="sandbox-btn" onclick="runSim('dialog')">Dialog (Formulário)</button>
     <button class="sandbox-btn" onclick="runSim('confirm')">Confirm (Modal)</button>
     <button class="sandbox-btn" onclick="runSim('progress')">Progress Bar</button>
-    <button class="sandbox-btn" onclick="runSim('toasts')">Toasts (Notificações)</button>
+    <button class="sandbox-btn" onclick="runSim('toasts')">Toasts (Despachos)</button>
     <button class="sandbox-btn btn-close" onclick="runSim('close_all')">Fechar Todos</button>
   </div>
 
@@ -287,11 +288,13 @@
           <div class="panel-grid-view" id="panel-grid-view" style="display: none;"></div>
 
           <div class="panel-table-view" id="panel-table-view" style="display: none;">
-            <table class="panel-data-table" id="panel-data-table">
+            <table class="rdr-table rdr-table--sortable rdr-table--default" id="panel-data-table">
               <thead id="panel-table-head"></thead>
               <tbody id="panel-table-body"></tbody>
             </table>
           </div>
+
+          <div class="panel-controls-view" id="panel-controls-view" style="display: none;"></div>
 
           <div class="panel-craft-view" id="panel-craft-view" style="display: none;">
             <div class="craft-recipe-list" id="craft-recipe-list"></div>
@@ -510,31 +513,107 @@
         }, '*');
       }
 
+      else if (type === 'panel_ultrawide') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'PLAYGROUND NATIVO RDR2 (1440px)',
+            tag: 'WESTRP UI ENGINE • ULTRAWIDE WORKSPACE',
+            ctaLabel: 'APLICAR AJUSTES',
+            metaText: 'Monitor Ultrawide Ativo: 1440px Clamped',
+            tabs: [
+              {
+                id: 'tab_controls',
+                label: 'Controles & Forms',
+                view: 'controls'
+              },
+              {
+                id: 'tab_table',
+                label: 'Livro-Razão (RdrTable)',
+                view: 'table',
+                sortable: true,
+                columns: [
+                  { key: 'code', label: 'CÓDIGO' },
+                  { key: 'item', label: 'MERCADORIA' },
+                  { key: 'category', label: 'CATEGORIA' },
+                  { key: 'stock', label: 'ESTOQUE' },
+                  { key: 'price', label: 'VALOR' }
+                ],
+                rows: [
+                  { id: '1', code: '#01', item: 'Kentucky Bourbon', category: 'Bebidas', stock: 24, price: '$ 1.80' },
+                  { id: '2', code: '#02', item: 'Feijão Enlatado', category: 'Provisões', stock: 68, price: '$ 0.60' },
+                  { id: '3', code: '#03', item: 'Cigarros Premium', category: 'Tabaco', stock: 41, price: '$ 0.75' },
+                  { id: '4', code: '#04', item: 'Revividor de Cavalos', category: 'Medicina', stock: 15, price: '$ 5.00' },
+                  { id: '5', code: '#05', item: 'Óleo de Cobra Especial', category: 'Tônicos', stock: 33, price: '$ 1.10' },
+                  { id: '6', code: '#06', item: 'Munição Express .44', category: 'Armamento', stock: 120, price: '$ 2.50' },
+                  { id: '7', code: '#07', item: 'Dinamite Reforçada', category: 'Explosivos', stock: 8, price: '$ 4.20' }
+                ],
+                footerText: 'Tabela Ordenável Nativa • Clique no cabeçalho de qualquer coluna para alternar ordem ascendente (▲) e descendente (▼).'
+              },
+              {
+                id: 'tab_grid',
+                label: 'Vitrine Comercial',
+                view: 'grid',
+                items: [
+                  { id: 'item_1', name: 'Tomahawk Forjado', badge: '$ 35.00', description: 'Lâmina balanceada para combate.' },
+                  { id: 'item_2', name: 'Faca Bowie Rústica', badge: '$ 18.50', description: 'Empunhadura em chifre de cervo.' },
+                  { id: 'item_3', name: 'Coquetel Molotov', badge: '$ 25.00', description: 'Armamento incendiário.' },
+                  { id: 'item_4', name: 'Picareta de Mina', badge: '$ 22.00', description: 'Aço carbono de alta dureza.' },
+                  { id: 'item_5', name: 'Café em Grãos', badge: '$ 1.25', description: 'Restaura a estamina por completo.' },
+                  { id: 'item_6', name: 'Carne Curada', badge: '$ 3.50', description: 'Provisão durável para jornadas longas.' }
+                ]
+              }
+            ]
+          }
+        }, '*');
+      }
+
+      else if (type === 'panel_controls') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel',
+            title: 'CONTROLES & FORMULÁRIOS RDR2',
+            tag: 'COMPONENTES NATIVOS',
+            ctaLabel: 'SALVAR PARÂMETROS',
+            tabs: [{
+              id: 'controls',
+              label: 'Ajustes & Sliders',
+              view: 'controls'
+            }]
+          }
+        }, '*');
+      }
+
       else if (type === 'panel_table') {
         window.postMessage({
           action: 'westrp_ui:openPanel',
           options: {
             id: 'sandbox_panel',
-            title: 'LIVRO-RAZÃO CONTÁBIL',
-            tag: 'DEPARTAMENTO DO XERIFE',
+            title: 'LIVRO-RAZÃO CONTÁBIL (RDRTABLE)',
+            tag: 'DEPARTAMENTO DO XERIFE • VALENTINE',
+            ctaLabel: 'VER DETALHES',
             tabs: [{
               id: 'ledger',
-              label: 'Registros',
-              badge: 'OFICIAL',
-              viewType: 'table',
-              pageSize: 5,
+              label: 'Registros Ordenáveis',
+              view: 'table',
+              sortable: true,
               columns: [
-                { key: 'code', label: 'Nº', width: '12%', align: 'center' },
-                { key: 'date', label: 'DATA', width: '15%' },
-                { key: 'desc', label: 'OPERAÇÃO / CRIME', width: '38%' },
-                { key: 'client', label: 'CIDADÃO', width: '20%' },
-                { key: 'status', label: 'STATUS', width: '15%', align: 'center', type: 'pill' }
+                { key: 'code', label: 'Nº REGISTRO' },
+                { key: 'date', label: 'DATA' },
+                { key: 'desc', label: 'OPERAÇÃO / CRIME' },
+                { key: 'client', label: 'CIDADÃO' },
+                { key: 'bounty', label: 'RECOMPENSA' }
               ],
               rows: [
-                { id: 'r1', code: '#101', date: '24/09', desc: 'Desordem em Estabelecimento', client: 'Arthur Morgan', status: 'PAGO', status_type: 'on' },
-                { id: 'r2', code: '#102', date: '24/09', desc: 'Roubo de Ovelhas', client: 'Micah Bell', status: 'PROCURADO', status_type: 'danger' },
-                { id: 'r3', code: '#103', date: '23/09', desc: 'Porte Ilegal de Dinamite', client: 'Bill Williamson', status: 'PENDENTE', status_type: 'off' }
-              ]
+                { id: 'r1', code: '#101', date: '24/09', desc: 'Desordem no Saloon Smithfields', client: 'Arthur Morgan', bounty: '$ 120.00' },
+                { id: 'r2', code: '#102', date: '24/09', desc: 'Roubo de Gado em Emerald Ranch', client: 'Micah Bell', bounty: '$ 350.00' },
+                { id: 'r3', code: '#103', date: '23/09', desc: 'Porte Ilegal de Dinamite na Estação', client: 'Bill Williamson', bounty: '$ 80.00' },
+                { id: 'r4', code: '#104', date: '22/09', desc: 'Falsificação de Escrituras de Terra', client: 'Hosea Matthews', bounty: '$ 210.00' },
+                { id: 'r5', code: '#105', date: '21/09', desc: 'Fuga de Custódia em Strawberry', client: 'Sean MacGuire', bounty: '$ 95.00' }
+              ],
+              footerText: 'Clique nos cabeçalhos (Nº REGISTRO, DATA, CIDADÃO, RECOMPENSA) para ordenar dinamicamente (▲/▼).'
             }]
           }
         }, '*');
@@ -749,15 +828,15 @@
       }
 
       else if (type === 'toasts') {
-        window.postMessage({ action: 'westrp_ui:toast', title: 'INFORMAÇÃO', message: 'Notificação elegante em ouro velho.', type: 'info', duration: 3000 }, '*');
+        window.postMessage({ action: 'westrp_ui:toast', title: 'ESTAÇÃO DE CORREIOS', message: 'Nova correspondência registrada em seu nome.', type: 'info', duration: 3500 }, '*');
         setTimeout(() => {
-          window.postMessage({ action: 'westrp_ui:toast', title: 'SUCESSO', message: 'Ação executada e validada pelo servidor!', type: 'success', duration: 3000 }, '*');
+          window.postMessage({ action: 'westrp_ui:toast', title: 'BANCO DE VALENTINE', message: 'Depósito de $ 45.00 processado com sucesso no livro-caixa.', type: 'success', duration: 3500 }, '*');
         }, 600);
         setTimeout(() => {
-          window.postMessage({ action: 'westrp_ui:toast', title: 'ALERTA', message: 'Atenção: Área de fronteira com patrulha armada.', type: 'alert', duration: 3000 }, '*');
+          window.postMessage({ action: 'westrp_ui:toast', title: 'XERIFE DE BLACKWATER', message: 'Aviso de patrulha armada nos arredores da cidade.', type: 'warning', duration: 3500 }, '*');
         }, 1200);
         setTimeout(() => {
-          window.postMessage({ action: 'westrp_ui:toast', title: 'PERIGO', message: 'Tentativa de transação não autorizada.', type: 'error', duration: 3500 }, '*');
+          window.postMessage({ action: 'westrp_ui:toast', title: 'PROCURADO', message: 'Mandado emitido. Evite contato com as autoridades locais.', type: 'error', duration: 4000 }, '*');
         }, 1800);
       }
 

@@ -4,14 +4,12 @@ Bem-vindo ao repositório do **[westrp]**, uma solução de engenharia modular, 
 
 ---
 
-## 📖 Documentação e Especificações Mestras
+## 📖 Documentação e Especificação Mestra
 Todo o desenvolvimento deste ecossistema segue rigorosamente a abordagem de **Spec-Driven Development (SDD)**.
 
-Antes de desenvolver ou modificar qualquer recurso, consulte as documentações específicas:
-* 📜 **[SPECIFICATION.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/SPECIFICATION.md)** — Arquitetura Mestra, Contratos e Regras Inegociáveis.
-* 🎨 **[Manual do Motor de UI (`westrp_ui`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/README.md)** — Guia Completo do Desenvolvedor para Dock, Panel, Toasts e Web Audio.
-* 🖼️ **[Manual da Central de Assets (`westrp_assets`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[assets]/westrp_assets/README.md)** — Guia do Acervo de 2.100+ Ícones e Resolução Automática.
-* 🛡️ **[Manual do Sistema Administrativo (`westrp_admin`)](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[systems]/westrp_admin/README.md)** — Guia Operacional e Técnico da Central Administrativa Zero-Trust.
+A fonte única da verdade para arquitetura, diretrizes e plano diretor é:
+* 📜 **[MASTER_ARCHITECTURE_PLAN.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/MASTER_ARCHITECTURE_PLAN.md)** — Arquitetura Mestra, Diagnóstico, Contratos e Plano de Execução em Fases.
+*(Documentações históricas e detalhamentos antigos foram isolados em `docs_archive/`).*
 
 ---
 
@@ -19,8 +17,9 @@ Antes de desenvolver ou modificar qualquer recurso, consulte as documentações 
 
 ```text
 [westrp]/
-├── SPECIFICATION.md          # 📜 Especificação arquitetural, contratos de API e regras inegociáveis
-├── README.md                 # 📄 Este arquivo
+├── MASTER_ARCHITECTURE_PLAN.md  # 📜 Especificação mestre, contratos de API e plano diretor
+├── README.md                    # 📄 Este arquivo
+├── docs_archive/                # 🗄️ Documentações legadas arquivadas
 │
 ├── [assets]/                 # 🖼️ Recursos Estáticos & Repositório de Mídias
 │   └── westrp_assets/        # Central de 2.122 ícones e índice de resolução automática

@@ -310,6 +310,46 @@ function IsDialogOpen()
     return isDialogOpen
 end
 
+---Abre um prompt de entrada de campo único (substituto oficial e elegante do vorp_inputs)
+---@param options { id?: string, title?: string, tag?: string, description?: string, type?: "currency"|"number"|"text"|"textarea"|"select", placeholder?: string, min?: number, max?: number, step?: number, options?: table[], value?: any, submitLabel?: string, cancelLabel?: string }
+---@param callback fun(value: any)
+function PromptInput(options, callback)
+    if not options then return end
+    local fieldId = 'input_val'
+    OpenDialog({
+        id = options.id or 'prompt_input',
+        title = options.title or 'ENTRADA DE DADOS',
+        tag = options.tag or 'PROMPT',
+        subtitle = options.description or options.subtitle,
+        submitLabel = options.submitLabel or 'CONFIRMAR',
+        cancelLabel = options.cancelLabel or 'CANCELAR',
+        fields = {
+            {
+                id = fieldId,
+                label = options.label or '',
+                type = options.type or 'text',
+                placeholder = options.placeholder or '',
+                min = options.min,
+                max = options.max,
+                step = options.step,
+                value = options.value,
+                options = options.options,
+                description = options.fieldDesc
+            }
+        },
+        onSubmit = function(values)
+            if callback then
+                callback(values[fieldId])
+            end
+        end,
+        onCancel = function()
+            if callback then
+                callback(nil)
+            end
+        end
+    })
+end
+
 -- ============================================================================
 -- 6. SISTEMA DE MODAL DE CONFIRMAÇÃO RÁPIDA (OPEN CONFIRM)
 -- ============================================================================
@@ -522,26 +562,34 @@ end
 -- 8. NUI CALLBACKS RECEBIDOS DO JAVASCRIPT
 -- ============================================================================
 
+local function RegisterUnifiedCallback(names, handler)
+    if type(names) == 'string' then names = { names } end
+    for _, name in ipairs(names) do
+        RegisterNUICallback(name, handler)
+        RegisterNUICallback('westrp_ui:' .. name, handler)
+    end
+end
+
 -- Callbacks do Dock
-RegisterNUICallback('westrp_ui:selectItem', function(data, cb)
+RegisterUnifiedCallback({'selectItem', 'itemSelect'}, function(data, cb)
     if currentActiveMenu and currentActiveMenu.onSelect then
         currentActiveMenu.onSelect(data.item, data.tabId)
     end
     cb({ ok = true })
 end)
 
-RegisterNUICallback('westrp_ui:changeValue', function(data, cb)
+RegisterUnifiedCallback({'changeValue', 'itemChange'}, function(data, cb)
     if currentActiveMenu and currentActiveMenu.onChange then
-        currentActiveMenu.onChange(data.item, data.newValue, data.tabId)
+        currentActiveMenu.onChange(data.item, data.value or data.newValue, data.tabId)
     end
     cb({ ok = true })
 end)
 
-RegisterNUICallback('westrp_ui:tabChanged', function(data, cb)
+RegisterUnifiedCallback({'tabChanged'}, function(data, cb)
     cb({ ok = true })
 end)
 
-RegisterNUICallback('westrp_ui:closed', function(data, cb)
+RegisterUnifiedCallback({'closed', 'close'}, function(data, cb)
     isDockOpen = false
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
@@ -554,14 +602,14 @@ RegisterNUICallback('westrp_ui:closed', function(data, cb)
 end)
 
 -- Callbacks do Panel
-RegisterNUICallback('westrp_ui:panelAction', function(data, cb)
+RegisterUnifiedCallback({'panelAction'}, function(data, cb)
     if currentActivePanel and currentActivePanel.onAction then
-        currentActivePanel.onAction(data.action, data.item or data.tileData, data.tabId, data.quantity, data)
+        currentActivePanel.onAction(data.action or 'select', data.item or data.tileData, data.tabId, data.quantity, data)
     end
     cb({ ok = true })
 end)
 
-RegisterNUICallback('westrp_ui:panelClosed', function(data, cb)
+RegisterUnifiedCallback({'panelClosed', 'closePanel'}, function(data, cb)
     isPanelOpen = false
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
@@ -575,7 +623,7 @@ RegisterNUICallback('westrp_ui:panelClosed', function(data, cb)
 end)
 
 -- Callbacks do Dialog
-RegisterNUICallback('westrp_ui:dialogSubmit', function(data, cb)
+RegisterUnifiedCallback({'dialogSubmit'}, function(data, cb)
     isDialogOpen = false
     if not isPanelOpen and not isConfirmOpen then
         SetNuiFocus(false, false)
@@ -589,7 +637,7 @@ RegisterNUICallback('westrp_ui:dialogSubmit', function(data, cb)
     cb({ ok = true })
 end)
 
-RegisterNUICallback('westrp_ui:dialogCancel', function(data, cb)
+RegisterUnifiedCallback({'dialogCancel'}, function(data, cb)
     isDialogOpen = false
     if not isPanelOpen and not isConfirmOpen then
         SetNuiFocus(false, false)
@@ -604,26 +652,36 @@ RegisterNUICallback('westrp_ui:dialogCancel', function(data, cb)
 end)
 
 -- Callbacks do Confirm
-RegisterNUICallback('westrp_ui:confirmResult', function(data, cb)
+RegisterUnifiedCallback({'confirmResult', 'confirmSubmit'}, function(data, cb)
     isConfirmOpen = false
     if not isPanelOpen and not isDialogOpen then
         SetNuiFocus(false, false)
         SetNuiFocusKeepInput(false)
     end
 
-    if currentActiveConfirm then
-        if data.confirmed and currentActiveConfirm.onConfirm then
-            currentActiveConfirm.onConfirm()
-        elseif not data.confirmed and currentActiveConfirm.onCancel then
-            currentActiveConfirm.onCancel()
-        end
+    if currentActiveConfirm and currentActiveConfirm.onConfirm then
+        currentActiveConfirm.onConfirm()
+    end
+    currentActiveConfirm = nil
+    cb({ ok = true })
+end)
+
+RegisterUnifiedCallback({'confirmCancel'}, function(data, cb)
+    isConfirmOpen = false
+    if not isPanelOpen and not isDialogOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    if currentActiveConfirm and currentActiveConfirm.onCancel then
+        currentActiveConfirm.onCancel()
     end
     currentActiveConfirm = nil
     cb({ ok = true })
 end)
 
 -- Callbacks do Progress Bar
-RegisterNUICallback('westrp_ui:progressComplete', function(data, cb)
+RegisterUnifiedCallback({'progressComplete'}, function(data, cb)
     if isProgressActive then
         isProgressActive = false
         StopProgressAnimationAndProp()
@@ -636,7 +694,7 @@ RegisterNUICallback('westrp_ui:progressComplete', function(data, cb)
     cb({ ok = true })
 end)
 
-RegisterNUICallback('westrp_ui:progressCancel', function(data, cb)
+RegisterUnifiedCallback({'progressCancel'}, function(data, cb)
     if isProgressActive then
         isProgressActive = false
         StopProgressAnimationAndProp()
@@ -679,6 +737,7 @@ exports('IsPanelOpen', IsPanelOpen)
 exports('OpenDialog', OpenDialog)
 exports('CloseDialog', CloseDialog)
 exports('IsDialogOpen', IsDialogOpen)
+exports('PromptInput', PromptInput)
 
 exports('OpenConfirm', OpenConfirm)
 exports('CloseConfirm', CloseConfirm)
@@ -687,4 +746,5 @@ exports('IsConfirmOpen', IsConfirmOpen)
 exports('StartProgressBar', StartProgressBar)
 exports('CancelProgressBar', CancelProgressBar)
 exports('IsProgressBarActive', IsProgressBarActive)
+
 

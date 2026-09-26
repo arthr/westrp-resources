@@ -1,0 +1,300 @@
+/**
+ * WestRP UI Engine — Dialog & Confirm Modals
+ * Substituto Oficial do vorp_inputs com estética autêntica RDR2 (redm-vue-ui)
+ */
+
+.dialog-container, .confirm-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.dialog-modal, .confirm-modal {
+  position: relative;
+  width: 480px;
+  max-width: 90vw;
+  background: rgba(20, 20, 20, 0.95) var(--rdr-texture-bg);
+  border: 1px solid var(--rdr-color-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), inset 0 0 35px rgba(0, 0, 0, 0.7);
+  border-radius: var(--rdr-border-radius);
+  display: flex;
+  flex-direction: column;
+  z-index: 25;
+  overflow: hidden;
+  animation: scaleInModal 0.2s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes scaleInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ==========================================================================
+   CABEÇALHO DO DIALOG & CONFIRM
+   ========================================================================== */
+.dialog-header, .confirm-header {
+  position: relative;
+  padding: 20px 24px 18px;
+  background: var(--rdr-color-surface-header);
+}
+
+.dialog-header::after, .confirm-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.dialog-tag, .confirm-tag {
+  display: block;
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-primary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.dialog-title, .confirm-title {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xl);
+  font-weight: normal;
+  color: var(--rdr-color-text);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.dialog-subtitle {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+  margin-top: 4px;
+}
+
+.dialog-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(20, 20, 20, 0.7);
+  border: 1px solid var(--rdr-color-border);
+  color: var(--rdr-color-text-muted);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--rdr-font-decorative);
+  font-size: 14px;
+  transition: all var(--rdr-transition-fast);
+}
+
+.dialog-close-btn:hover {
+  background: var(--rdr-color-primary);
+  border-color: var(--rdr-color-primary);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   CORPO DE CAMPOS DO FORMULÁRIO (INPUTS RDR2)
+   ========================================================================== */
+.dialog-body {
+  padding: 24px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: rgba(14, 14, 14, 0.7);
+}
+
+.dialog-fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialog-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dialog-field-label {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-xs);
+  font-weight: 600;
+  color: var(--rdr-color-text);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.dialog-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dialog-input-prefix {
+  position: absolute;
+  left: 12px;
+  color: var(--rdr-color-primary);
+  font-family: var(--font-mono);
+  font-size: var(--rdr-font-size-md);
+  pointer-events: none;
+}
+
+.dialog-input {
+  width: 100%;
+  background: rgba(16, 16, 16, 0.85);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: 0;
+  padding: 10px 14px;
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-md);
+  color: var(--rdr-color-text);
+  outline: none;
+  transition: all var(--rdr-transition-fast);
+}
+
+.dialog-input.has-prefix {
+  padding-left: 28px;
+}
+
+.dialog-input:focus {
+  background: rgba(33, 33, 33, 0.7);
+  border-color: var(--rdr-color-primary);
+}
+
+.dialog-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.dialog-select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23B62A2A' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.dialog-field-desc {
+  font-size: 11px;
+  color: var(--rdr-color-text-muted);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   CONFIRM MODAL CORPO
+   ========================================================================== */
+.confirm-body {
+  padding: 24px;
+  background: rgba(14, 14, 14, 0.7);
+}
+
+.confirm-message {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-md);
+  color: var(--rdr-color-text);
+  line-height: 1.5;
+}
+
+.confirm-submessage {
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   RODAPÉ DE AÇÕES (CONFIRMAR / CANCELAR COM BOTÕES ROCKSTAR)
+   ========================================================================== */
+.dialog-footer, .confirm-footer {
+  position: relative;
+  padding: 16px 24px;
+  background: var(--rdr-color-surface-header);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer::before, .confirm-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.dialog-btn-secondary, .confirm-btn-secondary {
+  background: rgba(25, 25, 25, 0.7);
+  border: 1px solid var(--rdr-color-border);
+  color: var(--rdr-color-text-muted);
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-sm);
+  padding: 8px 20px;
+  border-radius: var(--rdr-border-radius);
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  outline: none;
+  transition: all var(--rdr-transition-fast);
+}
+
+.dialog-btn-secondary:hover, .confirm-btn-secondary:hover {
+  background: var(--rdr-color-surface-hover);
+  border-color: var(--rdr-color-border-hover);
+  color: var(--rdr-color-text);
+}
+
+/* Botão Primário Rockstar com Textura box.png -> box-red.png */
+.dialog-btn-primary, .confirm-btn-primary {
+  background: var(--rdr-texture-box) no-repeat center / 100% 100%;
+  border: none;
+  color: #fafafa;
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-md);
+  padding: 8px 24px;
+  cursor: pointer;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+  transition: transform var(--rdr-transition-fast), filter var(--rdr-transition-fast);
+}
+
+.dialog-btn-primary:hover, .confirm-btn-primary:hover {
+  background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
+  color: #ffffff;
+  transform: scale(1.02);
+}
+
+.dialog-btn-primary:active, .confirm-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Modo Perigo no Confirm (ex: Excluir/Prender) */
+.confirm-modal.danger .confirm-btn-primary {
+  background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
+}
+

@@ -1,0 +1,407 @@
+/**
+ * WestRP UI Engine — Dock Lateral (350px / Teclado / Câmera Livre)
+ * 1:1 Red Dead Redemption 2 Theme (Inspired by redm-vue-ui)
+ */
+
+.dock-container {
+  position: fixed;
+  top: 50px;
+  left: 50px;
+  width: 360px;
+  max-height: calc(100vh - 100px);
+  background: rgba(20, 20, 20, 0.94) var(--rdr-texture-bg);
+  border: 1px solid var(--rdr-color-border);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), inset 0 0 40px rgba(0, 0, 0, 0.7);
+  border-radius: var(--rdr-border-radius);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  opacity: 0;
+  transform: translateX(-24px);
+  animation: slideInDock 0.22s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+}
+
+@keyframes slideInDock {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+   CABEÇALHO ROCKSTAR (TAG, TÍTULO, CONTADOR, DIVISOR RED DIAMOND)
+   ========================================================================== */
+.dock-header {
+  position: relative;
+  padding: 18px 20px 16px;
+  background: var(--rdr-color-surface-header);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.dock-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.dock-category-tag {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-primary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.dock-title {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xl);
+  font-weight: normal;
+  color: var(--rdr-color-text);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.dock-counter-pill {
+  font-family: var(--font-mono);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+  background: rgba(38, 38, 38, 0.8);
+  border: 1px solid var(--rdr-color-border);
+  padding: 3px 9px;
+  border-radius: var(--rdr-border-radius);
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   BARRA DE ABAS HORIZONTAIS COM SETAS AUTÊNTICAS (◄ NOME DA ABA ►)
+   ========================================================================== */
+.dock-tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(18, 18, 18, 0.95);
+  border-bottom: 1px solid var(--rdr-color-border);
+}
+
+.tab-arrow-btn {
+  width: 22px;
+  height: 22px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rdr-color-text-muted);
+  font-size: 14px;
+  transition: transform var(--rdr-transition-fast), filter var(--rdr-transition-fast);
+}
+
+#btn-tab-prev {
+  background-image: url('../assets/textures/arrow_left.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  font-size: 0;
+}
+
+#btn-tab-next {
+  background-image: url('../assets/textures/arrow_right.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  font-size: 0;
+}
+
+.tab-arrow-btn:hover {
+  transform: scale(1.18);
+  filter: brightness(1.3);
+}
+
+.tab-title-wrap {
+  text-align: center;
+}
+
+.tab-index-badge {
+  display: block;
+  font-family: var(--rdr-font-decorative);
+  font-size: 11px;
+  color: var(--rdr-color-text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.current-tab-name {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-sm);
+  color: var(--rdr-color-text);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   BREADCRUMB / SUBMENU RETORNO
+   ========================================================================== */
+.dock-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--rdr-color-surface-red);
+  border-bottom: 1px solid var(--rdr-color-primary);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text);
+  font-family: var(--rdr-font-body);
+}
+
+.breadcrumb-back-key {
+  color: var(--rdr-color-primary);
+  font-family: var(--rdr-font-decorative);
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   VIEWPORT DA LISTA VERTICAL & ITENS (ESTILO 1:1 REDM-VUE-UI)
+   ========================================================================== */
+.dock-viewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+  max-height: 420px;
+  outline: none;
+}
+
+.dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  margin: 2px 6px;
+  border-radius: var(--rdr-border-radius);
+  background: transparent;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background var(--rdr-transition-fast), border-left var(--rdr-transition-fast), padding-left var(--rdr-transition-fast);
+}
+
+.dock-item:hover {
+  background: var(--rdr-color-surface-hover);
+  border-left: 3px solid var(--rdr-color-border-hover);
+}
+
+/* Item Ativo / Selecionado no RedM */
+.dock-item.active {
+  background: var(--rdr-color-surface-red);
+  border-left: 4px solid var(--rdr-color-primary);
+  padding-left: 17px;
+}
+
+.dock-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 65%;
+}
+
+.dock-item-label {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-md);
+  font-weight: 500;
+  color: var(--rdr-color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.dock-item.active .dock-item-label {
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.dock-item-sublabel {
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+}
+
+.dock-item.active .dock-item-sublabel {
+  color: rgba(250, 250, 250, 0.85);
+}
+
+/* ==========================================================================
+   CONTROLES POR ITEM (BADGES / PREÇOS AUTÊNTICOS & CAIXAS DE SELEÇÃO)
+   ========================================================================== */
+.dock-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Badges e Preços RDR2: Tipografia Pura em Chinese Rocks sem pílulas coloridas */
+.status-pill {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--rdr-color-text-muted);
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.dock-item.active .status-pill {
+  color: #ffffff;
+}
+
+.status-pill.gold {
+  color: var(--color-gold-light);
+}
+
+.status-pill.danger {
+  color: var(--rdr-color-primary);
+}
+
+.status-pill.on {
+  color: #ffffff;
+}
+
+.status-pill.off {
+  color: var(--rdr-color-text-muted);
+  opacity: 0.5;
+}
+
+.dock-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text);
+  letter-spacing: 1px;
+}
+
+.dock-submenu-arrow {
+  color: var(--rdr-color-text-muted);
+  font-size: 13px;
+}
+
+.dock-item.active .dock-submenu-arrow {
+  color: var(--rdr-color-primary);
+}
+
+/* Caixa de Seleção RDR2 (Substituto do LED circular web) */
+.dock-toggle-box {
+  width: 14px;
+  height: 14px;
+  background: rgba(14, 14, 14, 0.9);
+  border: 1px solid var(--rdr-color-border);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--rdr-transition-fast);
+}
+
+.dock-toggle-box.checked {
+  background: var(--rdr-color-primary);
+  border-color: var(--rdr-color-primary);
+}
+
+.dock-toggle-box.checked::after {
+  content: '✓';
+  font-size: 11px;
+  color: #ffffff;
+  line-height: 1;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   CAIXA DE CONTEXTO / DESCRIÇÃO ROCKSTAR
+   ========================================================================== */
+.dock-info-box {
+  position: relative;
+  padding: 12px 18px;
+  background: rgba(14, 14, 14, 0.95);
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.dock-info-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-image: var(--rdr-texture-divider);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.dock-info-box p {
+  font-family: var(--rdr-font-body);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--rdr-color-text-muted);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   LEGENDA DE TECLAS NO RODAPÉ NATIVO
+   ========================================================================== */
+.dock-footer-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--rdr-color-surface-header);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dock-footer-keys .k-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dock-footer-keys .k-box {
+  background: #262626;
+  border: 1px solid var(--rdr-color-border);
+  color: var(--rdr-color-text);
+  font-size: 11px;
+  font-weight: normal;
+  padding: 2px 6px;
+  border-radius: 0;
+  font-family: var(--rdr-font-decorative);
+  letter-spacing: 0.5px;
+}
+
+.dock-footer-keys .k-label {
+  font-size: 11px;
+  font-family: var(--rdr-font-body);
+  color: var(--rdr-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
