@@ -671,6 +671,161 @@ class PanelComponent {
         break;
       }
 
+      case 'input': {
+        const val = item.value || '';
+        wrap.innerHTML = `
+          ${item.label ? `<span class="control-label">${item.label}</span>` : ''}
+          <div class="rdr-input__wrap">
+            <input type="text" class="rdr-input" placeholder="${item.placeholder || 'Enter text here...'}" value="${val}" ${item.disabled ? 'disabled' : ''}>
+          </div>
+          <p class="control-value-display">Value: <strong>${val || 'empty'}</strong></p>
+        `;
+        const inp = wrap.querySelector('.rdr-input');
+        const valDisplay = wrap.querySelector('.control-value-display strong');
+        inp.addEventListener('input', (e) => {
+          valDisplay.textContent = e.target.value || 'empty';
+          if (item.onChange) item.onChange(e.target.value);
+        });
+        break;
+      }
+
+      case 'textarea': {
+        const val = item.value || '';
+        const rows = item.rows || 4;
+        wrap.innerHTML = `
+          ${item.label ? `<span class="control-label">${item.label}</span>` : ''}
+          <div class="rdr-textarea__wrap">
+            <textarea class="rdr-textarea" rows="${rows}" placeholder="${item.placeholder || 'Enter long text here...'}" ${item.disabled ? 'disabled' : ''}>${val}</textarea>
+          </div>
+          <p class="control-value-display">Characters: <strong>${val.length}</strong></p>
+        `;
+        const ta = wrap.querySelector('.rdr-textarea');
+        const countDisplay = wrap.querySelector('.control-value-display strong');
+        ta.addEventListener('input', (e) => {
+          countDisplay.textContent = e.target.value.length;
+          if (item.onChange) item.onChange(e.target.value);
+        });
+        break;
+      }
+
+      case 'divider': {
+        wrap.innerHTML = `<hr class="rdr-divider" style="margin: ${item.margin || '14px 0'};">`;
+        break;
+      }
+
+      case 'header': {
+        const level = item.level || 2;
+        const tag = `h${level}`;
+        wrap.innerHTML = `
+          <div class="rdr-header" style="margin: ${item.margin || '6px 0 12px 0'};">
+            <${tag}>${item.title || item.label || 'Cabeçalho'}</${tag}>
+            <hr class="rdr-divider">
+          </div>
+        `;
+        break;
+      }
+
+      case 'panel': {
+        const pad = item.padding || 'md';
+        const isRed = item.variant === 'red' ? 'rdr-panel--red' : '';
+        wrap.innerHTML = `
+          <div class="rdr-panel ${isRed} rdr-panel--padding-${pad}" style="border: 1px solid var(--rdr-color-border);">
+            ${item.title ? `<div class="rdr-header" style="margin-bottom: 12px;"><h3>${item.title}</h3><hr class="rdr-divider"></div>` : ''}
+            <p style="color: var(--rdr-color-text-muted); font-size: var(--rdr-font-size-xs); line-height: 1.5; margin-bottom: 14px;">${item.content || 'Este é um painel texturizado nativo (RdrPanel).'}</p>
+            ${item.buttonLabel ? `<button class="rdr-button rdr-button--default" style="align-self: flex-start;"><span class="rdr-button__label">${item.buttonLabel}</span></button>` : ''}
+          </div>
+        `;
+        if (item.buttonLabel) {
+          const btn = wrap.querySelector('button');
+          btn.addEventListener('click', () => {
+            if (window.uiAudio) window.uiAudio.playSelect();
+            if (item.onButtonClick) item.onButtonClick();
+          });
+        }
+        break;
+      }
+
+      case 'transition_test': {
+        wrap.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="rdr-button rdr-button--default toggle-transition-btn">
+              <span class="rdr-button__label">Alternar Caixa Animada (Zoom-In)</span>
+            </button>
+            <div class="transition-test-box animate-zoom-in" style="background: var(--rdr-texture-box); padding: 18px; border: 1px solid var(--rdr-color-border); display: block;">
+              <h4 style="font-family: var(--rdr-font-title); font-size: 18px; color: var(--rdr-color-text); margin-bottom: 6px;">Caixa com Transição Zoom-In</h4>
+              <p style="color: var(--rdr-color-text-muted); font-size: 14px;">A animação nativa utiliza curva cúbica Rockstar bezier(0.25, 0.8, 0.25, 1) com transição de opacidade e escala.</p>
+            </div>
+          </div>
+        `;
+        const tBtn = wrap.querySelector('.toggle-transition-btn');
+        const tBox = wrap.querySelector('.transition-test-box');
+        let isVisible = true;
+        tBtn.addEventListener('click', () => {
+          isVisible = !isVisible;
+          if (isVisible) {
+            tBox.style.display = 'block';
+            tBox.className = 'transition-test-box animate-zoom-in';
+          } else {
+            tBox.style.display = 'none';
+          }
+          if (window.uiAudio) window.uiAudio.playToggle();
+        });
+        break;
+      }
+
+      case 'modal_trigger': {
+        wrap.innerHTML = `
+          <button class="rdr-button rdr-button--default">
+            <span class="rdr-button__label">${item.label || 'ABRIR MODAL (RDRMODAL)'}</span>
+          </button>
+        `;
+        wrap.querySelector('button').addEventListener('click', () => {
+          if (window.uiModal) {
+            window.uiModal.open({
+              title: item.modalTitle || 'MODAL OFICIAL RDR2',
+              subtitle: item.modalSubtitle || 'Dialog flutuante central com textura e animação zoom-in',
+              content: item.modalContent || 'Este modal representa fielmente o componente RdrModal do RedM Vue UI, com backdrop sombreado, fechar com ESC ou clique externo, e botão nativo X.',
+              buttons: [
+                { label: 'CANCELAR', variant: 'subtle', action: 'close' },
+                { label: 'CONFIRMAR AÇÃO', variant: 'default', onClick: () => {
+                  if (window.uiToast) window.uiToast.show('MODAL CONFIRMADO', 'Ação confirmada através do RdrModal!', 'success');
+                }, action: 'close' }
+              ]
+            });
+          }
+        });
+        break;
+      }
+
+      case 'slider_panel_trigger': {
+        wrap.innerHTML = `
+          <button class="rdr-button rdr-button--subtle rdr-button--size-lg">
+            <span class="rdr-button__label">${item.label || 'ABRIR GAVETA LATERAL (RDRSLIDER)'}</span>
+          </button>
+        `;
+        wrap.querySelector('button').addEventListener('click', () => {
+          if (window.uiSliderPanel) {
+            window.uiSliderPanel.open({
+              side: item.side || 'right',
+              width: item.width || '360px',
+              title: item.sliderTitle || 'GAVETA LATERAL',
+              content: item.sliderContent || 'Painel deslizante nativo ancorado à borda da tela. Ideal para inventários complementares, detalhes de registros, logs e ferramentas de suporte.',
+              html: `
+                <p style="color: var(--rdr-color-text-muted); font-size: 14px; margin-bottom: 16px;">
+                  Desliza suavemente pela lateral com curva cúbica e textura oficial de pergaminho.
+                </p>
+                <hr class="rdr-divider">
+                <div class="rdr-card rdr-card--padding-sm" style="margin-top: 14px;">
+                  <span style="font-size: 12px; color: var(--color-gold-light); letter-spacing: 1px;">STATUS DO OPERADOR</span>
+                  <p style="font-size: 14px; color: #fff; margin-top: 4px;">Patrulha ativa em Valentine</p>
+                </div>
+              `
+            });
+          }
+        });
+        break;
+      }
+
       default:
         break;
     }
@@ -680,6 +835,35 @@ class PanelComponent {
 
   getDefaultControlsDemo() {
     return [
+      {
+        title: 'CABEÇALHOS & DIVISORES (RDRHEADER & RDRDIVIDER)',
+        description: 'Títulos temáticos com separador de diamante nativo e divisores horizontais.',
+        layout: 'grid-2',
+        items: [
+          { type: 'header', level: 1, title: 'Título Nível 1 (H1)' },
+          { type: 'header', level: 2, title: 'Título Nível 2 (H2)' },
+          { type: 'header', level: 3, title: 'Título Nível 3 (H3)' },
+          { type: 'divider' }
+        ]
+      },
+      {
+        title: 'CAMPOS DE ENTRADA (RDRINPUT)',
+        description: 'Campo de texto envolto em crafting_outline com exibição reativa de valor.',
+        layout: 'grid-2',
+        items: [
+          { type: 'input', label: 'Nome do Cidadão', placeholder: 'Digite seu nome completo...', value: 'Arthur Morgan' },
+          { type: 'input', label: 'Alcunha / Apelido', placeholder: 'Digite o apelido de procurado...' }
+        ]
+      },
+      {
+        title: 'ÁREAS DE TEXTO (RDRTEXTAREA)',
+        description: 'Entrada multilinhas com altura configurável em linhas e contador de caracteres em tempo real.',
+        layout: 'grid-2',
+        items: [
+          { type: 'textarea', label: 'Relatório de Ocorrência Policial', placeholder: 'Descreva os fatos ocorridos, horários e testemunhas presentes...', rows: 4, value: 'Incidente registrado no Saloon Smithfield após discussão sobre jogo de pôquer.' },
+          { type: 'textarea', label: 'Termos de Contrato de Trabalho', placeholder: 'Insira as cláusulas de prestação de serviços...', rows: 4 }
+        ]
+      },
       {
         title: 'SLIDERS INTERATIVOS (RDRSLIDERINPUT)',
         description: 'Barras de ajuste com suporte a setas laterais, thumb com textura nativa e preenchimento de progresso.',
@@ -737,6 +921,28 @@ class PanelComponent {
         ]
       },
       {
+        title: 'PAINÉIS DE CONTEÚDO (RDRPANEL)',
+        description: 'Superfícies de conteúdo amplas com texturas bg.png e bg-red.png.',
+        layout: 'grid-2',
+        items: [
+          {
+            type: 'panel',
+            padding: 'md',
+            title: 'Painel Padrão (bg.png)',
+            content: 'Superfície com textura de pergaminho escuro, ideal para agrupar informações e fluxos complexos.',
+            buttonLabel: 'AÇÃO DO PAINEL'
+          },
+          {
+            type: 'panel',
+            variant: 'red',
+            padding: 'md',
+            title: 'Painel Carmesim (bg-red.png)',
+            content: 'Variante vermelha rústica de alta notoriedade, ideal para áreas de perigo, procurados e avisos urgentes.',
+            buttonLabel: 'CONFIRMAR RISCO'
+          }
+        ]
+      },
+      {
         title: 'CARTÕES TEXTURIZADOS (RDRCARD)',
         description: 'Contêineres com textura box.png e diferentes níveis de padding.',
         layout: 'grid-2',
@@ -753,6 +959,35 @@ class PanelComponent {
             title: 'Registro de Caça',
             content: 'Peles perfeitas de bisão e cervo-do-canadá devem ser entregues diretamente ao armazém do acampamento.'
           }
+        ]
+      },
+      {
+        title: 'MODAIS & GAVETAS LATERAIS (RDRMODAL & RDRSLIDER)',
+        description: 'Janelas modais com animação zoom-in e gavetas laterais deslizantes (slide-in).',
+        layout: 'grid-2',
+        items: [
+          {
+            type: 'modal_trigger',
+            label: 'ABRIR MODAL (RDRMODAL ZOOM-IN)',
+            modalTitle: 'DESPACHO OFICIAL DO TRIBUNAL',
+            modalSubtitle: 'Notificação judicial da Comarca de New Hanover',
+            modalContent: 'Este diálogo modal utiliza a transição nativa zoomAndFadeIn com curva cúbica bezier(0.25, 0.8, 0.25, 1), textura bg.png de alta resolução e botão de fechamento nav_close.png.'
+          },
+          {
+            type: 'slider_panel_trigger',
+            label: 'ABRIR GAVETA LATERAL (RDRSLIDER)',
+            side: 'right',
+            sliderTitle: 'INSPEÇÃO LATERAL',
+            sliderContent: 'Gaveta lateral que desliza pela borda direita da tela, preservando o contexto principal enquanto exibe detalhes complementares.'
+          }
+        ]
+      },
+      {
+        title: 'TRANSIÇÕES NATIVAS (ZOOM-IN & CURVAS CÚBICAS)',
+        description: 'Teste de transições nativas puras sem dependências externas de compilação.',
+        layout: 'grid-2',
+        items: [
+          { type: 'transition_test' }
         ]
       }
     ];

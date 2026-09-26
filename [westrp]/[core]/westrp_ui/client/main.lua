@@ -11,6 +11,12 @@ local currentActiveDialog = nil
 local isConfirmOpen = false
 local currentActiveConfirm = nil
 
+local isModalOpen = false
+local currentActiveModal = nil
+
+local isSliderPanelOpen = false
+local currentActiveSlider = nil
+
 local isProgressActive = false
 local currentProgressTask = nil
 local activeProgressProp = nil
@@ -411,6 +417,106 @@ function IsConfirmOpen()
 end
 
 -- ============================================================================
+-- 6.1 SISTEMA DE MODAL FLUTUANTE RDR2 (RDRMODAL ZOOM-IN)
+-- ============================================================================
+
+---Abre o modal nativo RDR2 com animação de zoom e backdrop
+---@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, buttons?: table[], onClose?: fun() }
+function OpenModal(options)
+    if not options then return end
+
+    currentActiveModal = {
+        id = options.id or 'default_modal',
+        onClose = options.onClose
+    }
+
+    isModalOpen = true
+    SetNuiFocus(true, true)
+    SetNuiFocusKeepInput(false)
+
+    SendNUIMessage({
+        action = 'westrp_ui:openModal',
+        options = options
+    })
+end
+
+---Fecha o modal nativo RDR2
+function CloseModal()
+    if not isModalOpen then return end
+    isModalOpen = false
+
+    if not isPanelOpen and not isDialogOpen and not isConfirmOpen and not isSliderPanelOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    SendNUIMessage({
+        action = 'westrp_ui:closeModal'
+    })
+
+    if currentActiveModal and currentActiveModal.onClose then
+        currentActiveModal.onClose()
+    end
+    currentActiveModal = nil
+end
+
+---Retorna se o modal RDR2 está aberto
+---@return boolean
+function IsModalOpen()
+    return isModalOpen
+end
+
+-- ============================================================================
+-- 6.2 SISTEMA DE GAVETA LATERAL RDR2 (RDRSLIDER SLIDE-IN)
+-- ============================================================================
+
+---Abre a gaveta lateral RDR2 deslizando pela borda da tela
+---@param options { id?: string, side?: "right"|"left", width?: string, title?: string, content?: string, html?: string, closable?: boolean, closeOnOverlay?: boolean, onClose?: fun() }
+function OpenSliderPanel(options)
+    if not options then return end
+
+    currentActiveSlider = {
+        id = options.id or 'default_slider',
+        onClose = options.onClose
+    }
+
+    isSliderPanelOpen = true
+    SetNuiFocus(true, true)
+    SetNuiFocusKeepInput(false)
+
+    SendNUIMessage({
+        action = 'westrp_ui:openSliderPanel',
+        options = options
+    })
+end
+
+---Fecha a gaveta lateral RDR2
+function CloseSliderPanel()
+    if not isSliderPanelOpen then return end
+    isSliderPanelOpen = false
+
+    if not isPanelOpen and not isDialogOpen and not isConfirmOpen and not isModalOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    SendNUIMessage({
+        action = 'westrp_ui:closeSliderPanel'
+    })
+
+    if currentActiveSlider and currentActiveSlider.onClose then
+        currentActiveSlider.onClose()
+    end
+    currentActiveSlider = nil
+end
+
+---Retorna se a gaveta lateral está aberta
+---@return boolean
+function IsSliderPanelOpen()
+    return isSliderPanelOpen
+end
+
+-- ============================================================================
 -- 7. SISTEMA DE ACTION PROGRESS BAR (BARRA DE PROGRESSO PROCEDURAL)
 -- ============================================================================
 
@@ -707,10 +813,46 @@ RegisterUnifiedCallback({'progressCancel'}, function(data, cb)
     cb({ ok = true })
 end)
 
+-- Callbacks do Modal e Slider Panel
+RegisterUnifiedCallback({'modalClosed', 'closeModal'}, function(data, cb)
+    isModalOpen = false
+    if not isPanelOpen and not isDialogOpen and not isConfirmOpen and not isSliderPanelOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    if currentActiveModal and currentActiveModal.onClose then
+        currentActiveModal.onClose()
+    end
+    currentActiveModal = nil
+    cb({ ok = true })
+end)
+
+RegisterUnifiedCallback({'modalAction'}, function(data, cb)
+    if currentActiveModal and currentActiveModal.onAction then
+        currentActiveModal.onAction(data.action, data)
+    end
+    cb({ ok = true })
+end)
+
+RegisterUnifiedCallback({'sliderPanelClosed', 'closeSliderPanel'}, function(data, cb)
+    isSliderPanelOpen = false
+    if not isPanelOpen and not isDialogOpen and not isConfirmOpen and not isModalOpen then
+        SetNuiFocus(false, false)
+        SetNuiFocusKeepInput(false)
+    end
+
+    if currentActiveSlider and currentActiveSlider.onClose then
+        currentActiveSlider.onClose()
+    end
+    currentActiveSlider = nil
+    cb({ ok = true })
+end)
+
 -- Limpeza ao parar o recurso
 AddEventHandler('onResourceStop', function(resName)
     if resName == GetCurrentResourceName() then
-        if isDockOpen or isPanelOpen or isDialogOpen or isConfirmOpen then
+        if isDockOpen or isPanelOpen or isDialogOpen or isConfirmOpen or isModalOpen or isSliderPanelOpen then
             SetNuiFocus(false, false)
             SetNuiFocusKeepInput(false)
             ClearScreenBlur()
@@ -742,6 +884,14 @@ exports('PromptInput', PromptInput)
 exports('OpenConfirm', OpenConfirm)
 exports('CloseConfirm', CloseConfirm)
 exports('IsConfirmOpen', IsConfirmOpen)
+
+exports('OpenModal', OpenModal)
+exports('CloseModal', CloseModal)
+exports('IsModalOpen', IsModalOpen)
+
+exports('OpenSliderPanel', OpenSliderPanel)
+exports('CloseSliderPanel', CloseSliderPanel)
+exports('IsSliderPanelOpen', IsSliderPanelOpen)
 
 exports('StartProgressBar', StartProgressBar)
 exports('CancelProgressBar', CancelProgressBar)

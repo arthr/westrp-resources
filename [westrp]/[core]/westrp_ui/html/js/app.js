@@ -52,6 +52,22 @@ window.addEventListener('message', (event) => {
     case 'westrp_ui:toast':
       if (window.uiToast) window.uiToast.show(data.title, data.message, data.type, data.duration);
       break;
+
+    // 7. RDR2 MODAL FLUTUANTE (ZOOM-IN ANIMATION / RDRMODAL)
+    case 'westrp_ui:openModal':
+      if (window.uiModal) window.uiModal.open(data.options || {});
+      break;
+    case 'westrp_ui:closeModal':
+      if (window.uiModal) window.uiModal.close();
+      break;
+
+    // 8. RDR2 SLIDER PANEL (GAVETA LATERAL / RDRSLIDER)
+    case 'westrp_ui:openSliderPanel':
+      if (window.uiSliderPanel) window.uiSliderPanel.open(data.options || {});
+      break;
+    case 'westrp_ui:closeSliderPanel':
+      if (window.uiSliderPanel) window.uiSliderPanel.close();
+      break;
   }
 });
 
@@ -59,6 +75,24 @@ window.addEventListener('message', (event) => {
    GLOBAL KEYBOARD DISPATCHER
    ========================================================================== */
 window.addEventListener('keydown', (e) => {
+  // A1. Modal RDR2 Aberto
+  if (window.uiModal && window.uiModal.isOpen) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      window.uiModal.close();
+      return;
+    }
+  }
+
+  // A2. Slider Panel RDR2 Aberto
+  if (window.uiSliderPanel && window.uiSliderPanel.isOpen) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      window.uiSliderPanel.close();
+      return;
+    }
+  }
+
   // A. Diálogo de Entrada Aberto
   if (window.uiDialog && window.uiDialog.isOpen) {
     if (e.key === 'Escape') {

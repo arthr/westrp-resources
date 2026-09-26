@@ -537,6 +537,54 @@ function OpenShowcaseToasts()
 end
 
 -- ============================================================================
+-- 4.1 SHOWCASE: MODAL FLUTUANTE NATIVO (RDRMODAL ZOOM-IN)
+-- ============================================================================
+function OpenShowcaseModal()
+    OpenModal({
+        id = 'showcase_modal',
+        title = 'DESPACHO DO JUIZADO DE PAZ',
+        subtitle = 'Comarca de Valentine • New Hanover',
+        content = 'Este modal nativo utiliza a textura bg.png de pergaminho rústico, cantos retos de 0px, botão de fechar nav_close.png e transição cúbica zoomAndFadeIn. Pressione ESC ou clique no botão X para encerrar.',
+        buttons = {
+            { label = 'RECUSAR', variant = 'subtle', action = 'close' },
+            { label = 'ASSINAR DESPACHO', variant = 'default', action = 'confirm' }
+        },
+        onClose = function()
+            ShowToast("MODAL RDR2", "Modal fechado com sucesso.", "alert", 2000)
+        end
+    })
+end
+
+-- ============================================================================
+-- 4.2 SHOWCASE: GAVETA LATERAL DESLIZANTE (RDRSLIDER SLIDE-IN)
+-- ============================================================================
+function OpenShowcaseSlider()
+    OpenSliderPanel({
+        id = 'showcase_slider',
+        side = 'right',
+        width = '380px',
+        title = 'INSPEÇÃO LATERAL',
+        content = 'Esta gaveta lateral (RdrSlider) desliza suavemente da borda direita da tela sem bloquear a visualização do ambiente.',
+        html = [[
+            <p style="color: var(--rdr-color-text-muted); font-size: 14px; margin-bottom: 14px;">
+                Ideal para inventários complementares, detalhes de mandados e ferramentas operacionais.
+            </p>
+            <hr class="rdr-divider">
+            <div class="rdr-card rdr-card--padding-sm" style="margin-top: 14px;">
+                <h4 style="color: #fff; font-family: var(--rdr-font-title); font-size: 15px; margin-bottom: 4px;">DADOS DO INVESTIGADO</h4>
+                <p style="color: var(--rdr-color-text-muted); font-size: 13px;">Última localização: Saloon de Valentine<br>Recompensa acumulada: $ 150.00</p>
+            </div>
+            <button class="rdr-button rdr-button--default" style="margin-top: 20px; width: 100%;" onclick="window.postMessage({action:'westrp_ui:closeSliderPanel'},'*')">
+                <span class="rdr-button__label">FECHAR GAVETA</span>
+            </button>
+        ]],
+        onClose = function()
+            ShowToast("SLIDER PANEL", "Gaveta lateral fechada com sucesso.", "alert", 2000)
+        end
+    })
+end
+
+-- ============================================================================
 -- 5. MENU MASTER DO SHOWCASE (/uitest)
 -- ============================================================================
 local function OpenMasterShowcaseMenu()
@@ -608,6 +656,27 @@ local function OpenMasterShowcaseMenu()
                         description = 'Dispara Item Recebido, Tip, Objective e Warning via C++ nativo (sem Chromium).'
                     },
                     {
+                        id = 'test_modal',
+                        label = '9. Modal Flutuante (Zoom-In RdrModal)',
+                        badge = 'ZOOM-IN',
+                        badgeType = 'gold',
+                        description = 'Testa o modal nativo RDR2 com textura bg.png e botão de fechar nav_close.png.'
+                    },
+                    {
+                        id = 'test_slider',
+                        label = '10. Gaveta Lateral (Slide-In RdrSlider)',
+                        badge = 'SLIDE-IN',
+                        badgeType = 'gold',
+                        description = 'Testa a gaveta lateral deslizante ancorada à borda da tela com animação cúbica.'
+                    },
+                    {
+                        id = 'test_controls_inputs',
+                        label = '11. Controles, Inputs & Sliders (1440px)',
+                        badge = 'NOVO',
+                        badgeType = 'on',
+                        description = 'Abre o painel na aba de Controles demonstrando RdrInput, RdrTextarea, Sliders, Dropdowns e Checkboxes.'
+                    },
+                    {
                         id = 'sep_panel_shortcuts',
                         label = 'ATALHOS DIRETOS DO PANEL',
                         type = 'separator'
@@ -664,6 +733,18 @@ local function OpenMasterShowcaseMenu()
                 OpenShowcaseProgressBar(4000)
             elseif item.id == 'test_feeds' then
                 OpenShowcaseFeeds()
+            elseif item.id == 'test_modal' then
+                CloseDock()
+                Wait(200)
+                OpenShowcaseModal()
+            elseif item.id == 'test_slider' then
+                CloseDock()
+                Wait(200)
+                OpenShowcaseSlider()
+            elseif item.id == 'test_controls_inputs' then
+                CloseDock()
+                Wait(200)
+                OpenShowcasePanel('controls_showcase')
             elseif item.id == 'quick_grid' then
                 CloseDock()
                 Wait(200)
@@ -809,6 +890,12 @@ RegisterCommand('uitest', function(source, args)
         OpenShowcaseToasts()
     elseif sub == 'confirm' then
         OpenShowcaseConfirm(args[2] == 'danger')
+    elseif sub == 'modal' then
+        OpenShowcaseModal()
+    elseif sub == 'slider' or sub == 'drawer' then
+        OpenShowcaseSlider()
+    elseif sub == 'controls' or sub == 'inputs' then
+        OpenShowcasePanel('controls_showcase')
     elseif sub == 'progress' or sub == 'progressbar' then
         local dur = tonumber(args[2]) and (tonumber(args[2]) * 1000) or 4000
         OpenShowcaseProgressBar(dur)
@@ -821,6 +908,19 @@ end, false)
 
 RegisterCommand('uishowcase', function()
     OpenMasterShowcaseMenu()
+end, false)
+
+RegisterCommand('uimodal', function()
+    OpenShowcaseModal()
+end, false)
+
+RegisterCommand('uislider', function()
+    OpenShowcaseSlider()
+end, false)
+
+RegisterCommand('uipanel', function(source, args)
+    local tab = args[1] or 'controls_showcase'
+    OpenShowcasePanel(tab)
 end, false)
 
 RegisterCommand('testconfirm', function(source, args)
@@ -836,4 +936,4 @@ RegisterCommand('testfeed', function()
     OpenShowcaseFeeds()
 end, false)
 
-print("^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/testconfirm^7, ^3/testprogress^7 ou ^3/testfeed^7.")
+print("^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7.")

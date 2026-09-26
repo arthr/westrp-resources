@@ -127,5 +127,28 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
    - Tabela nativa de livro-razão com cabeçalhos interativos (`data-sort-key`, `data-sort-dir="asc"|"desc"`), setas de ordenação `▲`/`▼` via pseudo-elemento `::after`, densidades `compact`, `default` e `relaxed`, e suporte a rodapé contábil (`<tfoot>`).
 7. **`RdrCard`:**
    - Cartões com fundo em textura `box.png`, preenchimentos configuráveis (`padding-sm`, `padding-md`, `padding-lg`, `padding-xl`) e modo rolável (`scrollable`).
+8. **`RdrModal` (Janela Modal Flutuante):**
+   - Diálogo flutuante centralizado de 520px com textura de fundo `bg.png`, sombra radial cinematográfica de backdrop (`--rdr-color-overlay`), animação de entrada `zoomAndFadeIn` e botão nativo de fechar com `nav_close.png`.
+   - Fecha ao teclar `ESC`, clicar no botão `X` ou clicar na área externa do backdrop.
+   - Suporta cabeçalho `RdrHeader`, textos descritivos, slots de HTML arbitrário e rodapé com botões de ação Rockstar (`RdrButton`).
+9. **`RdrSlider` (Slider Panel / Gaveta Lateral):**
+   - Gaveta deslizante ancorada à borda direita (`--right`) ou esquerda (`--left`) da tela, com largura ajustável (padrão `360px` a `380px`), textura rústica `bg.png` e transição `translateX` suave via curva cúbica `cubic-bezier(0.25, 0.8, 0.25, 1)`.
+   - Possui botão nativo `nav_close.png`, suporte a fechamento com `ESC` ou clique externo, e permite exibir inventários complementares, detalhes de registros, logs e ferramentas de suporte mantendo o ambiente do jogo visível.
+10. **`RdrInput` (Campo de Texto de Linha Única):**
+    - Input de texto temático envolto em `.rdr-input__wrap` com moldura texturizada `crafting_outline.png` (`--rdr-border-image`), cantos vivos de 0px, fundo translúcido `#21212180` no foco e suporte a estado desabilitado (`opacity: 0.5`).
+    - Integração de valor reativo com exibição de texto em tempo real (`Valor: [texto]`).
+11. **`RdrTextarea` (Área de Texto Multilinhas):**
+    - Caixa de texto ampla para relatórios policiais, escrituras e declarações, envolta em `.rdr-textarea__wrap` com moldura `crafting_outline.png`.
+    - Altura configurável via atributo `rows` (padrão 4 ou 5), redimensionamento desabilitado (`resize: none`), foco texturizado e contador reativo de caracteres digitados.
+12. **`RdrHeader` & `RdrDivider` (Cabeçalhos e Divisores):**
+    - `RdrHeader`: Tipografia hierárquica `h1` (`Chinese Rocks` 32px), `h2` (24px) ou `h3` (`RDR Lino Regular` 20px) com linha divisória horizontal automática e losango central.
+    - `RdrDivider`: `<hr class="rdr-divider">` com textura `divider.png` de alta resolução e opacidade ajustada (`--rdr-divider-opacity: 0.85`).
+13. **`RdrPanel` (Superfície de Conteúdo Ampla):**
+    - Painel de fundo com textura rústica `bg.png` e variante carmesim `rdr-panel--red` com textura `bg-red.png`, com preenchimentos padronizados (`padding-sm`, `padding-md`, `padding-lg`, `padding-xl`).
+14. **Transições Nativas RDR2:**
+    - `.animate-zoom-in`: Animação suave `zoomAndFadeIn` (escala 0.94 -> 1.0 e opacidade 0 -> 1) com curva cúbica Rockstar.
+    - `.animate-fade-in`: Transição linear suave de opacidade.
+    - `.animate-slide-in-right` / `.animate-slide-in-left`: Transição de deslize lateral com aceleração natural da época.
+    - `.animate-slide-in-bottom`: Deslize vertical para notificações e barras de ferramentas.
 
 

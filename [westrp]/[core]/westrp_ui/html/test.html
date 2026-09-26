@@ -121,6 +121,9 @@
   <!-- Barra de Ferramentas de Teste do Sandbox -->
   <div class="sandbox-toolbar">
     <button class="sandbox-btn" style="background: rgba(182, 42, 42, 0.5); border-color: var(--rdr-color-primary);" onclick="runSim('panel_ultrawide')">PAINEL ULTRAWIDE (1440px): COMPONENTES</button>
+    <button class="sandbox-btn" onclick="runSim('modal')">Modal Nativo (Zoom-In RdrModal)</button>
+    <button class="sandbox-btn" onclick="runSim('slider_panel')">Gaveta Lateral (Slide-In RdrSlider)</button>
+    <button class="sandbox-btn" onclick="runSim('inputs_tab')">Inputs & Textarea (RdrInput)</button>
     <button class="sandbox-btn" onclick="runSim('panel_controls')">Controles RDR (Sliders/Checks/Dropdowns)</button>
     <button class="sandbox-btn" onclick="runSim('panel_table')">Tabela Ordenável (Sortable RdrTable)</button>
     <button class="sandbox-btn" onclick="runSim('dock')">Dock Lateral (350px)</button>
@@ -410,9 +413,40 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       6. RDR2 MODAL FLUTUANTE (ZOOM-IN ANIMATION / RDRMODAL)
+       ============================================================ -->
+  <div id="rdr-modal-container" class="rdr-modal-container" style="display: none;">
+    <div class="rdr-modal" id="rdr-modal-dialog">
+      <button class="rdr-modal__close" id="rdr-modal-close-btn" title="Fechar (ESC)">
+        <img src="assets/textures/nav_close.png" alt="Fechar">
+      </button>
+      <div id="rdr-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       7. RDR2 SLIDER PANEL (GAVETA LATERAL / RDRSLIDER)
+       ============================================================ -->
+  <div id="rdr-slider-container" class="rdr-slider-container" style="display: none;">
+    <div class="rdr-slider__panel rdr-slider__panel--right" id="rdr-slider-panel">
+      <button class="rdr-slider__close" id="rdr-slider-close-btn" title="Fechar (ESC)">
+        <img src="assets/textures/nav_close.png" alt="Fechar">
+      </button>
+      <div id="rdr-slider-content"></div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
-  <!-- Motor Oficial -->
+  <!-- Scripts Modulares do Motor NUI -->
+  <script src="js/audio.js"></script>
+  <script src="js/components/toast.js"></script>
+  <script src="js/components/progress.js"></script>
+  <script src="js/components/dialog.js"></script>
+  <script src="js/components/dock.js"></script>
+  <script src="js/components/panel.js"></script>
+  <script src="js/components/modal.js"></script>
   <script src="js/app.js"></script>
 
   <!-- Script de Simulação e Interação do Sandbox -->
@@ -449,7 +483,100 @@
         window.postMessage({ action: 'westrp_ui:closeDialog' }, '*');
         window.postMessage({ action: 'westrp_ui:closeConfirm' }, '*');
         window.postMessage({ action: 'westrp_ui:cancelProgress' }, '*');
+        window.postMessage({ action: 'westrp_ui:closeModal' }, '*');
+        window.postMessage({ action: 'westrp_ui:closeSliderPanel' }, '*');
         return;
+      }
+
+      if (type === 'modal') {
+        window.postMessage({
+          action: 'westrp_ui:openModal',
+          options: {
+            id: 'sandbox_modal',
+            title: 'TRIBUNAL DA COMARCA DE NEW HANOVER',
+            subtitle: 'Notificação Oficial de Despacho Judicial',
+            content: 'Este é o componente RdrModal 100% autêntico do RedM/RDR2. Apresenta animação nativa zoomAndFadeIn com curva cúbica bezier, sombra radial de backdrop, textura de pergaminho rústico e suporte a fechar com a tecla ESC ou botão nav_close.png.',
+            buttons: [
+              { label: 'DESISTIR', variant: 'subtle', action: 'close' },
+              { label: 'ASSINAR DESPACHO', variant: 'default', action: 'confirm' }
+            ]
+          }
+        }, '*');
+      }
+
+      else if (type === 'slider_panel') {
+        window.postMessage({
+          action: 'westrp_ui:openSliderPanel',
+          options: {
+            id: 'sandbox_slider',
+            side: 'right',
+            width: '380px',
+            title: 'GAVETA LATERAL (RDRSLIDER)',
+            html: `
+              <p style="color: var(--rdr-color-text-muted); font-size: 14px; margin-bottom: 16px;">
+                Gaveta lateral deslizante ideal para inventários, detalhes de contexto e ferramentas operacionais.
+              </p>
+              <hr class="rdr-divider">
+              <div class="rdr-card rdr-card--padding-md" style="margin-top: 14px;">
+                <h4 style="color: #fff; font-family: var(--rdr-font-title); font-size: 16px; margin-bottom: 6px;">PROVISÕES RÁPIDAS</h4>
+                <p style="color: var(--rdr-color-text-muted); font-size: 13px;">• 2x Fatias de Pão Rústico<br>• 1x Garrafa de Água Mineral<br>• 5x Fósforos de Enxofre</p>
+              </div>
+              <button class="rdr-button rdr-button--default" style="margin-top: 20px; width: 100%;" onclick="window.postMessage({action:'westrp_ui:closeSliderPanel'},'*')">
+                <span class="rdr-button__label">FECHAR GAVETA</span>
+              </button>
+            `
+          }
+        }, '*');
+      }
+
+      else if (type === 'inputs_tab') {
+        window.postMessage({
+          action: 'westrp_ui:openPanel',
+          options: {
+            id: 'sandbox_panel_inputs',
+            title: 'CAMPOS DE ENTRADA & TEXTAREAS',
+            tag: 'WESTRP UI ENGINE • FORMULÁRIOS',
+            ctaLabel: 'CONCLUIR CADASTRO',
+            tabs: [{
+              id: 'tab_inputs_demo',
+              label: 'Inputs & Textarea',
+              view: 'controls',
+              sections: [
+                {
+                  title: 'CAMPOS DE TEXTO (RDRINPUT)',
+                  description: 'Campos estilizados com crafting_outline e pré-visualização reativa.',
+                  layout: 'grid-2',
+                  items: [
+                    { type: 'input', label: 'Nome do Titular', placeholder: 'Digite o nome do cidadão...', value: 'John Marston' },
+                    { type: 'input', label: 'Local de Residência', placeholder: 'Ex: Beecher\'s Hope, West Elizabeth', value: 'Beecher\'s Hope' },
+                    { type: 'input', label: 'Profissão / Ocupação', placeholder: 'Ex: Fazendeiro, Caçador' },
+                    { type: 'input', label: 'Número da Escritura', placeholder: '#00492-W', disabled: true, value: 'ESCRITURA #00492-W (Bloqueada)' }
+                  ]
+                },
+                {
+                  title: 'ÁREAS DE TEXTO AMPLAS (RDRTEXTAREA)',
+                  description: 'Caixas de texto com suporte a múltiplas linhas e contador dinâmico de caracteres.',
+                  layout: 'grid-2',
+                  items: [
+                    { type: 'textarea', label: 'Declaração de Posse de Terras', placeholder: 'Descreva os marcos territoriais e confrontantes da propriedade...', rows: 5, value: 'Propriedade rural delimitada ao norte pela nascente do riacho e ao sul pelas cercas de pedra.' },
+                    { type: 'textarea', label: 'Histórico de Atividades Comerciais', placeholder: 'Relate transações recentes e clientes frequentes...', rows: 5 }
+                  ]
+                },
+                {
+                  title: 'DIVISORES E CABEÇALHOS (RDRHEADER & RDRDIVIDER)',
+                  description: 'Hierarquia visual com divisores autênticos do Red Dead Redemption 2.',
+                  layout: 'grid-2',
+                  items: [
+                    { type: 'header', level: 1, title: 'Cabeçalho Nível 1 (H1)' },
+                    { type: 'header', level: 2, title: 'Cabeçalho Nível 2 (H2)' },
+                    { type: 'header', level: 3, title: 'Cabeçalho Nível 3 (H3)' },
+                    { type: 'divider' }
+                  ]
+                }
+              ]
+            }]
+          }
+        }, '*');
       }
 
       if (type === 'dock') {

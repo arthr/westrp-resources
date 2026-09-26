@@ -33,7 +33,9 @@
 /* ==========================================================================
    2. RESETS E CONFIGURAÇÃO GLOBAL
    ========================================================================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -41,7 +43,8 @@
   -webkit-user-select: none;
 }
 
-html, body {
+html,
+body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -80,7 +83,9 @@ html, body {
 /* ==========================================================================
    4. ELEMENTOS DE BACKDROP & OVERLAY
    ========================================================================== */
-.panel-backdrop, .dialog-backdrop, .confirm-backdrop {
+.panel-backdrop,
+.dialog-backdrop,
+.confirm-backdrop {
   position: fixed;
   inset: 0;
   background: radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.88) 100%);
@@ -90,13 +95,17 @@ html, body {
 }
 
 @keyframes fadeInBackdrop {
-  to { opacity: 1; }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ==========================================================================
    5. DIVISÓRIAS RÚSTICAS COM DIAMANTE CENTRAL (RDR2 DIVIDER TEXTURE)
    ========================================================================== */
-.rdr-divider, .gold-divider, hr.rdr-divider {
+.rdr-divider,
+.gold-divider,
+hr.rdr-divider {
   width: 100%;
   height: 3px;
   background-image: var(--rdr-texture-divider);
@@ -111,7 +120,8 @@ html, body {
 /* ==========================================================================
    6. BOTÕES UNIVERSAIS RDR2 COM TEXTURAS BOX
    ========================================================================== */
-.rdr-btn-primary, .btn-primary {
+.rdr-btn-primary,
+.btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -130,17 +140,20 @@ html, body {
   transition: transform var(--rdr-transition-fast), filter var(--rdr-transition-fast);
 }
 
-.rdr-btn-primary:hover, .btn-primary:hover {
+.rdr-btn-primary:hover,
+.btn-primary:hover {
   background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
   color: #ffffff;
   transform: scale(1.02);
 }
 
-.rdr-btn-primary:active, .btn-primary:active {
+.rdr-btn-primary:active,
+.btn-primary:active {
   transform: scale(0.98);
 }
 
-.rdr-btn-secondary, .btn-secondary {
+.rdr-btn-secondary,
+.btn-secondary {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -159,7 +172,8 @@ html, body {
   transition: all var(--rdr-transition-fast);
 }
 
-.rdr-btn-secondary:hover, .btn-secondary:hover {
+.rdr-btn-secondary:hover,
+.btn-secondary:hover {
   background: var(--rdr-color-surface-hover);
   border-color: var(--rdr-color-border-hover);
   color: var(--rdr-color-text);
@@ -174,7 +188,9 @@ html, body {
   text-overflow: ellipsis;
 }
 
-.text-red, .text-danger, .text-primary {
+.text-red,
+.text-danger,
+.text-primary {
   color: var(--rdr-color-primary) !important;
 }
 
@@ -378,19 +394,19 @@ html, body {
 }
 
 /* Quando checked: a caixa de seleção fica vermelha no padrão oficial RDR2 */
-.rdr-checkbox__input:checked + .rdr-checkbox__box,
+.rdr-checkbox__input:checked+.rdr-checkbox__box,
 .rdr-checkbox.is-checked .rdr-checkbox__box {
   background: var(--rdr-color-primary);
   border-color: var(--rdr-color-primary);
 }
 
-.rdr-checkbox:hover .rdr-checkbox__input:checked + .rdr-checkbox__box,
+.rdr-checkbox:hover .rdr-checkbox__input:checked+.rdr-checkbox__box,
 .rdr-checkbox.is-checked:hover .rdr-checkbox__box {
   background: var(--rdr-color-primary-dark);
   border-color: var(--rdr-color-primary-dark);
 }
 
-.rdr-checkbox__input:checked + .rdr-checkbox__box .rdr-checkbox__tick,
+.rdr-checkbox__input:checked+.rdr-checkbox__box .rdr-checkbox__tick,
 .rdr-checkbox.is-checked .rdr-checkbox__tick {
   display: block;
 }
@@ -405,8 +421,8 @@ html, body {
   border-color: var(--rdr-color-primary);
 }
 
-.rdr-checkbox__input:disabled ~ .rdr-checkbox__box,
-.rdr-checkbox__input:disabled ~ .rdr-checkbox__label,
+.rdr-checkbox__input:disabled~.rdr-checkbox__box,
+.rdr-checkbox__input:disabled~.rdr-checkbox__label,
 .rdr-checkbox:has(.rdr-checkbox__input:disabled) {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1105,3 +1121,347 @@ html, body {
   overflow-y: auto;
 }
 
+/* ==========================================================================
+   9. CABEÇALHOS, MODAIS, SLIDER PANELS E TRANSIÇÕES (REDM-VUE-UI)
+   ========================================================================== */
+
+/* --- RdrHeader --- */
+.rdr-header {
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+}
+
+.rdr-header h1 {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xl);
+  color: var(--rdr-color-text);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.rdr-header h2 {
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-lg);
+  color: var(--rdr-color-text);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.rdr-header h3 {
+  font-family: var(--rdr-font-title);
+  font-size: var(--rdr-font-size-md);
+  color: var(--rdr-color-text);
+  letter-spacing: 1px;
+}
+
+.rdr-header hr,
+.rdr-header .rdr-divider {
+  border: none;
+  height: 2px;
+  background: var(--rdr-texture-divider) no-repeat center / 100% 100%;
+  margin-top: var(--rdr-spacing-xs);
+  opacity: var(--rdr-divider-opacity);
+  width: 100%;
+}
+
+/* --- RdrPanel (Content Panel) --- */
+.rdr-panel {
+  background: var(--rdr-texture-bg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.rdr-panel--red {
+  background: var(--rdr-texture-bg-red);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.rdr-panel--padding-none {
+  padding: 0;
+}
+
+.rdr-panel--padding-sm {
+  padding: var(--rdr-spacing-sm);
+}
+
+.rdr-panel--padding-md {
+  padding: var(--rdr-spacing-lg);
+}
+
+.rdr-panel--padding-lg {
+  padding: var(--rdr-spacing-xl);
+}
+
+.rdr-panel--padding-xl {
+  padding: calc(var(--rdr-spacing-xl) * 1.5);
+}
+
+.rdr-panel--scrollable {
+  overflow-y: auto;
+}
+
+/* --- RdrModal --- */
+.rdr-modal-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.92) 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--rdr-transition-normal);
+}
+
+.rdr-modal-container.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rdr-modal {
+  background: var(--rdr-texture-bg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  /* border: 1px solid var(--rdr-color-border); */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+  padding: var(--rdr-spacing-xl);
+  position: relative;
+  border-radius: 0;
+  width: 520px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.rdr-modal-container.is-open .rdr-modal {
+  animation: zoomAndFadeIn var(--rdr-transition-normal) cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.rdr-modal__close {
+  position: absolute;
+  top: var(--rdr-spacing-md);
+  right: var(--rdr-spacing-md);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--rdr-transition-fast);
+  z-index: 10;
+  padding: 6px;
+}
+
+.rdr-modal__close img {
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+  transition: opacity var(--rdr-transition-fast);
+}
+
+.rdr-modal__close:hover {
+  transform: scale(1.15);
+}
+
+.rdr-modal__close:hover img {
+  opacity: 1;
+}
+
+/* --- RdrSlider (Slider Panel / Drawer Lateral) --- */
+.rdr-slider-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--rdr-transition-normal);
+}
+
+.rdr-slider-container.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rdr-slider__panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 360px;
+  max-width: 85vw;
+  height: 100vh;
+  background: var(--rdr-texture-bg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-left: 1px solid var(--rdr-color-border);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.9);
+  padding: var(--rdr-spacing-xl) var(--rdr-spacing-lg);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transition: transform var(--rdr-transition-normal) cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.rdr-slider__panel--right {
+  right: 0;
+  transform: translateX(100%);
+}
+
+.rdr-slider__panel--left {
+  left: 0;
+  border-left: none;
+  border-right: 1px solid var(--rdr-color-border);
+  box-shadow: 10px 0 40px rgba(0, 0, 0, 0.9);
+  transform: translateX(-100%);
+}
+
+.rdr-slider-container.is-open .rdr-slider__panel--right,
+.rdr-slider-container.is-open .rdr-slider__panel--left {
+  transform: translateX(0);
+}
+
+.rdr-slider__close {
+  position: absolute;
+  top: var(--rdr-spacing-md);
+  right: var(--rdr-spacing-md);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--rdr-transition-fast);
+  z-index: 10;
+  padding: 6px;
+}
+
+.rdr-slider__close img {
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+  transition: opacity var(--rdr-transition-fast);
+}
+
+.rdr-slider__close:hover {
+  transform: scale(1.15);
+}
+
+.rdr-slider__close:hover img {
+  opacity: 1;
+}
+
+/* --- Transições Nativas RDR2 --- */
+@keyframes zoomAndFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomAndFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInBottom {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-zoom-in {
+  animation: zoomAndFadeIn var(--rdr-transition-normal) cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--rdr-transition-normal) ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--rdr-transition-normal) cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft var(--rdr-transition-normal) cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInBottom var(--rdr-transition-normal) cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}

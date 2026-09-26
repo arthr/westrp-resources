@@ -346,6 +346,30 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       6. RDR2 MODAL FLUTUANTE (ZOOM-IN ANIMATION / RDRMODAL)
+       ============================================================ -->
+  <div id="rdr-modal-container" class="rdr-modal-container" style="display: none;">
+    <div class="rdr-modal" id="rdr-modal-dialog">
+      <button class="rdr-modal__close" id="rdr-modal-close-btn" title="Fechar (ESC)">
+        <img src="assets/textures/nav_close.png" alt="Fechar">
+      </button>
+      <div id="rdr-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       7. RDR2 SLIDER PANEL (GAVETA LATERAL / RDRSLIDER)
+       ============================================================ -->
+  <div id="rdr-slider-container" class="rdr-slider-container" style="display: none;">
+    <div class="rdr-slider__panel rdr-slider__panel--right" id="rdr-slider-panel">
+      <button class="rdr-slider__close" id="rdr-slider-close-btn" title="Fechar (ESC)">
+        <img src="assets/textures/nav_close.png" alt="Fechar">
+      </button>
+      <div id="rdr-slider-content"></div>
+    </div>
+  </div>
+
   <!-- Container Global de Notificações Toasts -->
   <div id="toast-container"></div>
 
@@ -356,6 +380,7 @@
   <script src="js/components/dialog.js"></script>
   <script src="js/components/dock.js"></script>
   <script src="js/components/panel.js"></script>
+  <script src="js/components/modal.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
