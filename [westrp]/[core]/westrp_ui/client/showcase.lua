@@ -1102,5 +1102,34 @@ RegisterCommand('testhonor', function(source, args)
     HandleTestHonorCommand(args)
 end, false)
 
+RegisterCommand('testhud', function(source, args)
+    local sub = args[1] and string.lower(args[1]) or 'toggle'
+    if sub == 'toggle' then
+        local current = exports['westrp_ui']:IsHudVisible()
+        exports['westrp_ui']:SetHudVisible(not current)
+        print(string.format("^3[WestRP UI]^7 HUD Visibilidade alternada para: %s", tostring(not current)))
+    elseif sub == 'hunger' then
+        local val = tonumber(args[2]) or 50.0
+        exports['westrp_ui']:UpdateMetabolismStatus(val, nil)
+        print(string.format("^3[WestRP UI]^7 Fome definida para: %.1f%%", val))
+    elseif sub == 'thirst' then
+        local val = tonumber(args[2]) or 50.0
+        exports['westrp_ui']:UpdateMetabolismStatus(nil, val)
+        print(string.format("^3[WestRP UI]^7 Sede definida para: %.1f%%", val))
+    elseif sub == 'cinematic' then
+        local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
+        exports['westrp_ui']:SetCinematicMode(active)
+        print(string.format("^3[WestRP UI]^7 Modo Cinemático definido para: %s", tostring(active)))
+    elseif sub == 'stress' then
+        exports['westrp_ui']:UpdateMetabolismStatus(12.0, 8.0)
+        print("^3[WestRP UI]^7 Status de estresse crítico injetado (Fome 12%, Sede 8%).")
+    elseif sub == 'restore' then
+        exports['westrp_ui']:UpdateMetabolismStatus(100.0, 100.0)
+        print("^3[WestRP UI]^7 Status restaurado para 100%.")
+    else
+        print("^3[WestRP UI]^7 Uso: /testhud [toggle | hunger <0-100> | thirst <0-100> | cinematic <on/off> | stress | restore]")
+    end
+end, false)
+
 print(
-    "^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7, ^3/testhonor^7.")
+    "^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7, ^3/testhonor^7, ^3/testhud^7.")

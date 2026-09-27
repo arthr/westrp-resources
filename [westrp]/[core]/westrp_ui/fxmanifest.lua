@@ -20,6 +20,7 @@ files {
     'html/css/dialog.css',
     'html/css/progress.css',
     'html/css/toast.css',
+    'html/css/hud.css',
     'html/js/audio.js',
     'html/js/components/toast.js',
     'html/js/components/progress.js',
@@ -27,6 +28,7 @@ files {
     'html/js/components/dock.js',
     'html/js/components/panel.js',
     'html/js/components/modal.js',
+    'html/js/components/hud.js',
     'html/js/app.js',
     'html/assets/fonts/chinese_rocks.otf',
     'html/assets/fonts/Hapna_Slab_Serif.ttf',
@@ -49,10 +51,15 @@ files {
 client_scripts {
     'client/native_hud.lua',
     'client/main.lua',
+    'client/hud.lua',
     'client/showcase.lua'
 }
 
 exports {
+    'SetHudVisible',
+    'IsHudVisible',
+    'SetCinematicMode',
+    'UpdateMetabolismStatus',
     'OpenDock',
     'CloseDock',
     'IsDockOpen',

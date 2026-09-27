@@ -1,0 +1,267 @@
+/**
+ * WestRP UI Engine — Player Status HUD Stylesheet
+ * 1:1 Red Dead Redemption 2 Aesthetics
+ * Standards: .agent/skills/modern-web-guidance, variables.css
+ */
+
+/* ==========================================================================
+   1. CONTÊINER PRINCIPAL DO HUD (SAFEZONE BOTTOM-LEFT)
+   ========================================================================== */
+.player-hud-container {
+  position: fixed;
+  left: 28px;
+  bottom: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+  pointer-events: none;
+  user-select: none;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Ocultação e atenuação de contexto */
+.player-hud-container.is-hidden,
+.player-hud-container.is-cinematic {
+  opacity: 0 !important;
+  transform: translateY(18px) scale(0.96);
+  pointer-events: none !important;
+}
+
+.player-hud-container.is-menu-open {
+  opacity: 0.15;
+}
+
+/* ==========================================================================
+   2. CLUSTERS DE ANÉIS (PLAYER VITALS & MOUNT VITALS)
+   ========================================================================== */
+.hud-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Cluster da Montaria (Cavalo) - Contextual com animação de montaria */
+.hud-cluster--mount {
+  opacity: 0;
+  max-height: 0;
+  transform: scale(0.85) translateY(10px);
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              max-height 0.35s ease;
+}
+
+.hud-cluster--mount.is-mounted {
+  opacity: 1;
+  max-height: 60px;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   3. ANEL CIRCULAR PROCEDURAL SVG (46x46px)
+   ========================================================================== */
+.rdr-hud-item {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.rdr-hud-svg {
+  width: 46px;
+  height: 46px;
+  transform: rotate(-90deg); /* Começa preenchimento pelo topo (12 horas) */
+}
+
+/* Fundo do Anel (Track Rústica) */
+.rdr-hud-bg-track {
+  fill: rgba(14, 13, 11, 0.84);
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 3.5;
+}
+
+/* Preenchimento Dinâmico (Circunferência r=18.5 => C = 116.24) */
+.rdr-hud-fill {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 116.24;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.35s ease-out, stroke 0.3s ease;
+}
+
+/* Ícone Central Vetorial */
+.rdr-hud-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  fill: #f2ede4;
+  color: #f2ede4;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+  transition: color 0.3s ease, fill 0.3s ease, transform 0.2s ease;
+}
+
+.rdr-hud-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ==========================================================================
+   4. PALETA DE CORES POR ATRIBUTO (DESIGN SYSTEM RDR2)
+   ========================================================================== */
+
+/* Vida (Health) */
+.hud-ring--health .rdr-hud-fill {
+  stroke: #B62A2A; /* Vermelho RDR2 */
+}
+
+/* Estamina (Stamina) */
+.hud-ring--stamina .rdr-hud-fill {
+  stroke: #dfb76c; /* Dourado Couro Claro */
+}
+
+/* Fome (Hunger) */
+.hud-ring--hunger .rdr-hud-fill {
+  stroke: #d48b38; /* Âmbar Queimado */
+}
+
+/* Sede (Thirst) */
+.hud-ring--thirst .rdr-hud-fill {
+  stroke: #3a9fd6; /* Azul Celeste */
+}
+
+/* Vida da Montaria */
+.hud-ring--mount-health .rdr-hud-fill {
+  stroke: #8e0000; /* Carmesim Cavalo */
+}
+
+/* Estamina da Montaria */
+.hud-ring--mount-stamina .rdr-hud-fill {
+  stroke: #c5a059; /* Dourado Envelhecido */
+}
+
+/* Voz (Voice Range) */
+.hud-ring--voice .rdr-hud-fill {
+  stroke: #fafafa;
+}
+
+.hud-ring--voice.is-talking .rdr-hud-fill {
+  stroke: #4caf50; /* Verde microfone ativo */
+}
+
+.hud-ring--voice.is-talking .rdr-hud-icon {
+  fill: #4caf50;
+  color: #4caf50;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* ==========================================================================
+   5. INDICADOR DE PROXIMIDADE DE VOZ (PONTOS / BARRAS)
+   ========================================================================== */
+.hud-voice-proximity-dots {
+  position: absolute;
+  bottom: 3px;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-voice-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: background-color 0.25s ease, transform 0.25s ease;
+}
+
+.hud-voice-dot.is-active {
+  background: #dfb76c;
+  transform: scale(1.2);
+}
+
+.hud-ring--voice.is-talking .hud-voice-dot.is-active {
+  background: #4caf50;
+}
+
+/* ==========================================================================
+   6. CRITICAL ALERT PULSE (@keyframes)
+   ========================================================================== */
+@keyframes rdrHudPulseAlert {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  }
+  50% {
+    transform: scale(1.09);
+    filter: drop-shadow(0 0 10px rgba(220, 35, 35, 0.95));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  }
+}
+
+.hud-alert-pulse {
+  animation: rdrHudPulseAlert 1.15s infinite ease-in-out;
+}
+
+.hud-alert-pulse .rdr-hud-fill {
+  stroke: #e53935 !important;
+}
+
+/* ==========================================================================
+   7. BADGE DINÂMICO DE TEMPERATURA CLIMÁTICA
+   ========================================================================== */
+.hud-temp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  background: rgba(18, 16, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  font-family: var(--rdr-font-body, 'Hapna Slab Serif', serif);
+  font-size: 13px;
+  color: #fafafa;
+  letter-spacing: 0.5px;
+  margin-left: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
+}
+
+.hud-temp-badge svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.hud-temp-badge.temp--freezing {
+  border-color: #64b5f6;
+  color: #64b5f6;
+  background: rgba(10, 25, 45, 0.85);
+}
+
+.hud-temp-badge.temp--heat {
+  border-color: #e53935;
+  color: #e53935;
+  background: rgba(45, 15, 15, 0.85);
+}

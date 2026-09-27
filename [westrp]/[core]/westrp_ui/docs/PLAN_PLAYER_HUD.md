@@ -135,68 +135,61 @@ A thread client em Lua despachará dados para o Chromium através de um payload 
 
 ---
 
-### 📌 FASE 1: Coletor Nativo Client-Side (`client/hud.lua`)
+### 📌 FASE 1: Coletor Nativo Client-Side (`client/hud.lua`) — [CONCLUÍDA]
 **Objetivo:** Criar o coletor de telemetria nativa do jogador com arquitetura de tick adaptativo para garantir resmon de **0.00ms a 0.01ms**.  
-**Padrão de Código:** `.agent/skills/lua-basics` (locais cacheados, sem `Wait(0)` desnecessário) e `.agent/skills/fivem-basics`.
+**Padrão de Código:** [.agent/skills/lua-basics](file:///c:/txData/VORPCore_B1A065.base/resources/.agent/skills/lua-basics/SKILL.md) (locais cacheados, sem `Wait(0)` desnecessário), [.agent/skills/fivem-basics](file:///c:/txData/VORPCore_B1A065.base/resources/.agent/skills/fivem-basics/SKILL.md) e [.agent/skills/fivem-security](file:///c:/txData/VORPCore_B1A065.base/resources/.agent/skills/fivem-security/SKILL.md).
 
-- [ ] **Task 1.1: Estruturação do Arquivo e Registro no Manifest**
-  - [ ] Subtask 1.1.1: Criar o arquivo `client/hud.lua`.
-  - [ ] Subtask 1.1.2: Registrar `'client/hud.lua'` em `client_scripts` no [fxmanifest.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/fxmanifest.lua).
-  - [ ] Subtask 1.1.3: Declarar tabela local de estado `PlayerHudState = {}` contendo snapshots anteriores para envio delta.
+- [x] **Task 1.1: Estruturação do Arquivo e Registro no Manifest**
+  - [x] Subtask 1.1.1: Criar o arquivo [client/hud.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/client/hud.lua) com estrutura modular e tipagem LDoc.
+  - [x] Subtask 1.1.2: Registrar `'client/hud.lua'` em `client_scripts` e os novos exports (`SetHudVisible`, `IsHudVisible`, `SetCinematicMode`, `UpdateMetabolismStatus`) no [fxmanifest.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/fxmanifest.lua).
+  - [x] Subtask 1.1.3: Declarar tabela local de estado `playerHudState` contendo snapshots anteriores para envio delta.
 
-- [ ] **Task 1.2: Implementação do Loop de Tick Adaptativo**
-  - [ ] Subtask 1.2.1: Cachear `PlayerPedId()`, `PlayerId()` e coordenadas em variáveis locais no escopo do loop.
-  - [ ] Subtask 1.2.2: Implementar leitura de vida normalizada:
+- [x] **Task 1.2: Implementação do Loop de Tick Adaptativo**
+  - [x] Subtask 1.2.1: Cachear `PlayerPedId()`, `PlayerId()` e `GetEntityCoords(ped)` em variáveis locais no escopo do loop.
+  - [x] Subtask 1.2.2: Implementar leitura de vida normalizada com guard clauses:
     ```lua
-    local health = GetEntityHealth(ped)
+    local currentHealth = GetEntityHealth(ped)
     local maxHealth = GetPedMaxHealth(ped)
-    local healthPct = math.max(0.0, math.min(100.0, (health / maxHealth) * 100.0))
+    local healthPct = (maxHealth > 0) and math.max(0.0, math.min(100.0, (currentHealth / maxHealth) * 100.0)) or 0.0
     ```
-  - [ ] Subtask 1.2.3: Implementar leitura de estamina via native float RDR2 (`0x0FF421E467373FCF` / `GetPlayerStamina`).
-  - [ ] Subtask 1.2.4: Implementar controle adaptativo de tempo de espera:
-    * Se o jogador estiver correndo, nadando ou a cavalo galopando: `Wait(100)` (alta fluidez).
-    * Se o jogador estiver parado/idle com valores estáveis: `Wait(350)` (economia de CPU / 0.00ms).
+  - [x] Subtask 1.2.3: Implementar leitura de estamina via native float RDR2 (`0x0FF421E467373FCF` / `GetPlayerStamina`) com fallback seguro para `GetAttributeCoreValue(ped, 1)`.
+  - [x] Subtask 1.2.4: Implementar controle adaptativo de tempo de espera via `isPedInActiveMovement()`:
+    * Se o jogador estiver correndo, nadando, em combate corporal ou galopando: `Wait(100)` (100ms / 10 FPS de telemetria fluida).
+    * Se o jogador estiver parado/idle com valores estáveis: `Wait(350)` (350ms / ~2.8 ticks/s / Resmon **0.00ms**).
 
-- [ ] **Task 1.3: Filtro Delta de Transmissão NUI (Throttling)**
-  - [ ] Subtask 1.3.1: Comparar os novos valores com o último snapshot enviado.
-  - [ ] Subtask 1.3.2: Só invocar `SendNUIMessage` se houver alteração significativa (`math.abs(new - old) >= 0.5`) ou mudança de estado de voz/montaria, evitando saturação do CEF.
+- [x] **Task 1.3: Filtro Delta de Transmissão NUI (Throttling)**
+  - [x] Subtask 1.3.1: Comparar os novos valores com o último snapshot enviado via `hasSignificantDelta()`.
+  - [x] Subtask 1.3.2: Só invocar `SendNUIMessage` se houver alteração significativa (`math.abs(new - old) >= 0.5%` ou `>= 1.0°C`), ou mudança booleana de estado (fala, microfone, montaria, menu de UI aberto, cinemático), evitando saturação do Chromium CEF.
 
 ---
 
-### 📌 FASE 2: Componente Frontend NUI (`hud.js` & `hud.css`)
+### 📌 FASE 2: Componente Frontend NUI (`hud.js` & `hud.css`) — [CONCLUÍDA]
 **Objetivo:** Desenhar os anéis de status em SVG procedural vetorial com transição acelerada por GPU, cantos nítidos de época e zero dependências pesadas (sem jQuery/Canvas).
 
-- [ ] **Task 2.1: Estrutura HTML do Contêiner no DOM**
-  - [ ] Subtask 2.1.1: Adicionar contêiner `#player-hud-container` no [html/index.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/index.html) ancorado na SafeZone inferior esquerda.
-  - [ ] Subtask 2.1.2: Declarar o layout em grade/flex com os grupos:
+- [x] **Task 2.1: Estrutura HTML do Contêiner no DOM**
+  - [x] Subtask 2.1.1: Adicionar contêiner `#player-hud-container` no [html/index.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/index.html) ancorado na SafeZone inferior esquerda.
+  - [x] Subtask 2.1.2: Declarar o layout em grade/flex com os grupos:
     * Grupo A: Vitals do Jogador (Vida, Estamina, Fome, Sede).
-    * Grupo B: Vitals de Montaria (Vida do Cavalo, Estamina do Cavalo) - oculto por padrão.
-    * Grupo C: Indicador de Voz e Temperatura.
-  - [ ] Subtask 2.1.3: Replicar a mesma marcação sem quebras no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html) para testes em navegador.
+    * Grupo B: Vitals de Montaria (Vida do Cavalo, Estamina do Cavalo) - contextual com transição suave.
+    * Grupo C: Indicador de Voz (3 níveis) e Temperatura Dinâmica.
+  - [x] Subtask 2.1.3: Replicar a mesma marcação sem quebras no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html) para testes em navegador com botões interativos no sandbox.
 
-- [ ] **Task 2.2: Estilização Visual 1:1 RDR2 (`html/css/hud.css`)**
-  - [ ] Subtask 2.2.1: Criar o arquivo `html/css/hud.css` e registrá-lo no `index.html` e `fxmanifest.lua`.
-  - [ ] Subtask 2.2.2: Criar classes para anéis SVG de diâmetro `46px`:
+- [x] **Task 2.2: Estilização Visual 1:1 RDR2 (`html/css/hud.css`)**
+  - [x] Subtask 2.2.1: Criar o arquivo [html/css/hud.css](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/css/hud.css) e registrá-lo no `index.html`, `test.html` e `fxmanifest.lua`.
+  - [x] Subtask 2.2.2: Criar classes para anéis SVG de diâmetro `46px` com raio `18.5` (circunferência `116.24px`) e `stroke-dashoffset` acelerado por GPU:
     ```css
-    .rdr-hud-ring {
-      width: 46px;
-      height: 46px;
-      transform: rotate(-90deg); /* Inicia o preenchimento pelo topo */
-    }
-    .rdr-hud-circle-fill {
-      fill: none;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.3s ease-out;
-    }
+    .rdr-hud-item { width: 46px; height: 46px; }
+    .rdr-hud-svg { width: 46px; height: 46px; transform: rotate(-90deg); }
+    .rdr-hud-fill { stroke-linecap: round; stroke-dasharray: 116.24; transition: stroke-dashoffset 0.35s ease-out; }
     ```
-  - [ ] Subtask 2.2.3: Implementar animação CSS `@keyframes pulseAlert` (escala 1.0 -> 1.08 com borda vermelha viva) para atributos críticos.
-  - [ ] Subtask 2.2.4: Aplicar texturas de fundo rústico semitransparente em cada anel.
+  - [x] Subtask 2.2.3: Implementar animação CSS `@keyframes rdrHudPulseAlert` (escala 1.0 -> 1.09 com brilho vermelho vivo) ativada via `.hud-alert-pulse` para atributos críticos.
+  - [x] Subtask 2.2.4: Aplicar texturas de fundo rústico semitransparente, sombras de profundidade e ícones vetoriais RDR2.
 
-- [ ] **Task 2.3: Máquina de Estado JavaScript (`html/js/components/hud.js`)**
-  - [ ] Subtask 2.3.1: Criar o componente `HudComponent` e instanciar em `window.uiPlayerHud`.
-  - [ ] Subtask 2.3.2: Implementar método `update(data)` que calcula a fórmula do perímetro do círculo SVG:
-    $$\text{offset} = \text{circunferência} - \left(\frac{\text{valor}}{100} \times \text{circunferência}\right)$$
-  - [ ] Subtask 2.3.3: Integrar ao roteador principal [html/js/app.js](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/js/app.js) para escutar a action `westrp_ui:updatePlayerHud`.
+- [x] **Task 2.3: Máquina de Estado JavaScript (`html/js/components/hud.js`)**
+  - [x] Subtask 2.3.1: Criar o componente `HudComponent` e instanciar em `window.uiPlayerHud`.
+  - [x] Subtask 2.3.2: Implementar método `update(data)` com cálculo da fórmula do perímetro do círculo SVG:
+    $$\text{offset} = 116.24 - \left(\frac{\text{valor}}{100} \times 116.24\right)$$
+  - [x] Subtask 2.3.3: Integrar ao roteador principal [html/js/app.js](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/js/app.js) para escutar as actions `westrp_ui:updatePlayerHud`, `westrp_ui:setHudVisible` e `westrp_ui:setCinematicMode`.
 
 ---
 
@@ -259,7 +252,7 @@ A thread client em Lua despachará dados para o Chromium através de um payload 
 
 - [ ] **Task 5.3: Simulação e Testes de Bancada**
   - [ ] Subtask 5.3.1: Criar bateria de testes no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html) com sliders para manipular vida, estamina, fome, sede, cavalo e voz em tempo real no navegador.
-  - [ ] Subtask 5.3.2: Adicionar comando `/testhud` no [client/showcase.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/client/showcase.lua) para injetar status de estresse no servidor de testes.
+  - [x] Subtask 5.3.2: Adicionar comando `/testhud` no [client/showcase.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/client/showcase.lua) para injetar status de estresse no servidor de testes.
   - [ ] Subtask 5.3.3: Executar medição no Profiler do RedM (`resmon 1`) confirmando estabilidade em **0.00ms**.
 
 ---

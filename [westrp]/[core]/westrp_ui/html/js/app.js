@@ -73,6 +73,17 @@ window.addEventListener('message', (event) => {
     case 'westrp_ui:setDockCursor':
       if (window.uiDock) window.uiDock.setCursorState(!!data.hasCursor);
       break;
+
+    // 10. PLAYER STATUS HUD
+    case 'westrp_ui:updatePlayerHud':
+      if (window.uiPlayerHud) window.uiPlayerHud.update(data.data || {});
+      break;
+    case 'westrp_ui:setHudVisible':
+      if (window.uiPlayerHud) window.uiPlayerHud.setVisible(data.data ? data.data.visible : true);
+      break;
+    case 'westrp_ui:setCinematicMode':
+      if (window.uiPlayerHud) window.uiPlayerHud.setCinematicMode(data.data ? data.data.active : false);
+      break;
   }
 });
 
