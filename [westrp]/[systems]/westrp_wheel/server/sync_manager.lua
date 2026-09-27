@@ -3,8 +3,8 @@
     
     Gerencia a sincronização de itens da roda para os State Bags dos jogadores.
     Substitui completamente o loop ineficiente de polling do script original por
-    uma arquitetura orientada a eventos da Bridge com fila debounced e triagem
-    inteligente de itens degradáveis (FIFO por durabilidade).
+    uma arquitetura orientada a eventos da Bridge com fila debounced, payload compacto
+    e triagem inteligente de itens degradáveis (FIFO por durabilidade).
 ]]
 
 SyncManager = {
@@ -14,6 +14,13 @@ SyncManager = {
     pendingUses = {}
 }
 
+-- Pré-ordena as chaves de itens da configuração uma única vez no startup para Zero Overhead no Dirty Check
+local SortedWheelKeys = {}
+for itemName, _ in pairs(Config.WheelItems or {}) do
+    SortedWheelKeys[#SortedWheelKeys + 1] = itemName
+end
+table.sort(SortedWheelKeys)
+
 ---Verifica se um determinado item faz parte da whitelist da roda
 ---@param itemName string
 ---@return table|nil
@@ -22,18 +29,13 @@ function SyncManager:IsWheelItem(itemName)
 end
 
 ---Gera uma assinatura de hash dos itens para checagem rápida de alteração (Dirty Check)
+---Utiliza a lista de chaves pré-ordenadas para evitar alocações de memória e sorts repetidos
 ---@param snapshot table<string, number>
 ---@return string
 function SyncManager:BuildSignature(snapshot)
-    local keys = {}
-    for itemName, _ in pairs(Config.WheelItems or {}) do
-        keys[#keys + 1] = itemName
-    end
-    table.sort(keys)
-
     local parts = {}
-    for i = 1, #keys do
-        local itemName = keys[i]
+    for i = 1, #SortedWheelKeys do
+        local itemName = SortedWheelKeys[i]
         local count = tonumber(snapshot[itemName] or 0) or 0
         if count > 0 then
             parts[#parts + 1] = string.format("%s:%d", itemName, count)
@@ -89,15 +91,12 @@ local function ChooseBetterUseEntry(currentEntry, newItem)
 end
 
 ---Constrói o snapshot compacto e as entradas de uso do inventário do jogador
+---Armazena apenas itens presentes (> 0) para manter o payload do State Bag < 100 bytes
 ---@param items table
 ---@return table, table
 function SyncManager:BuildStateFromInventory(items)
     local snapshot = {}
     local useEntries = {}
-
-    for vorpItemName, _ in pairs(Config.WheelItems or {}) do
-        snapshot[vorpItemName] = 0
-    end
 
     for _, item in pairs(items or {}) do
         local itemName = item.name
