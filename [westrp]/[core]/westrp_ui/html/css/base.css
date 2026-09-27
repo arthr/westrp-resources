@@ -1313,7 +1313,7 @@ hr.rdr-divider {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   /* border-left: 1px solid var(--rdr-color-border); */
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.9);
+  /* box-shadow: -10px 0 40px rgba(0, 0, 0, 0.9); */
   padding: var(--rdr-spacing-xl) var(--rdr-spacing-lg);
   z-index: 10000;
   display: flex;
