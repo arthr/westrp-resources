@@ -6,8 +6,18 @@
 local NativeHUD = {}
 
 -- ============================================================================
--- 1. SISTEMA DE HONRA / KARMA (CONEXÃO DIRETA COM westrp_karma)
+-- 1. SISTEMA DE HONRA / KARMA (CONEXÃO DINÂMICA COM SISTEMAS DE KARMA)
 -- ============================================================================
+-- Configuração padrão da escala de Karma/Honra.
+-- Por padrão alinhado com o westrp_karma [-1000, +1000].
+-- Pode ser dinamicamente reconfigurado em tempo de execução via:
+-- exports['westrp_ui']:NativeHUD_ConfigureHonorScale(min, max, defaultDuration)
+local HonorConfig = {
+    min = -1000,
+    max = 1000,
+    defaultDuration = 4500
+}
+
 local rpgContainer = nil
 local honorContainer = nil
 local honorStateEntry = nil
@@ -38,19 +48,86 @@ local function HideHonorHUD()
     end)
 end
 
+---Permite reconfigurar dinamicamente a escala de honra/karma aceita pelo HUD Nativo
+---@param minVal number Menor valor possível de karma (ex: -1000 ou 0)
+---@param maxVal number Maior valor possível de karma (ex: 1000 ou 100)
+---@param defaultDurationMs? number Duração padrão de exibição em ms (padrão: 4500)
+---@return table Configuração atualizada { min, max, defaultDuration }
+function NativeHUD.ConfigureHonorScale(minVal, maxVal, defaultDurationMs)
+    if type(minVal) == 'number' and type(maxVal) == 'number' and minVal < maxVal then
+        HonorConfig.min = minVal
+        HonorConfig.max = maxVal
+    end
+    if type(defaultDurationMs) == 'number' and defaultDurationMs > 0 then
+        HonorConfig.defaultDuration = math.floor(defaultDurationMs)
+    end
+    return {
+        min = HonorConfig.min,
+        max = HonorConfig.max,
+        defaultDuration = HonorConfig.defaultDuration
+    }
+end
+
+---Retorna a configuração atual da escala de honra
+---@return table { min: number, max: number, defaultDuration: number }
+function NativeHUD.GetHonorScale()
+    return {
+        min = HonorConfig.min,
+        max = HonorConfig.max,
+        defaultDuration = HonorConfig.defaultDuration
+    }
+end
+
+---Normaliza qualquer valor de karma para o frame visual nativo do Scaleform do RDR2 (1 a 16)
+---1..8 = Foragido / Vermelho, 9..16 = Honrado / Branco
+---@param value number Valor bruto de karma/honra
+---@param customMin? number (Opcional) Sobrescreve o valor mínimo da escala
+---@param customMax? number (Opcional) Sobrescreve o valor máximo da escala
+---@return integer visualLevel (1 a 16)
+function NativeHUD.NormalizeHonor(value, customMin, customMax)
+    local minVal = tonumber(customMin) or HonorConfig.min
+    local maxVal = tonumber(customMax) or HonorConfig.max
+    local val = tonumber(value) or ((minVal + maxVal) / 2)
+
+    -- Se a escala for exatamente 1..16 (modo visual nativo direto), apenas clampamos
+    if minVal == 1 and maxVal == 16 then
+        return math.max(1, math.min(16, math.floor(val + 0.5)))
+    end
+
+    if maxVal <= minVal then
+        return 8 -- Fallback neutro se configuração for inválida
+    end
+
+    -- Clampa o valor na escala configurada
+    local clamped = math.max(minVal, math.min(maxVal, val))
+
+    -- Mapeamento linear: ratio de 0.0 (mínimo/foragido) a 1.0 (máximo/honrado)
+    local ratio = (clamped - minVal) / (maxVal - minVal)
+
+    -- RDR2 Scaleform tem exatamente 16 estados visuais discretos (1 a 16).
+    -- ratio * 15 produz [0..15] + 1 -> [1..16]
+    local visualLevel = math.floor(ratio * 15 + 0.5) + 1
+
+    return math.max(1, math.min(16, visualLevel))
+end
+
 ---Oculta a barra de honra imediatamente da tela
 function NativeHUD.HideHonor()
     honorTimerId = honorTimerId + 1
     HideHonorHUD()
 end
 
----Define o nível visual de honra/karma do jogador (1 = Mais baixo / Foragido, 16 = Mais alto / Honrado)
+---Define e exibe a barra de honra/karma nativa do RDR2.
+---Aceita valores em qualquer escala arbitrária (ex: -1000 a 1000, 0 a 100 ou 1 a 16).
 ---Exibe a barra de honra imediatamente e a oculta suavemente após o tempo especificado.
----@param level integer (1 a 16)
----@param durationMs? integer Tempo em ms para manter a barra visível (padrão: 4500)
-function NativeHUD.SetHonor(level, durationMs)
-    level = math.max(1, math.min(16, tonumber(level) or 8))
-    durationMs = tonumber(durationMs) or 4500
+---@param value number Valor de honra/karma (ou nível visual 1..16 se customMin=1 e customMax=16)
+---@param durationMs? integer Tempo em ms para manter a barra visível (padrão: HonorConfig.defaultDuration)
+---@param customMin? number (Opcional) Escala mínima customizada
+---@param customMax? number (Opcional) Escala máxima customizada
+---@return integer visualLevel O nível visual (1..16) que foi renderizado no HUD nativo
+function NativeHUD.SetHonor(value, durationMs, customMin, customMax)
+    local visualLevel = NativeHUD.NormalizeHonor(value, customMin, customMax)
+    durationMs = tonumber(durationMs) or HonorConfig.defaultDuration
 
     if not rpgContainer or not DatabindingIsEntryValid(rpgContainer) then
         rpgContainer = DatabindingAddDataContainerFromPath("", "RPGStatusIcons")
@@ -61,9 +138,9 @@ function NativeHUD.SetHonor(level, durationMs)
     end
 
     if not honorStateEntry or not DatabindingIsEntryValid(honorStateEntry) then
-        honorStateEntry = DatabindingAddDataInt(honorContainer, "State", level)
+        honorStateEntry = DatabindingAddDataInt(honorContainer, "State", visualLevel)
     else
-        DatabindingWriteDataInt(honorStateEntry, level)
+        DatabindingWriteDataInt(honorStateEntry, visualLevel)
     end
 
     -- Exibe a barra de honra na tela imediatamente
@@ -81,26 +158,34 @@ function NativeHUD.SetHonor(level, durationMs)
             end
         end)
     end
+
+    return visualLevel
 end
 
----Executa a animação de transição da barra de honra de um nível inicial para um nível final
----@param fromLevel integer Nível inicial (1 a 16)
----@param toLevel integer Nível final (1 a 16)
+---Executa a animação de transição da barra de honra de um valor inicial para um valor final.
+---Aceita valores em qualquer escala arbitrária ou níveis visuais diretos.
+---@param fromValue number Valor ou nível inicial
+---@param toValue number Valor ou nível final
 ---@param stepDelayMs? integer Atraso entre cada nível na transição (padrão: 140ms)
 ---@param holdDurationMs? integer Tempo para manter a barra aberta após concluir (padrão: 3500ms)
-function NativeHUD.AnimateHonor(fromLevel, toLevel, stepDelayMs, holdDurationMs)
-    fromLevel = math.max(1, math.min(16, tonumber(fromLevel) or 1))
-    toLevel = math.max(1, math.min(16, tonumber(toLevel) or 16))
+---@param customMin? number (Opcional) Escala mínima customizada
+---@param customMax? number (Opcional) Escala máxima customizada
+---@return integer fromLevel, integer toLevel Níveis visuais de início e fim
+function NativeHUD.AnimateHonor(fromValue, toValue, stepDelayMs, holdDurationMs, customMin, customMax)
+    local fromLevel = NativeHUD.NormalizeHonor(fromValue, customMin, customMax)
+    local toLevel = NativeHUD.NormalizeHonor(toValue, customMin, customMax)
     stepDelayMs = tonumber(stepDelayMs) or 140
     holdDurationMs = tonumber(holdDurationMs) or 3500
 
     local steps = math.abs(toLevel - fromLevel)
     local totalDisplayTime = 600 + (steps * stepDelayMs) + holdDurationMs
 
-    -- 1. Exibe a barra na posição inicial
-    NativeHUD.SetHonor(fromLevel, totalDisplayTime)
+    -- 1. Exibe a barra na posição visual inicial (1..16 direto)
+    NativeHUD.SetHonor(fromLevel, totalDisplayTime, 1, 16)
 
-    if fromLevel == toLevel then return end
+    if fromLevel == toLevel then
+        return fromLevel, toLevel
+    end
 
     -- 2. Thread de interpolação fluida do ponteiro
     CreateThread(function()
@@ -116,6 +201,8 @@ function NativeHUD.AnimateHonor(fromLevel, toLevel, stepDelayMs, holdDurationMs)
             Wait(stepDelayMs)
         end
     end)
+
+    return fromLevel, toLevel
 end
 
 -- ============================================================================
@@ -304,6 +391,9 @@ AddEventHandler('onResourceStop', function(res)
 end)
 
 -- Exports do HUD Nativo
+exports('NativeHUD_ConfigureHonorScale', NativeHUD.ConfigureHonorScale)
+exports('NativeHUD_GetHonorScale', NativeHUD.GetHonorScale)
+exports('NativeHUD_NormalizeHonor', NativeHUD.NormalizeHonor)
 exports('NativeHUD_SetHonor', NativeHUD.SetHonor)
 exports('NativeHUD_AnimateHonor', NativeHUD.AnimateHonor)
 exports('NativeHUD_HideHonor', NativeHUD.HideHonor)

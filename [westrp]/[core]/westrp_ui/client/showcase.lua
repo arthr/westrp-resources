@@ -518,7 +518,7 @@ function OpenShowcaseDialog()
             LogShowcase('DIALOG_SUBMIT', values)
             ShowToast("FORMULÁRIO ENVIADO",
                 string.format("Sanção de $ %.2f aplicada! Motivo: %s", tonumber(values.valor_multa) or 0, values
-                .infracao), "success", 4000)
+                    .infracao), "success", 4000)
         end,
         onCancel = function()
             LogShowcase('DIALOG_CANCEL', { status = 'cancelled' })
@@ -888,6 +888,91 @@ end
 -- ============================================================================
 -- 9. REGISTRO DE COMANDOS DE CHAT / CONSOLE
 -- ============================================================================
+
+local function HandleTestHonorCommand(args)
+    if not NativeHUD then return end
+
+    -- Subcomando para reconfigurar escala: /testhonor scale <min> <max> [duration]
+    if args[1] and tostring(args[1]):lower() == 'scale' then
+        local minVal = tonumber(args[2])
+        local maxVal = tonumber(args[3])
+        local dur = tonumber(args[4])
+        if minVal and maxVal and minVal < maxVal then
+            local newCfg = NativeHUD.ConfigureHonorScale(minVal, maxVal, dur)
+            ShowToast("ESCALA DE HONRA",
+                string.format("Escala reconfigurada: [%d .. %d] (Duração: %dms)", newCfg.min, newCfg.max,
+                    newCfg.defaultDuration), "success", 3500)
+            print(string.format("^2[WestRP UI]^7 Escala de Honra reconfigurada: min=%d, max=%d, duration=%dms",
+                newCfg.min, newCfg.max, newCfg.defaultDuration))
+        else
+            local cfg = NativeHUD.GetHonorScale()
+            ShowToast("ESCALA DE HONRA",
+                string.format("Escala atual: [%d .. %d] | Uso: /testhonor scale <min> <max>", cfg.min, cfg.max), "info",
+                4000)
+        end
+        return
+    end
+
+    local arg1 = args[1] and tonumber(args[1])
+    local arg2 = args[2] and tonumber(args[2])
+    local customMin = args[3] and tonumber(args[3])
+    local customMax = args[4] and tonumber(args[4])
+
+    -- Se não passou parâmetros, usa 15 (teste padrão honrado)
+    if not arg1 then
+        arg1 = 15
+    end
+
+    local currentScale = NativeHUD.GetHonorScale()
+
+    -- Detecção inteligente de modo direto vs dinâmico:
+    -- Se customMin e customMax foram passados, honra explicitamente os limites passados.
+    -- Caso contrário:
+    -- Se os valores forem inteiros estritamente dentro do intervalo físico [1..16],
+    -- tratamos como teste visual direto (escala 1..16).
+    -- Se algum valor for negativo ou maior que 16 (ex: -1000, 500, etc), usa a escala configurada (padrão -1000..1000).
+    local isDirectVisual = false
+    if not customMin and not customMax then
+        if arg2 then
+            if arg1 >= 1 and arg1 <= 16 and arg2 >= 1 and arg2 <= 16 then
+                isDirectVisual = true
+                customMin = 1
+                customMax = 16
+            end
+        else
+            if arg1 >= 1 and arg1 <= 16 then
+                isDirectVisual = true
+                customMin = 1
+                customMax = 16
+            end
+        end
+    end
+
+    if arg2 then
+        -- Modo animação / transição
+        local fromLvl, toLvl = NativeHUD.AnimateHonor(arg1, arg2, 140, 3500, customMin, customMax)
+        local scaleDesc = isDirectVisual and "Visual Direto 1..16" or
+            string.format("Escala [%d .. %d]", customMin or currentScale.min, customMax or currentScale.max)
+        ShowToast("HONRA NATIVA",
+            string.format("Animando: %s ➔ %s\nVisual: Nível %d ➔ %d (%s)", tostring(arg1), tostring(arg2), fromLvl, toLvl,
+                scaleDesc), "info", 3000)
+        print(string.format("^2[WestRP UI]^7 Animando Honra: entrada=(%s -> %s) => visual=(Nível %d -> Nível %d) [%s]",
+            tostring(arg1), tostring(arg2), fromLvl, toLvl, scaleDesc))
+    else
+        -- Modo estático
+        local visualLvl = NativeHUD.SetHonor(arg1, 4500, customMin, customMax)
+        local statusDesc = visualLvl >= 12 and "Honrado / Protetor" or
+            (visualLvl <= 5 and "Foragido / Criminoso" or "Neutro")
+        local scaleDesc = isDirectVisual and "Visual Direto 1..16" or
+            string.format("Escala [%d .. %d]", customMin or currentScale.min, customMax or currentScale.max)
+        ShowToast("HONRA NATIVA",
+            string.format("Valor: %s | Visual: Nível %d/16\nStatus: %s (%s)", tostring(arg1), visualLvl, statusDesc,
+                scaleDesc), "info", 3000)
+        print(string.format("^2[WestRP UI]^7 Honra Definida: entrada=%s => visual=Nível %d/16 (%s) [%s]", tostring(arg1),
+            visualLvl, statusDesc, scaleDesc))
+    end
+end
+
 RegisterCommand('uitest', function(source, args)
     local sub = args[1] and string.lower(args[1]) or nil
 
@@ -915,25 +1000,16 @@ RegisterCommand('uitest', function(source, args)
             end
         end)
     elseif sub == 'honor' or sub == 'karma' then
-        local arg1 = args[2] and tonumber(args[2]) or 15
-        local arg2 = args[3] and tonumber(args[3])
-        if arg2 then
-            if NativeHUD and NativeHUD.AnimateHonor then
-                NativeHUD.AnimateHonor(arg1, arg2, 140, 3500)
-                ShowToast("HONRA NATIVA", string.format("Animando Honra: Nível %d ➔ Nível %d", arg1, arg2), "info", 2500)
-            end
-        else
-            if NativeHUD then
-                NativeHUD.SetHonor(arg1, 4500)
-                local statusDesc = arg1 >= 12 and "Honrado / Protetor" or (arg1 <= 5 and "Foragido / Criminoso" or "Neutro")
-                ShowToast("HONRA NATIVA", string.format("Barra de Honra: Nível %d/16 (%s)", arg1, statusDesc), "info", 2500)
-            end
+        local honorArgs = {}
+        for i = 2, #args do
+            table.insert(honorArgs, args[i])
         end
+        HandleTestHonorCommand(honorArgs)
     elseif sub == 'nativehud' or sub == 'hud' then
         if NativeHUD then
-            NativeHUD.SetHonor(15, 6000)
+            NativeHUD.SetHonor(15, 6000, 1, 16)
             NativeHUD.ShowCash(150, 75)
-            NativeHUD.SetRank("FORASTEIRO", 3, 72.5)
+            NativeHUD.SetRank("MATADOR", 13, 72.5)
             NativeHUD.SetBounty("Bounty: $ 25.00", true)
             NativeHUD.StartTimer(25, 8)
             ShowToast("HUD NATIVO (0.00ms)", "Honra, Dinheiro, Rank, Bounty e Timer foram acionados nativamente!", "info",
@@ -990,28 +1066,8 @@ RegisterCommand('testfeed', function()
 end, false)
 
 RegisterCommand('testhonor', function(source, args)
-    local arg1 = args[1] and tonumber(args[1])
-    local arg2 = args[2] and tonumber(args[2])
-
-    if not arg1 then
-        arg1 = 15
-    end
-
-    if arg2 then
-        -- Modo transição/animação: /testhonor 1 6
-        if NativeHUD and NativeHUD.AnimateHonor then
-            NativeHUD.AnimateHonor(arg1, arg2, 140, 3500)
-            ShowToast("HONRA NATIVA", string.format("Animando Honra: Nível %d ➔ Nível %d", arg1, arg2), "info", 2500)
-        end
-    else
-        -- Modo estático direto: /testhonor 16
-        if NativeHUD then
-            NativeHUD.SetHonor(arg1, 4500)
-            local statusDesc = arg1 >= 12 and "Honrado / Protetor" or (arg1 <= 5 and "Foragido / Criminoso" or "Neutro")
-            ShowToast("HONRA NATIVA", string.format("Barra de Honra: Nível %d/16 (%s)", arg1, statusDesc), "info", 2500)
-        end
-    end
+    HandleTestHonorCommand(args)
 end, false)
 
 print(
-"^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7, ^3/testhonor^7.")
+    "^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7, ^3/testhonor^7.")

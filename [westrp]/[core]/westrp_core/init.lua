@@ -290,14 +290,29 @@ if not isServer then
 
     -- Submódulo de HUD Nativo (0.00ms via Scaleform / DataBinding)
     WestRP.Client.UI.NativeHUD = {
-        SetHonor = function(lvl, dur)
+        ConfigureHonorScale = function(minVal, maxVal, defaultDuration)
             if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
-                return exports['westrp_ui']:NativeHUD_SetHonor(lvl, dur)
+                return exports['westrp_ui']:NativeHUD_ConfigureHonorScale(minVal, maxVal, defaultDuration)
             end
         end,
-        AnimateHonor = function(fromLvl, toLvl, stepDelay, holdDur)
+        GetHonorScale = function()
             if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
-                return exports['westrp_ui']:NativeHUD_AnimateHonor(fromLvl, toLvl, stepDelay, holdDur)
+                return exports['westrp_ui']:NativeHUD_GetHonorScale()
+            end
+        end,
+        NormalizeHonor = function(val, customMin, customMax)
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_NormalizeHonor(val, customMin, customMax)
+            end
+        end,
+        SetHonor = function(lvl, dur, customMin, customMax)
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_SetHonor(lvl, dur, customMin, customMax)
+            end
+        end,
+        AnimateHonor = function(fromLvl, toLvl, stepDelay, holdDur, customMin, customMax)
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_AnimateHonor(fromLvl, toLvl, stepDelay, holdDur, customMin, customMax)
             end
         end,
         HideHonor = function()
