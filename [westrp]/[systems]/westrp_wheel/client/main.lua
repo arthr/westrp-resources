@@ -120,6 +120,9 @@ local function HandleWheelRelease()
     WheelState.currentUsableVorpItem = nil
     LocalPlayer.state:set('isWheelOpen', false, false)
 
+    -- Safeguard de Áudio Nativo: Corta cenas de áudio pendentes da UI para evitar loop sonoro (ringsong)
+    Citizen.InvokeNative(0xBAC7FC81A75EC1A1) -- STOP_AUDIO_SCENES
+
     -- Apenas abas de Provisões (1) e Cavalo (2) disparam consumo de consumíveis
     if (wheelBeforeClose == 1 or wheelBeforeClose == 2) and usableVorp then
         if (now - WheelState.lastUseAt) >= cooldown then
