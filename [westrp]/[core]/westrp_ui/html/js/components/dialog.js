@@ -34,6 +34,8 @@ class DialogComponent {
   }
 
   setupEvents() {
+    this.initEls();
+
     if (this.btnSubmit) {
       this.btnSubmit.addEventListener('click', () => this.submitDialog());
     }
@@ -42,6 +44,13 @@ class DialogComponent {
     }
     if (this.btnClose) {
       this.btnClose.addEventListener('click', () => this.closeDialog());
+    }
+    if (this.container) {
+      this.container.addEventListener('click', (e) => {
+        if (e.target === this.container) {
+          this.closeDialog();
+        }
+      });
     }
   }
 

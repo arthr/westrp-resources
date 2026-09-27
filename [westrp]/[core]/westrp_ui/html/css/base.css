@@ -83,9 +83,7 @@ body {
 /* ==========================================================================
    4. ELEMENTOS DE BACKDROP & OVERLAY
    ========================================================================== */
-.panel-backdrop,
-.dialog-backdrop,
-.confirm-backdrop {
+.panel-backdrop {
   position: fixed;
   inset: 0;
   background: radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.88) 100%);
