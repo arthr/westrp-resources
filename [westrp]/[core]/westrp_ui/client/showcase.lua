@@ -1110,24 +1110,56 @@ RegisterCommand('testhud', function(source, args)
         print(string.format("^3[WestRP UI]^7 HUD Visibilidade alternada para: %s", tostring(not current)))
     elseif sub == 'hunger' then
         local val = tonumber(args[2]) or 50.0
-        exports['westrp_ui']:UpdateMetabolismStatus(val, nil)
-        print(string.format("^3[WestRP UI]^7 Fome definida para: %.1f%%", val))
+        exports['westrp_ui']:UpdateMetabolismStatus(val, nil, true)
+        print(string.format("^3[WestRP UI]^7 Fome simulada para: %.1f%% (Trava de teste ativada, não sofre overwrite do VORP).", val))
     elseif sub == 'thirst' then
         local val = tonumber(args[2]) or 50.0
-        exports['westrp_ui']:UpdateMetabolismStatus(nil, val)
-        print(string.format("^3[WestRP UI]^7 Sede definida para: %.1f%%", val))
+        exports['westrp_ui']:UpdateMetabolismStatus(nil, val, true)
+        print(string.format("^3[WestRP UI]^7 Sede simulada para: %.1f%% (Trava de teste ativada, não sofre overwrite do VORP).", val))
     elseif sub == 'cinematic' then
         local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
         exports['westrp_ui']:SetCinematicMode(active)
         print(string.format("^3[WestRP UI]^7 Modo Cinemático definido para: %s", tostring(active)))
     elseif sub == 'stress' then
-        exports['westrp_ui']:UpdateMetabolismStatus(12.0, 8.0)
-        print("^3[WestRP UI]^7 Status de estresse crítico injetado (Fome 12%, Sede 8%).")
+        exports['westrp_ui']:UpdateMetabolismStatus(12.0, 8.0, true)
+        print("^3[WestRP UI]^7 Status de estresse crítico injetado (Fome 12%, Sede 8% — trava de teste ativada).")
+    elseif sub == 'voice' then
+        local lvl = tonumber(args[2]) or 2
+        exports['westrp_ui']:SetVoiceLevel(lvl)
+        print(string.format("^3[WestRP UI]^7 Nível de proximidade de voz definido para: %d", lvl))
+    elseif sub == 'talk' or sub == 'talking' then
+        local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
+        exports['westrp_ui']:SetVoiceTalking(active)
+        print(string.format("^3[WestRP UI]^7 Estado de fala no microfone definido para: %s", tostring(active)))
+    elseif sub == 'temp' or sub == 'temperature' then
+        if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' then
+            exports['westrp_ui']:SetTemperatureOverride(nil)
+            print("^3[WestRP UI]^7 Override de temperatura desativado (retornando à leitura nativa).")
+        else
+            local val = tonumber(args[2]) or 22.0
+            exports['westrp_ui']:SetTemperatureOverride(val)
+            print(string.format("^3[WestRP UI]^7 Temperatura simulada para: %.1f°C", val))
+        end
+    elseif sub == 'vorp' then
+        local h = tonumber(args[2]) or 80.0
+        local t = tonumber(args[3]) or 80.0
+        TriggerEvent("vorpmetabolism:setValue", "Hunger", math.floor(h * 10.0))
+        TriggerEvent("vorpmetabolism:setValue", "Thirst", math.floor(t * 10.0))
+        exports['westrp_ui']:UpdateMetabolismStatus("restore", "restore")
+        print(string.format("^3[WestRP UI]^7 Status REAL do personagem alterado no VORP — Fome: %.1f%% (%d/1000) | Sede: %.1f%% (%d/1000).", h, math.floor(h * 10.0), t, math.floor(t * 10.0)))
+    elseif sub == 'sync' then
+        local status = exports['westrp_ui']:GetMetabolismStatus()
+        local voice = exports['westrp_ui']:GetVoiceData()
+        print(string.format("^3[WestRP UI]^7 Telemetria Atual — Fome: %.1f%% | Sede: %.1f%% | Voz: Nível %d (%s)",
+            status.hunger, status.thirst, voice.level, voice.isTalking and "Falando" or "Mudo"))
     elseif sub == 'restore' then
-        exports['westrp_ui']:UpdateMetabolismStatus(100.0, 100.0)
-        print("^3[WestRP UI]^7 Status restaurado para 100%.")
+        exports['westrp_ui']:UpdateMetabolismStatus("restore", "restore")
+        exports['westrp_ui']:SetVoiceTalking(false)
+        exports['westrp_ui']:SetVoiceLevel(2)
+        exports['westrp_ui']:SetTemperatureOverride(nil)
+        print("^3[WestRP UI]^7 Todas as travas de teste removidas e sincronização com VORP, voz e clima reativada.")
     else
-        print("^3[WestRP UI]^7 Uso: /testhud [toggle | hunger <0-100> | thirst <0-100> | cinematic <on/off> | stress | restore]")
+        print("^3[WestRP UI]^7 Uso: /testhud [toggle | hunger <0-100> | thirst <0-100> | voice <1-3> | talk <on/off> | temp <celsius/restore> | vorp <hunger> <thirst> | cinematic <on/off> | stress | sync | restore]")
     end
 end, false)
 

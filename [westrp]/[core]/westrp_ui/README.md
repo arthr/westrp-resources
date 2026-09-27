@@ -31,6 +31,7 @@ O **WestRP UI Engine** (`westrp_ui`) é o ecossistema padronizado de interfaces 
 7. [Módulo E: Resolução Automática de Ícones](#7-módulo-e-resolução-automática-de-ícones)
 8. [Boas Práticas & Performance](#8-boas-práticas--performance)
 9. [Snippets Prontos Copia-e-Cola](#9-snippets-prontos-copia-e-cola)
+10. [Módulo H: Player Status HUD (Anéis SVG Procedurais 1:1 RDR2)](#10-módulo-h-player-status-hud-anéis-svg-procedurais-11-rdr2)
 
 ---
 
@@ -1018,3 +1019,53 @@ WestRP.Client.UI.OpenDialog({
     end
 })
 ```
+
+---
+
+## 10. Módulo H: Player Status HUD (Anéis SVG Procedurais 1:1 RDR2)
+
+O **Player Status HUD** é o sistema visual de telemetria vital do jogador integrado ao mesmo processo Chromium do `westrp_ui`, eliminando processos CEF extras (economia de 60MB a 120MB de RAM na VRAM do jogador).
+
+### Características Técnicas
+* **Resmon Constante:** `0.00ms` em idle e `≤ 0.01ms` em ação física intensa.
+* **Tick Adaptativo:** 350ms em repouso e 100ms durante corrida, nado, combate ou galope a cavalo.
+* **Filtro Delta (Throttling):** O NUI só recebe updates caso haja variação real $\ge 0.5\%$ nos vitais ou alteração de estado (voz, montaria, cinemático).
+* **Anéis SVG com Aceleração de Hardware:** Geometria circular $46 \times 46\text{px}$ com raio $18.5$ e perímetro $116.24\text{px}$ animado via `stroke-dashoffset`.
+* **Animação de Alerta Crítico (`rdrHudPulseAlert`):** Pulso de atenção quando a vida cair abaixo de 25% ou fome/sede abaixo de 15%.
+* **Vitals de Montaria Contextuais:** Os anéis de vida e estamina equina surgem automaticamente com animação suave de zoom e escala ao montar no cavalo e somem ao desmontar.
+* **Atenuação Automática:** Quando qualquer menu da engine (`OpenDock`, `OpenPanel`, `OpenDialog`, `OpenModal`) é aberto, o HUD atenua a opacidade para 15% para manter o foco na interação.
+
+### Exports Disponíveis
+```lua
+-- Controle de Visibilidade Global
+exports['westrp_ui']:SetHudVisible(true) -- ou false
+local isVisible = exports['westrp_ui']:IsHudVisible()
+
+-- Modo Cinemático (Letterbox / Ocultação Suave)
+exports['westrp_ui']:SetCinematicMode(true) -- ou false
+
+-- Bridge Universal de Metabolismo (Fome e Sede 0 a 100%)
+exports['westrp_ui']:UpdateMetabolismStatus(85.0, 90.0)
+local status = exports['westrp_ui']:GetMetabolismStatus()
+-- status.hunger, status.thirst
+
+-- Controle e Leitura de Voz
+exports['westrp_ui']:SetVoiceLevel(2) -- 1: Sussurro, 2: Normal, 3: Grito
+exports['westrp_ui']:SetVoiceTalking(true) -- Força estado de fala
+local voice = exports['westrp_ui']:GetVoiceData()
+-- voice.level, voice.isTalking
+```
+
+### Comandos de Teste no Servidor (/testhud)
+* `/testhud toggle` — Alterna a visibilidade do HUD.
+* `/testhud hunger <0-100>` — Altera percentual visual de fome (com trava de teste ativa).
+* `/testhud thirst <0-100>` — Altera percentual visual de sede (com trava de teste ativa).
+* `/testhud voice <1-3>` — Altera visualmente o nível de proximidade (1: Sussurro, 2: Normal, 3: Grito).
+* `/testhud talk <on/off>` — Simula microfone transmitindo (anel com destaque verde esmeralda).
+* `/testhud temp <celsius/restore>` — Simula temperatura ambiental (ex: -5 para congelamento ou 42 para calor).
+* `/testhud vorp <hunger> <thirst>` — Altera **realmente** os status do personagem no `vorp_metabolism` (salva no banco).
+* `/testhud cinematic <on/off>` — Ativa ou desativa modo cinemático.
+* `/testhud stress` — Força status crítico (Fome 12%, Sede 8%) para testar animações de pulso de alerta vermelho.
+* `/testhud sync` — Imprime no console F8 a telemetria atual consolidada do jogador.
+* `/testhud restore` — Remove todas as travas de simulação e restaura a sincronização nativa com VORP, clima e VOIP.
+

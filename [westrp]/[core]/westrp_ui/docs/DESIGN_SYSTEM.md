@@ -172,3 +172,11 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
     - **Ações e Encerramento:**
       - `ENTER`: Executa o item selecionado ou alterna toggle.
       - `BACKSPACE`: Retorna ao nível anterior de submenu ou fecha o Dock quando na raiz de navegação (o atalho `ESC` foi inteiramente desativado para blindagem contra abertura involuntária do menu de pausa nativo do RDR2).
+19. **`RdrPlayerHud` (Player Status HUD & Mount Vitals):**
+    - Anéis circulares vetoriais SVG de 46x46px com raio 18.5 e perímetro de 116.24px animado via `stroke-dashoffset` acelerado por GPU, ancorados à SafeZone inferior esquerda.
+    - Paleta RDR2: Vida (`#B62A2A`), Estamina (`#dfb76c`), Fome (`#d48b38`), Sede (`#3a9fd6`), Voz (`#fafafa` / `#4caf50` falando ativo), Vida do Cavalo (`#8e0000`), Estamina do Cavalo (`#c5a059`).
+    - Animação de pulso de alerta `@keyframes rdrHudPulseAlert` quando atributos atingem níveis críticos (< 25% vida, < 15% fome/sede).
+    - Cluster contextual de montaria com entrada e saída suave (`zoomAndFadeIn`), exibido apenas quando o jogador está a cavalo (`isMounted`).
+    - Badge dinâmico de temperatura ambiente (`.hud-temp-badge`) com detecção de frio extremo (`.temp--freezing`) e calor intenso (`.temp--heat`).
+    - Atenuação de opacidade para 15% (`.is-menu-open`) ao abrir qualquer menu ou modal da engine.
+

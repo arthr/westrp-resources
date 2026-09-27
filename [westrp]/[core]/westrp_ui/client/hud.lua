@@ -14,6 +14,9 @@ local TEMP_DELTA_THRESHOLD <const> = 1.0
 -- ----------------------------------------------------------------------------
 local isHudVisible = true
 local isCinematicActive = false
+local voiceProximityMode = 2
+local isForcedTalking = false
+local forcedTemperature = nil
 
 local playerHudState = {
     health = -1.0,
@@ -35,6 +38,12 @@ local playerHudState = {
 local currentMetabolism = {
     hunger = 100.0,
     thirst = 100.0
+}
+
+-- Override de teste para fixar valores durante simulações e testes
+local forcedMetabolism = {
+    hunger = nil,
+    thirst = nil
 }
 
 -- ----------------------------------------------------------------------------
@@ -108,7 +117,9 @@ end
 ---@return number, string
 local function getTemperatureData(coords)
     local temp = 22.0
-    if GetTemperatureAtCoords then
+    if forcedTemperature ~= nil then
+        temp = forcedTemperature
+    elseif GetTemperatureAtCoords then
         local ok, result = pcall(GetTemperatureAtCoords, coords.x, coords.y, coords.z)
         if ok and type(result) == "number" then
             temp = result
@@ -129,19 +140,21 @@ end
 ---@param playerId integer
 ---@return integer, boolean
 local function getVoiceData(playerId)
-    local isTalking = false
-    if MumbleIsPlayerTalking then
-        local ok, result = pcall(MumbleIsPlayerTalking, playerId)
-        if ok and result then isTalking = true end
-    elseif NetworkIsPlayerTalking then
-        local ok, result = pcall(NetworkIsPlayerTalking, playerId)
-        if ok and result then isTalking = true end
+    local isTalking = isForcedTalking
+    if not isTalking then
+        if MumbleIsPlayerTalking then
+            local ok, result = pcall(MumbleIsPlayerTalking, playerId)
+            if ok and (result == 1 or result == true) then isTalking = true end
+        elseif NetworkIsPlayerTalking then
+            local ok, result = pcall(NetworkIsPlayerTalking, playerId)
+            if ok and (result == 1 or result == true) then isTalking = true end
+        end
     end
 
-    local level = 2
+    local level = voiceProximityMode
     if MumbleGetTalkerProximity then
         local ok, proximity = pcall(MumbleGetTalkerProximity)
-        if ok and type(proximity) == "number" then
+        if ok and type(proximity) == "number" and proximity > 0 then
             if proximity <= 1.8 then
                 level = 1 -- Sussurro (1.5m)
             elseif proximity <= 4.0 then
@@ -313,35 +326,119 @@ local function setCinematicMode(active)
 end
 exports('SetCinematicMode', setCinematicMode)
 
----Injeção direta de dados de metabolismo (fome e sede 0 a 100%)
----@param hunger number
----@param thirst number
-local function updateMetabolismStatus(hunger, thirst)
-    if type(hunger) == "number" then
-        currentMetabolism.hunger = math.max(0.0, math.min(100.0, hunger))
+---Injeção direta ou override de teste de dados de metabolismo (fome e sede 0 a 100%)
+---@param hunger number|string|boolean|nil
+---@param thirst number|string|boolean|nil
+---@param isOverride boolean|nil Se true, trava o valor impedindo que a thread do VORP sobrescreva durante testes
+local function updateMetabolismStatus(hunger, thirst, isOverride)
+    if hunger == "restore" or hunger == false then
+        forcedMetabolism.hunger = nil
+    elseif type(hunger) == "number" then
+        local val = math.max(0.0, math.min(100.0, hunger))
+        currentMetabolism.hunger = val
+        if isOverride then
+            forcedMetabolism.hunger = val
+        end
     end
-    if type(thirst) == "number" then
-        currentMetabolism.thirst = math.max(0.0, math.min(100.0, thirst))
+
+    if thirst == "restore" or thirst == false then
+        forcedMetabolism.thirst = nil
+    elseif type(thirst) == "number" then
+        local val = math.max(0.0, math.min(100.0, thirst))
+        currentMetabolism.thirst = val
+        if isOverride then
+            forcedMetabolism.thirst = val
+        end
     end
 end
 exports('UpdateMetabolismStatus', updateMetabolismStatus)
+
+---Retorna os dados de metabolismo atuais (fome e sede de 0 a 100%)
+---@return table
+local function getMetabolismStatus()
+    return {
+        hunger = currentMetabolism.hunger,
+        thirst = currentMetabolism.thirst
+    }
+end
+exports('GetMetabolismStatus', getMetabolismStatus)
+
+---Define manualmente o nível de proximidade de voz (1: Sussurro, 2: Normal, 3: Grito)
+---@param level integer
+local function setVoiceLevel(level)
+    if type(level) == "number" and level >= 1 and level <= 3 then
+        voiceProximityMode = math.floor(level)
+    end
+end
+exports('SetVoiceLevel', setVoiceLevel)
+
+---Permite forçar ou simular estado de microfone ativo/falando
+---@param talking boolean
+local function setVoiceTalking(talking)
+    isForcedTalking = (talking == true)
+end
+exports('SetVoiceTalking', setVoiceTalking)
+
+---Retorna o estado atual de voz (nível e se está falando)
+---@return table
+local function getVoiceDataExport()
+    return {
+        level = playerHudState.voiceLevel,
+        isTalking = playerHudState.isTalking
+    }
+end
+exports('GetVoiceData', getVoiceDataExport)
+
+---Define override manual de temperatura (nil para retornar à leitura nativa)
+---@param temp number|nil
+local function setTemperatureOverride(temp)
+    if temp == nil or type(temp) == "number" then
+        forcedTemperature = temp
+    end
+end
+exports('SetTemperatureOverride', setTemperatureOverride)
 
 -- ----------------------------------------------------------------------------
 -- Integration Bridge: vorp_metabolism Listeners & Sync
 -- ----------------------------------------------------------------------------
 
+local function requestVorpSync()
+    TriggerEvent("vorpmetabolism:getValue", "Hunger", function(val)
+        if val and type(val) == "number" and forcedMetabolism.hunger == nil then
+            currentMetabolism.hunger = math.max(0.0, math.min(100.0, val / 10.0))
+        end
+    end)
+    TriggerEvent("vorpmetabolism:getValue", "Thirst", function(val)
+        if val and type(val) == "number" and forcedMetabolism.thirst == nil then
+            currentMetabolism.thirst = math.max(0.0, math.min(100.0, val / 10.0))
+        end
+    end)
+    -- Desativa a HUD legada do VORP para manter apenas a HUD elegante da WestRP
+    TriggerEvent("vorpmetabolism:setHud", false)
+end
+
 -- 1. Carga inicial de personagem do VORP
 RegisterNetEvent("vorpmetabolism:StartFunctions", function(status)
-    if not status or #status < 2 then return end
-    local ok, decoded = pcall(json.decode, status)
-    if ok and type(decoded) == "table" then
-        if decoded.Hunger then
-            currentMetabolism.hunger = math.max(0.0, math.min(100.0, decoded.Hunger / 10.0))
-        end
-        if decoded.Thirst then
-            currentMetabolism.thirst = math.max(0.0, math.min(100.0, decoded.Thirst / 10.0))
+    if not status then return end
+    local decoded = nil
+    if type(status) == "table" then
+        decoded = status
+    elseif type(status) == "string" and #status >= 2 then
+        local ok, res = pcall(json.decode, status)
+        if ok and type(res) == "table" then
+            decoded = res
         end
     end
+
+    if decoded then
+        if decoded.Hunger ~= nil and forcedMetabolism.hunger == nil then
+            currentMetabolism.hunger = math.max(0.0, math.min(100.0, (tonumber(decoded.Hunger) or 1000) / 10.0))
+        end
+        if decoded.Thirst ~= nil and forcedMetabolism.thirst == nil then
+            currentMetabolism.thirst = math.max(0.0, math.min(100.0, (tonumber(decoded.Thirst) or 1000) / 10.0))
+        end
+    end
+    TriggerEvent("vorpmetabolism:setHud", false)
 end)
 
 -- 2. Alteração delta de valor do VORP
@@ -349,9 +446,9 @@ RegisterNetEvent("vorpmetabolism:changeValue", function(key, value)
     if not key or not value or type(value) ~= "number" then return end
     local lowerKey = string.lower(key)
     local deltaPct = value / 10.0
-    if lowerKey == "hunger" then
+    if lowerKey == "hunger" and forcedMetabolism.hunger == nil then
         currentMetabolism.hunger = math.max(0.0, math.min(100.0, currentMetabolism.hunger + deltaPct))
-    elseif lowerKey == "thirst" then
+    elseif lowerKey == "thirst" and forcedMetabolism.thirst == nil then
         currentMetabolism.thirst = math.max(0.0, math.min(100.0, currentMetabolism.thirst + deltaPct))
     end
 end)
@@ -361,28 +458,58 @@ RegisterNetEvent("vorpmetabolism:setValue", function(key, value)
     if not key or not value or type(value) ~= "number" then return end
     local lowerKey = string.lower(key)
     local newPct = value / 10.0
-    if lowerKey == "hunger" then
+    if lowerKey == "hunger" and forcedMetabolism.hunger == nil then
         currentMetabolism.hunger = math.max(0.0, math.min(100.0, newPct))
-    elseif lowerKey == "thirst" then
+    elseif lowerKey == "thirst" and forcedMetabolism.thirst == nil then
         currentMetabolism.thirst = math.max(0.0, math.min(100.0, newPct))
     end
 end)
 
--- 4. Thread periódica de sincronização (cada 5s) para evitar drift de decaimento calórico interno
+-- 4. Eventos de ciclo de vida do personagem no VORP
+RegisterNetEvent("vorp:PlayerForceRespawn", function()
+    forcedMetabolism.hunger = nil
+    forcedMetabolism.thirst = nil
+    currentMetabolism.hunger = 100.0
+    currentMetabolism.thirst = 100.0
+    TriggerEvent("vorpmetabolism:setHud", false)
+end)
+
+RegisterNetEvent("vorp:SelectedCharacter", function()
+    Wait(1000)
+    requestVorpSync()
+end)
+
+RegisterNetEvent("vorp_core:Client:OnPlayerSpawned", function()
+    Wait(1000)
+    requestVorpSync()
+end)
+
+-- 5. Thread periódica de sincronização (cada 5s) para evitar drift de decaimento calórico interno
 CreateThread(function()
+    -- Sincronização inicial imediata
+    requestVorpSync()
+
     while true do
         Wait(5000)
-        TriggerEvent("vorpmetabolism:getValue", "Hunger", function(val)
-            if val and type(val) == "number" then
-                currentMetabolism.hunger = math.max(0.0, math.min(100.0, val / 10.0))
-            end
-        end)
-        TriggerEvent("vorpmetabolism:getValue", "Thirst", function(val)
-            if val and type(val) == "number" then
-                currentMetabolism.thirst = math.max(0.0, math.min(100.0, val / 10.0))
-            end
-        end)
+        requestVorpSync()
     end
+end)
+
+-- 6. Escuta redefinição de modo de voz (PMA-Voice)
+RegisterNetEvent("pma-voice:setTalkingMode", function(mode)
+    if type(mode) == "number" and mode >= 1 and mode <= 3 then
+        voiceProximityMode = math.floor(mode)
+    end
+end)
+
+RegisterNetEvent("pma-voice:radioActive", function(radioTalking)
+    isForcedTalking = (radioTalking == true)
+end)
+
+-- 7. Restauração graciosa da HUD do VORP se o recurso westrp_ui for reiniciado ou finalizado
+AddEventHandler("onResourceStop", function(resourceName)
+    if GetCurrentResourceName() ~= resourceName then return end
+    TriggerEvent("vorpmetabolism:setHud", true)
 end)
 
 -- ----------------------------------------------------------------------------

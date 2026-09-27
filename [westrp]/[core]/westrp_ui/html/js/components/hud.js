@@ -92,6 +92,8 @@
       this.updateRing('stamina', 100.0);
       this.updateRing('hunger', 100.0);
       this.updateRing('thirst', 100.0);
+      this.updateRing('mountHealth', 100.0);
+      this.updateRing('mountStamina', 100.0);
     }
 
     /**
@@ -100,7 +102,7 @@
      * @returns {number}
      */
     calculateOffset(percentage) {
-      const clamped = Math.max(0, Math.min(100, Number(percentage) || 0));
+      const clamped = Math.max(0, Math.min(100, (typeof percentage === 'number' && !isNaN(percentage)) ? percentage : (Number(percentage) || 0)));
       return CIRCUMFERENCE - (clamped / 100) * CIRCUMFERENCE;
     }
 
@@ -113,7 +115,7 @@
       const ring = this.rings[key];
       if (!ring || !ring.fill) return;
 
-      const numVal = Number(value) || 0;
+      const numVal = (typeof value === 'number' && !isNaN(value)) ? value : (Number(value) || 0);
       const offset = this.calculateOffset(numVal);
       ring.fill.style.strokeDashoffset = offset.toFixed(2);
 
