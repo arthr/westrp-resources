@@ -150,5 +150,15 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
     - `.animate-fade-in`: Transição linear suave de opacidade.
     - `.animate-slide-in-right` / `.animate-slide-in-left`: Transição de deslize lateral com aceleração natural da época.
     - `.animate-slide-in-bottom`: Deslize vertical para notificações e barras de ferramentas.
+15. **`RdrDashboardView` (Cockpit de Monitoramento & Ações Rápidas):**
+    - Grid de KPIs `Server Overview` com 4 cartões de estatísticas (Jogadores Online, Tempo Ativo/Uptime, Pico 24h e Recorde Histórico) em tipografia `Chinese Rocks`.
+    - Contêiner de ações categorizadas `Admin Actions` com grupos temáticos (Teleporte, Operador), botões de ação com ícones táteis e switches de alternância com caixas de seleção rústicas `RdrCheckbox`.
+16. **`RdrSettingsView` (Preferências Operacionais & Ancoragem):**
+    - Seletor visual de posição de tela para o Hot Menu/Dock com 6 quadrantes (`Top Left`, `Top Right`, `Mid Left`, `Mid Right`, `Bottom Left`, `Bottom Right`) e destaque ativo carmesim (`.active`).
+    - Lista de atalhos rápidos operacionais com caixas de seleção `RdrCheckbox` reativas e sincronização em tempo real com o servidor via callback `panelAction`.
+17. **`RdrCraftView` & `RdrQueueView` (Bancada de Forja & Acompanhamento de Produção):**
+    - `CraftView`: Lista de receitas artesanais com seleção interativa, exibição comparativa de materiais possuídos vs necessários (`6 / 2` em dourado quando suficiente, vermelho quando insuficiente) e despacho de ordem de produção.
+    - `QueueView`: Acompanhamento de lotes em forjamento com barra de progresso, percentual, tempo restante em segundos e botões de cancelamento ou coleta de lote finalizado.
+
 
 

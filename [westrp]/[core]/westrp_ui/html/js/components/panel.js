@@ -23,6 +23,7 @@ class PanelComponent {
     this.tableBody = document.getElementById('panel-table-body');
     this.controlsView = document.getElementById('panel-controls-view');
     this.craftView = document.getElementById('panel-craft-view');
+    this.queueView = document.getElementById('panel-queue-view');
     this.dashboardView = document.getElementById('panel-dashboard-view');
     this.settingsView = document.getElementById('panel-settings-view');
 
@@ -62,6 +63,7 @@ class PanelComponent {
       this.tableBody = document.getElementById('panel-table-body');
       this.controlsView = document.getElementById('panel-controls-view');
       this.craftView = document.getElementById('panel-craft-view');
+      this.queueView = document.getElementById('panel-queue-view');
       this.dashboardView = document.getElementById('panel-dashboard-view');
       this.settingsView = document.getElementById('panel-settings-view');
       this.selectedNameEl = document.getElementById('panel-selected-name');
@@ -191,6 +193,7 @@ class PanelComponent {
     if (this.tableView) this.tableView.style.display = 'none';
     if (this.controlsView) this.controlsView.style.display = 'none';
     if (this.craftView) this.craftView.style.display = 'none';
+    if (this.queueView) this.queueView.style.display = 'none';
     if (this.dashboardView) this.dashboardView.style.display = 'none';
     if (this.settingsView) this.settingsView.style.display = 'none';
   }
@@ -202,10 +205,30 @@ class PanelComponent {
 
     const viewType = curTab.view || curTab.viewType || 'grid';
 
+    // Ajustar visibilidade do rodapé (stepper e CTA)
+    const stepper = document.getElementById('panel-stepper');
+    if (viewType === 'dashboard' || viewType === 'settings' || viewType === 'queue') {
+      if (stepper) stepper.style.display = 'none';
+      if (this.ctaBtn) this.ctaBtn.style.display = 'none';
+      if (this.selectedNameEl) this.selectedNameEl.textContent = curTab.label || curTab.title || 'PAINEL';
+      if (this.selectedDescEl) this.selectedDescEl.textContent = curTab.description || 'Pressione ESC para fechar ou selecione uma opção.';
+    } else {
+      if (stepper) stepper.style.display = 'flex';
+      if (this.ctaBtn) this.ctaBtn.style.display = 'block';
+    }
+
     if (viewType === 'table') {
       this.renderTableView(curTab);
     } else if (viewType === 'controls' || viewType === 'form' || viewType === 'playground') {
       this.renderControlsView(curTab);
+    } else if (viewType === 'dashboard') {
+      this.renderDashboardView(curTab);
+    } else if (viewType === 'settings') {
+      this.renderSettingsView(curTab);
+    } else if (viewType === 'craft') {
+      this.renderCraftView(curTab);
+    } else if (viewType === 'queue') {
+      this.renderQueueView(curTab);
     } else {
       this.renderGridView(curTab);
     }
@@ -1027,6 +1050,405 @@ class PanelComponent {
     ];
   }
 
+  /* ==========================================================================
+     VISÃO 4: DASHBOARD (KPIS DE TELEMETRIA & AÇÕES RÁPIDAS RDR2)
+     ========================================================================== */
+  renderDashboardView(tab) {
+    if (!this.dashboardView) return;
+    this.dashboardView.style.display = 'flex';
+
+    const titleEl = document.getElementById('dashboard-title');
+    const subtitleEl = document.getElementById('dashboard-subtitle');
+    if (titleEl) titleEl.textContent = tab.title || tab.label || 'DASHBOARD';
+    if (subtitleEl) subtitleEl.textContent = tab.subtitle || 'Visão geral do servidor e atalhos rápidos da administração';
+
+    // 1. KPI Cards (Server Overview)
+    const overviewGrid = document.getElementById('dashboard-overview-grid');
+    if (overviewGrid) {
+      overviewGrid.innerHTML = '';
+      const stats = tab.stats || {
+        online: 28,
+        maxClients: 64,
+        uptime: '06h 12m',
+        peak24h: 54,
+        peakAllTime: 128
+      };
+
+      const kpis = [
+        { title: 'JOGADORES ONLINE', value: `${stats.online || 0} / ${stats.maxClients || 64}` },
+        { title: 'TEMPO ATIVO (UPTIME)', value: stats.uptime || '00h 00m' },
+        { title: 'PICO 24 HORAS', value: stats.peak24h || 0 },
+        { title: 'RECORDE HISTÓRICO', value: stats.peakAllTime || 0 }
+      ];
+
+      kpis.forEach(kpi => {
+        const card = document.createElement('div');
+        card.className = 'dashboard-stat-card';
+        card.innerHTML = `
+          <span class="stat-card-title">${kpi.title}</span>
+          <span class="stat-card-value">${kpi.value}</span>
+        `;
+        overviewGrid.appendChild(card);
+      });
+    }
+
+    // 2. Admin Actions Categorized
+    const actionsContainer = document.getElementById('dashboard-actions-container');
+    if (actionsContainer) {
+      actionsContainer.innerHTML = '';
+      const groups = tab.actionGroups || [];
+
+      groups.forEach(grp => {
+        const grpWrap = document.createElement('div');
+        grpWrap.className = 'dashboard-group-wrap';
+
+        const grpHeader = document.createElement('div');
+        grpHeader.className = 'dashboard-group-header';
+        grpHeader.innerHTML = `
+          <span class="dashboard-group-icon">${this.getIconSvg(grp.icon || 'fa-location-arrow')}</span>
+          <span>${grp.title || 'AÇÕES'}</span>
+        `;
+        grpWrap.appendChild(grpHeader);
+
+        const actionsGrid = document.createElement('div');
+        actionsGrid.className = 'dashboard-actions-grid';
+
+        (grp.actions || []).forEach(act => {
+          if (act.type === 'toggle') {
+            const toggleBtn = document.createElement('div');
+            toggleBtn.className = `dashboard-action-btn ${act.active ? 'active' : ''}`;
+
+            toggleBtn.innerHTML = `
+              <div class="dashboard-action-left">
+                <span class="dashboard-action-icon">${this.getIconSvg(act.icon)}</span>
+                <span>${act.label || act.id}</span>
+              </div>
+              <label class="rdr-checkbox ${act.active ? 'is-checked' : ''}" style="margin: 0; pointer-events: none;">
+                <input type="checkbox" class="rdr-checkbox__input" ${act.active ? 'checked' : ''}>
+                <span class="rdr-checkbox__box">
+                  <img src="assets/textures/tick.png" class="rdr-checkbox__tick" alt="✓">
+                </span>
+              </label>
+            `;
+
+            toggleBtn.addEventListener('click', () => {
+              act.active = !act.active;
+              toggleBtn.classList.toggle('active', act.active);
+              const chk = toggleBtn.querySelector('.rdr-checkbox');
+              const input = toggleBtn.querySelector('input');
+              if (chk) chk.classList.toggle('is-checked', act.active);
+              if (input) input.checked = act.active;
+
+              if (window.uiAudio) window.uiAudio.playToggle();
+              this.sendPanelAction(act.id, act, { active: act.active });
+            });
+
+            actionsGrid.appendChild(toggleBtn);
+          } else {
+            const actBtn = document.createElement('button');
+            actBtn.type = 'button';
+            actBtn.className = 'dashboard-action-btn';
+            actBtn.innerHTML = `
+              <div class="dashboard-action-left">
+                <span class="dashboard-action-icon">${this.getIconSvg(act.icon)}</span>
+                <span>${act.label || act.id}</span>
+              </div>
+              <svg viewBox="0 0 24 24" width="14" height="14" style="opacity: 0.6;"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            `;
+
+            actBtn.addEventListener('click', () => {
+              if (window.uiAudio) window.uiAudio.playSelect();
+              this.sendPanelAction(act.id, act, act);
+            });
+
+            actionsGrid.appendChild(actBtn);
+          }
+        });
+
+        grpWrap.appendChild(actionsGrid);
+        actionsContainer.appendChild(grpWrap);
+      });
+    }
+  }
+
+  /* ==========================================================================
+     VISÃO 5: SETTINGS / PREFERÊNCIAS OPERACIONAIS
+     ========================================================================== */
+  renderSettingsView(tab) {
+    if (!this.settingsView) return;
+    this.settingsView.style.display = 'flex';
+
+    const titleEl = this.settingsView.querySelector('.settings-title');
+    const subtitleEl = this.settingsView.querySelector('.settings-subtitle');
+    if (titleEl) titleEl.textContent = tab.title || tab.label || 'SETTINGS';
+    if (subtitleEl) subtitleEl.textContent = tab.subtitle || 'Personalize as preferências operacionais e atalhos do Hot Menu';
+
+    // 1. Grid de Posições (6 posições de ancoragem do Hot Menu)
+    const posGrid = document.getElementById('settings-positions-grid');
+    if (posGrid) {
+      posGrid.innerHTML = '';
+      const positions = tab.positions || [
+        { id: 'top_left', label: 'Top Left' },
+        { id: 'top_right', label: 'Top Right' },
+        { id: 'mid_left', label: 'Mid Left', active: true },
+        { id: 'mid_right', label: 'Mid Right' },
+        { id: 'bottom_left', label: 'Bottom Left' },
+        { id: 'bottom_right', label: 'Bottom Right' }
+      ];
+
+      let currentPos = tab.currentPosition || positions.find(p => p.active)?.id || 'mid_left';
+
+      positions.forEach(pos => {
+        const card = document.createElement('div');
+        const isActive = pos.id === currentPos;
+        card.className = `position-card ${isActive ? 'active' : ''}`;
+        card.dataset.positionId = pos.id;
+
+        card.innerHTML = `
+          <div class="position-card-indicator">
+            <span class="position-dot ${pos.id}"></span>
+          </div>
+          <span class="position-card-label">${pos.label || pos.id}</span>
+        `;
+
+        card.addEventListener('click', () => {
+          if (currentPos === pos.id) return;
+          currentPos = pos.id;
+          tab.currentPosition = pos.id;
+
+          posGrid.querySelectorAll('.position-card').forEach(c => {
+            c.classList.toggle('active', c.dataset.positionId === currentPos);
+          });
+
+          if (window.uiAudio) window.uiAudio.playSelect();
+          this.sendPanelAction('set_dock_position', pos, { position: pos.id });
+        });
+
+        posGrid.appendChild(card);
+      });
+    }
+
+    // 2. Lista de Atalhos com RdrCheckbox
+    const actionsList = document.getElementById('settings-actions-list');
+    if (actionsList) {
+      actionsList.innerHTML = '';
+      const quickActions = tab.quickActions || [
+        { id: 'noclip', label: 'Modo Voo (NoClip)', icon: 'fa-rocket', enabled: true },
+        { id: 'show_names', label: 'GamerTags 3D (ESP)', icon: 'fa-id-badge', enabled: true },
+        { id: 'godmode', label: 'Modo Invencível (GodMode)', icon: 'fa-shield-alt', enabled: true },
+        { id: 'show_blips', label: 'Radar de Jogadores', icon: 'fa-map-marker-alt', enabled: false }
+      ];
+
+      quickActions.forEach(qa => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'setting-action-item';
+
+        itemEl.innerHTML = `
+          <div class="setting-action-left">
+            <span class="setting-action-icon">${this.getIconSvg(qa.icon)}</span>
+            <span class="setting-action-name">${qa.label || qa.id}</span>
+          </div>
+          <label class="rdr-checkbox ${qa.enabled ? 'is-checked' : ''}" style="margin: 0; pointer-events: none;">
+            <input type="checkbox" class="rdr-checkbox__input" ${qa.enabled ? 'checked' : ''}>
+            <span class="rdr-checkbox__box">
+              <img src="assets/textures/tick.png" class="rdr-checkbox__tick" alt="✓">
+            </span>
+          </label>
+        `;
+
+        itemEl.addEventListener('click', () => {
+          qa.enabled = !qa.enabled;
+          const chk = itemEl.querySelector('.rdr-checkbox');
+          const input = itemEl.querySelector('input');
+          if (chk) chk.classList.toggle('is-checked', qa.enabled);
+          if (input) input.checked = qa.enabled;
+
+          if (window.uiAudio) window.uiAudio.playToggle();
+          this.sendPanelAction('toggle_quick_action', qa, { actionId: qa.id, enabled: qa.enabled });
+        });
+
+        actionsList.appendChild(itemEl);
+      });
+    }
+  }
+
+  /* ==========================================================================
+     VISÃO 6: FORJA / CRAFTING (RECEITAS & REQUISITOS DE MATERIAIS)
+     ========================================================================== */
+  renderCraftView(tab) {
+    if (!this.craftView) return;
+    this.craftView.style.display = 'grid';
+
+    const recipeList = document.getElementById('craft-recipe-list');
+    const titleEl = document.getElementById('craft-details-title');
+    const descEl = document.getElementById('craft-details-desc');
+    const reqsList = document.getElementById('craft-reqs-list');
+
+    if (!recipeList) return;
+    recipeList.innerHTML = '';
+
+    const items = tab.items || [];
+    if (items.length === 0) {
+      recipeList.innerHTML = '<div style="padding: 20px; color: var(--rdr-color-text-muted);">Nenhuma receita disponível.</div>';
+      return;
+    }
+
+    let selectedRecipe = this.selectedItem || items[0];
+
+    const showRecipeDetails = (recipe) => {
+      selectedRecipe = recipe;
+      this.selectedItem = recipe;
+      if (titleEl) titleEl.textContent = recipe.title || recipe.label || recipe.id;
+      if (descEl) descEl.textContent = recipe.subtitle || recipe.description || 'Receita tradicional de ferraria.';
+
+      if (this.selectedNameEl) this.selectedNameEl.textContent = recipe.title || recipe.label || recipe.id;
+      if (this.selectedDescEl) this.selectedDescEl.textContent = recipe.subtitle || '';
+      if (this.ctaBtn) {
+        this.ctaBtn.textContent = 'FORJAR / CRIAR';
+        this.ctaBtn.style.display = 'block';
+      }
+
+      if (reqsList) {
+        reqsList.innerHTML = '';
+        const reqs = recipe.requirements || [];
+        reqs.forEach(req => {
+          const reqEl = document.createElement('div');
+          reqEl.className = 'craft-req-item';
+          const isSufficient = (req.current || 0) >= (req.required || 1);
+          reqEl.innerHTML = `
+            <span class="craft-req-name">${req.label || req.item}</span>
+            <span class="craft-req-qty ${isSufficient ? 'sufficient' : 'insufficient'}">${req.current || 0} / ${req.required || 1}</span>
+          `;
+          reqsList.appendChild(reqEl);
+        });
+      }
+
+      recipeList.querySelectorAll('.craft-recipe-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.recipeId === recipe.id);
+      });
+    };
+
+    items.forEach(recipe => {
+      const card = document.createElement('div');
+      card.className = `craft-recipe-card ${selectedRecipe && selectedRecipe.id === recipe.id ? 'selected' : ''}`;
+      card.dataset.recipeId = recipe.id;
+
+      card.innerHTML = `
+        <span class="craft-recipe-title">${recipe.title || recipe.label || recipe.id}</span>
+        <span class="craft-recipe-subtitle">${recipe.subtitle || ''}</span>
+      `;
+
+      card.addEventListener('click', () => {
+        if (window.uiAudio) window.uiAudio.playSelect();
+        showRecipeDetails(recipe);
+      });
+
+      recipeList.appendChild(card);
+    });
+
+    if (selectedRecipe) {
+      showRecipeDetails(selectedRecipe);
+    }
+  }
+
+  /* ==========================================================================
+     VISÃO 7: FILA DE PRODUÇÃO (QUEUE EM TEMPO REAL)
+     ========================================================================== */
+  renderQueueView(tab) {
+    if (!this.queueView) return;
+    this.queueView.style.display = 'flex';
+
+    const queueList = document.getElementById('queue-items-list');
+    if (!queueList) return;
+    queueList.innerHTML = '';
+
+    const items = tab.items || [];
+    if (items.length === 0) {
+      queueList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--rdr-color-text-muted);">Nenhuma produção em andamento na bancada.</div>';
+      return;
+    }
+
+    items.forEach(job => {
+      const card = document.createElement('div');
+      card.className = 'queue-item-card';
+
+      const isCompleted = job.status === 'completed' || (job.remainingTime === 0);
+      const pct = job.totalDuration ? Math.round(((job.totalDuration - (job.remainingTime || 0)) / job.totalDuration) * 100) : (isCompleted ? 100 : 50);
+
+      card.innerHTML = `
+        <div class="queue-item-header">
+          <span class="queue-item-title">${job.title || job.item} (x${job.totalQty || 1})</span>
+          <span class="queue-item-badge ${isCompleted ? 'completed' : 'in_progress'}">
+            ${isCompleted ? 'CONCLUÍDO' : 'EM PRODUÇÃO'}
+          </span>
+        </div>
+        <span class="queue-item-subtitle">${job.subtitle || ''}</span>
+        <div class="queue-progress-bar">
+          <div class="queue-progress-fill" style="width: ${pct}%;"></div>
+        </div>
+        <div class="queue-item-footer">
+          <span class="queue-time-left">${isCompleted ? 'Pronto para retirada' : `Tempo Restante: ${job.remainingTime || 0}s (${pct}%)`}</span>
+          <button type="button" class="queue-action-btn ${isCompleted ? 'collect' : ''}" data-job-id="${job.id}">
+            ${isCompleted ? 'COLETAR LOTE' : 'CANCELAR'}
+          </button>
+        </div>
+      `;
+
+      const btn = card.querySelector('.queue-action-btn');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          if (window.uiAudio) window.uiAudio.playSelect();
+          const action = isCompleted ? 'collect_job' : 'cancel_job';
+          this.sendPanelAction(action, job, { jobId: job.id });
+        });
+      }
+
+      queueList.appendChild(card);
+    });
+  }
+
+  /* ==========================================================================
+     UTILITÁRIOS: ÍCONES SVG NATIVOS & DESPACHO DE AÇÕES
+     ========================================================================== */
+  getIconSvg(iconName) {
+    if (!iconName) {
+      return '<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg>';
+    }
+    const clean = iconName.replace(/^(fas?|far|fal|fad)\s+/, '').replace(/^fa-/, '');
+    const icons = {
+      'map-pin': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
+      'copy': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>',
+      'crosshairs': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2v2a8 8 0 0 1 8 8h2v-2h-1.05A9.99 9.99 0 0 0 13 3.05V2h-1zm-1 0v1.05A9.99 9.99 0 0 0 3.05 11H2v2h2a8 8 0 0 1 8 8v2h2v-2.05a9.99 9.99 0 0 0 7.95-7.95H22v-2h-2a8 8 0 0 1-8-8zm-6.95 9H2v2h2.05a8.04 8.04 0 0 0 6.95 6.95V22h2v-2.05a8.04 8.04 0 0 0 6.95-6.95H22v-2h-2.05a8.04 8.04 0 0 0-6.95-6.95V2h-2v2.05A8.04 8.04 0 0 0 4.05 11zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg>',
+      'shield-alt': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>',
+      'rocket': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9.19 6.35c-2.04 2.29-3.44 5.58-4.04 9.17l2.83 2.83c3.59-.6 6.88-2 9.17-4.04l-7.96-7.96zm8.13-1.63L14.7 2.1c-.2-.2-.51-.2-.71 0l-1.06 1.06 4.95 4.95 1.06-1.06c.2-.2.2-.51 0-.71l-1.62-.62zM3.4 17.58l-1.34 3.36c-.1.25-.04.54.15.73.19.19.48.25.73.15l3.36-1.34-2.9-2.9z"/></svg>',
+      'ghost': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2a9 9 0 0 0-9 9v11l3-2.5 3 2.5 3-2.5 3 2.5 3-2.5 3 2.5V11a9 9 0 0 0-9-9zm-3 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>',
+      'medkit': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10-2h4v2h-4V4zm6 11h-3v3h-2v-3H8v-2h3v-3h2v3h3v2z"/></svg>',
+      'id-badge': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1z"/></svg>',
+      'map-marker-alt': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
+      'location-arrow': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.99L21 3z"/></svg>',
+      'user-shield': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.88c0 4.54-3.08 8.79-7 9.82-3.92-1.03-7-5.28-7-9.82V6.3l7-3.12zM12 6a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 8.5c-2.33 0-7 1.17-7 3.5V19h14v-1c0-2.33-4.67-3.5-7-3.5z"/></svg>',
+      'tachometer-alt': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 4a8 8 0 0 0-8 8c0 2.21.9 4.21 2.34 5.66l1.41-1.42A5.98 5.98 0 0 1 6 12a6 6 0 0 1 12 0c0 1.66-.67 3.16-1.75 4.24l1.41 1.42A7.96 7.96 0 0 0 20 12a8 8 0 0 0-8-8zm-1 3v4.28a2 2 0 1 0 2 0V7h-2z"/></svg>',
+      'cog': '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/></svg>'
+    };
+    return icons[clean] || '<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg>';
+  }
+
+  sendPanelAction(action, item, data = {}) {
+    const curTab = this.tabs[this.activeTabIndex];
+    fetch('https://westrp_ui/panelAction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: action,
+        tabId: curTab ? curTab.id : 'main',
+        item: item,
+        quantity: this.stepperQuantity,
+        data: data,
+        ...data
+      })
+    }).catch(() => { });
+  }
+
   executeCTA() {
     if (!this.selectedItem) {
       if (window.uiAudio) window.uiAudio.playError();
@@ -1040,6 +1462,7 @@ class PanelComponent {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: curTab && curTab.viewType === 'craft' ? 'craft' : 'confirm',
         tabId: curTab ? curTab.id : 'main',
         item: this.selectedItem,
         quantity: this.stepperQuantity
