@@ -204,6 +204,12 @@ RegisterNetEvent('westrp:wheel:client:onItemUsed', function(itemName)
     NotifyItemUsed(itemName)
 end)
 
+-- Gatilho de execução de uso de item no inventário
+RegisterNetEvent('westrp:wheel:client:invokeVorpUse', function(payload)
+    if not payload or not payload.id or not payload.item then return end
+    TriggerServerEvent('vorp_inventory:useItem', payload)
+end)
+
 -- Gatilhos de Ciclo de Vida do RedM
 AddEventHandler('onResourceStart', function(resName)
     if resName == GetCurrentResourceName() then
