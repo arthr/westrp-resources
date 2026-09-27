@@ -421,22 +421,46 @@ end
 -- ============================================================================
 
 ---Abre o modal nativo RDR2 com animação de zoom e backdrop
----@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, buttons?: table[], onClose?: fun() }
+---@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, buttons?: table[], onClose?: fun(), onAction?: fun(action: string, data: table) }
 function OpenModal(options)
     if not options then return end
 
     currentActiveModal = {
         id = options.id or 'default_modal',
-        onClose = options.onClose
+        onClose = options.onClose,
+        onAction = options.onAction
     }
 
     isModalOpen = true
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
 
+    local sanitizedButtons = nil
+    if options.buttons and type(options.buttons) == 'table' then
+        sanitizedButtons = {}
+        for i, btn in ipairs(options.buttons) do
+            sanitizedButtons[i] = {
+                label = btn.label,
+                variant = btn.variant,
+                action = btn.action
+            }
+        end
+    end
+
     SendNUIMessage({
         action = 'westrp_ui:openModal',
-        options = options
+        options = {
+            id = options.id,
+            title = options.title,
+            subtitle = options.subtitle,
+            content = options.content,
+            html = options.html,
+            width = options.width,
+            height = options.height,
+            closable = options.closable ~= false,
+            closeOnOverlay = options.closeOnOverlay ~= false,
+            buttons = sanitizedButtons
+        }
     })
 end
 
@@ -486,7 +510,16 @@ function OpenSliderPanel(options)
 
     SendNUIMessage({
         action = 'westrp_ui:openSliderPanel',
-        options = options
+        options = {
+            id = options.id,
+            side = options.side or 'right',
+            width = options.width,
+            title = options.title,
+            content = options.content,
+            html = options.html,
+            closable = options.closable ~= false,
+            closeOnOverlay = options.closeOnOverlay ~= false
+        }
     })
 end
 
@@ -678,17 +711,23 @@ end
 
 -- Callbacks do Dock
 RegisterUnifiedCallback({'selectItem', 'itemSelect'}, function(data, cb)
-    if currentActiveMenu and currentActiveMenu.onSelect then
-        currentActiveMenu.onSelect(data.item, data.tabId)
-    end
     cb({ ok = true })
+    if currentActiveMenu and currentActiveMenu.onSelect then
+        local onSelect = currentActiveMenu.onSelect
+        CreateThread(function()
+            onSelect(data.item, data.tabId)
+        end)
+    end
 end)
 
 RegisterUnifiedCallback({'changeValue', 'itemChange'}, function(data, cb)
-    if currentActiveMenu and currentActiveMenu.onChange then
-        currentActiveMenu.onChange(data.item, data.value or data.newValue, data.tabId)
-    end
     cb({ ok = true })
+    if currentActiveMenu and currentActiveMenu.onChange then
+        local onChange = currentActiveMenu.onChange
+        CreateThread(function()
+            onChange(data.item, data.value or data.newValue, data.tabId)
+        end)
+    end
 end)
 
 RegisterUnifiedCallback({'tabChanged'}, function(data, cb)
@@ -696,23 +735,29 @@ RegisterUnifiedCallback({'tabChanged'}, function(data, cb)
 end)
 
 RegisterUnifiedCallback({'closed', 'close'}, function(data, cb)
+    cb({ ok = true })
     isDockOpen = false
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
 
     if currentActiveMenu and currentActiveMenu.onClose then
-        currentActiveMenu.onClose()
+        local onClose = currentActiveMenu.onClose
+        CreateThread(function()
+            onClose()
+        end)
     end
     currentActiveMenu = nil
-    cb({ ok = true })
 end)
 
 -- Callbacks do Panel
 RegisterUnifiedCallback({'panelAction'}, function(data, cb)
-    if currentActivePanel and currentActivePanel.onAction then
-        currentActivePanel.onAction(data.action or 'select', data.item or data.tileData, data.tabId, data.quantity, data)
-    end
     cb({ ok = true })
+    if currentActivePanel and currentActivePanel.onAction then
+        local onAction = currentActivePanel.onAction
+        CreateThread(function()
+            onAction(data.action or 'select', data.item or data.tileData, data.tabId, data.quantity, data)
+        end)
+    end
 end)
 
 RegisterUnifiedCallback({'panelClosed', 'closePanel'}, function(data, cb)

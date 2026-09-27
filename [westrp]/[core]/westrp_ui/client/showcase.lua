@@ -560,6 +560,11 @@ function OpenShowcaseModal()
             { label = 'RECUSAR',          variant = 'subtle',  action = 'close' },
             { label = 'ASSINAR DESPACHO', variant = 'default', action = 'confirm' }
         },
+        onAction = function(action)
+            if action == 'confirm' then
+                ShowToast("DESPACHO ASSINADO", "Documento aceito e autenticado no livro do tribunal.", "success", 3000)
+            end
+        end,
         onClose = function()
             ShowToast("MODAL RDR2", "Modal fechado com sucesso.", "alert", 2000)
         end
@@ -586,7 +591,7 @@ function OpenShowcaseSlider()
                 <h4 style="color: #fff; font-family: var(--rdr-font-title); font-size: 15px; margin-bottom: 4px;">DADOS DO INVESTIGADO</h4>
                 <p style="color: var(--rdr-color-text-muted); font-size: 13px;">Última localização: Saloon de Valentine<br>Recompensa acumulada: $ 150.00</p>
             </div>
-            <button class="rdr-button rdr-button--default" style="margin-top: 20px; width: 100%;" onclick="window.postMessage({action:'westrp_ui:closeSliderPanel'},'*')">
+            <button class="rdr-button rdr-button--default" style="margin-top: 20px; width: 100%;" onclick="if(window.uiSliderPanel)window.uiSliderPanel.close();else window.postMessage({action:'westrp_ui:closeSliderPanel'},'*')">
                 <span class="rdr-button__label">FECHAR GAVETA</span>
             </button>
         ]],
