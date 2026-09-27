@@ -48,7 +48,11 @@ class DialogComponent {
     if (this.container) {
       this.container.addEventListener('click', (e) => {
         if (e.target === this.container) {
-          this.closeDialog();
+          const opts = this.currentOptions;
+          const allowClose = opts ? (opts.closeOnOverlay !== undefined ? opts.closeOnOverlay === true : (opts.closeOnBackdrop !== undefined ? opts.closeOnBackdrop === true : false)) : false;
+          if (allowClose) {
+            this.closeDialog();
+          }
         }
       });
     }
@@ -58,11 +62,16 @@ class DialogComponent {
     this.initEls();
     if (!this.container) return;
 
+    this.currentOptions = options;
     this.currentDialogId = options.id || 'default_dialog';
     this.tagEl.textContent = options.tag || 'FORMULÁRIO';
     this.titleEl.textContent = options.title || 'ENTRADA DE DADOS';
     this.subtitleEl.textContent = options.subtitle || '';
     this.subtitleEl.style.display = options.subtitle ? 'block' : 'none';
+
+    if (this.btnClose) {
+      this.btnClose.style.display = options.closable === false ? 'none' : 'flex';
+    }
 
     this.btnSubmit.innerHTML = `<span class="rdr-button__label">${options.submitLabel || 'CONFIRMAR'}</span><span class="rdr-modal-btn__hint">[ENTER]</span>`;
     this.btnCancel.innerHTML = `<span class="rdr-button__label">${options.cancelLabel || 'CANCELAR'}</span>`;
@@ -186,6 +195,7 @@ class DialogComponent {
       }
     }, 250);
     this.isOpen = false;
+    this.currentOptions = null;
 
     fetch('https://westrp_ui/dialogSubmit', {
       method: 'POST',
@@ -205,6 +215,7 @@ class DialogComponent {
       }
     }, 250);
     this.isOpen = false;
+    this.currentOptions = null;
 
     fetch('https://westrp_ui/dialogCancel', {
       method: 'POST',

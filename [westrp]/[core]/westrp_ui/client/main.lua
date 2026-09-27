@@ -265,7 +265,7 @@ end)
 -- ============================================================================
 
 ---Abre um modal de diálogo tipado (prompt / formulário)
----@param options table { id: string, title: string, subtitle?: string, fields: table[], onSubmit: fun(values: table), onCancel?: fun() }
+---@param options { id?: string, title?: string, tag?: string, subtitle?: string, fields: table[], submitLabel?: string, cancelLabel?: string, closable?: boolean, closeOnOverlay?: boolean, closeOnBackdrop?: boolean, onSubmit?: fun(values: table), onCancel?: fun() }
 function OpenDialog(options)
     if not options then return end
 
@@ -279,6 +279,13 @@ function OpenDialog(options)
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
 
+    local closeOnOverlay = false
+    if options.closeOnOverlay ~= nil then
+        closeOnOverlay = options.closeOnOverlay == true
+    elseif options.closeOnBackdrop ~= nil then
+        closeOnOverlay = options.closeOnBackdrop == true
+    end
+
     SendNUIMessage({
         action = 'westrp_ui:openDialog',
         options = {
@@ -288,7 +295,9 @@ function OpenDialog(options)
             subtitle = options.subtitle,
             fields = options.fields,
             submitLabel = options.submitLabel,
-            cancelLabel = options.cancelLabel
+            cancelLabel = options.cancelLabel,
+            closable = options.closable ~= false,
+            closeOnOverlay = closeOnOverlay
         }
     })
 end
@@ -365,7 +374,7 @@ end
 -- ============================================================================
 
 ---Abre uma caixa de diálogo de confirmação binária (Sim/Não) estilizada
----@param options { id?: string, title?: string, tag?: string, message: string, submessage?: string, confirmLabel?: string, cancelLabel?: string, danger?: boolean, onConfirm?: fun(), onCancel?: fun() }
+---@param options { id?: string, title?: string, tag?: string, message: string, submessage?: string, confirmLabel?: string, cancelLabel?: string, danger?: boolean, closable?: boolean, closeOnOverlay?: boolean, closeOnBackdrop?: boolean, onConfirm?: fun(), onCancel?: fun() }
 function OpenConfirm(options)
     if not options then return end
 
@@ -379,6 +388,13 @@ function OpenConfirm(options)
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
 
+    local closeOnOverlay = false
+    if options.closeOnOverlay ~= nil then
+        closeOnOverlay = options.closeOnOverlay == true
+    elseif options.closeOnBackdrop ~= nil then
+        closeOnOverlay = options.closeOnBackdrop == true
+    end
+
     SendNUIMessage({
         action = 'westrp_ui:openConfirm',
         options = {
@@ -389,7 +405,9 @@ function OpenConfirm(options)
             submessage = options.submessage,
             confirmLabel = options.confirmLabel,
             cancelLabel = options.cancelLabel,
-            danger = options.danger == true
+            danger = options.danger == true,
+            closable = options.closable ~= false,
+            closeOnOverlay = closeOnOverlay
         }
     })
 end
@@ -425,7 +443,7 @@ end
 -- ============================================================================
 
 ---Abre o modal nativo RDR2 com animação de zoom e backdrop
----@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, buttons?: table[]|boolean, cancelAction?: string, cancelEvent?: string, cancelEventType?: "client"|"server", onClose?: fun(), onAction?: fun(action: string, data: table) }
+---@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, closeOnBackdrop?: boolean, buttons?: table[]|boolean, cancelAction?: string, cancelEvent?: string, cancelEventType?: "client"|"server", onClose?: fun(), onAction?: fun(action: string, data: table) }
 function OpenModal(options)
     if not options then return end
 
@@ -438,6 +456,13 @@ function OpenModal(options)
     isModalOpen = true
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
+
+    local closeOnOverlay = true
+    if options.closeOnOverlay ~= nil then
+        closeOnOverlay = options.closeOnOverlay == true
+    elseif options.closeOnBackdrop ~= nil then
+        closeOnOverlay = options.closeOnBackdrop == true
+    end
 
     local sanitizedButtons = nil
     if options.buttons == false then
@@ -472,7 +497,7 @@ function OpenModal(options)
             width = options.width,
             height = options.height,
             closable = options.closable ~= false,
-            closeOnOverlay = options.closeOnOverlay ~= false,
+            closeOnOverlay = closeOnOverlay,
             cancelAction = options.cancelAction,
             cancelEvent = options.cancelEvent,
             cancelEventType = options.cancelEventType or 'client',

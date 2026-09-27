@@ -648,6 +648,8 @@ O **Modal de Diálogos Tipados** (`OpenDialog`) é a solução canônica para fo
 | `description` | `string` | Não | Texto explicativo ou de aviso abaixo do título. |
 | `confirmLabel` | `string` | Não | Rótulo do botão de submissão (padrão: `'CONFIRMAR'`). |
 | `cancelLabel` | `string` | Não | Rótulo do botão de cancelamento (padrão: `'CANCELAR'`). |
+| `closable` | `boolean` | Não | Exibe botão fechar `nav_close.png` (padrão: `true`). |
+| `closeOnOverlay` | `boolean` | Não | Permite fechar ao clicar no backdrop (padrão: `false` para evitar perda de dados). |
 | `fields` | `DialogField[]`| Sim | Array de definições de campos do formulário. |
 | `onSubmit` | `function(values)` | Não | Disparado quando o usuário preenche os campos válidos e submete. |
 | `onCancel` | `function()` | Não | Disparado quando o usuário cancela ou pressiona `[BACKSPACE]`. |
@@ -829,6 +831,8 @@ WestRP.Client.UI.OpenConfirm({
     confirmLabel = 'ASSINAR ESCRITURA',
     cancelLabel = 'VOLTAR ATRÁS',
     danger = false, -- Se true, adota tom de alerta vermelho carmesim (bg-red.png)
+    closable = true, -- Exibe o botão fechar nav_close.png (padrão: true)
+    closeOnOverlay = false, -- Se true, permite cancelar ao clicar fora no backdrop (padrão: false para evitar falsos cancelamentos em confirmações)
     onConfirm = function()
         print("Usuário confirmou via clique ou tecla [ENTER]!")
     end,

@@ -37,10 +37,12 @@ class ModalComponent {
     }
 
     if (this.container) {
-      // Clicar no backdrop (fora do modal) fecha o modal se closeOnOverlay !== false
+      // Clicar no backdrop (fora do modal) fecha o modal se closeOnOverlay / closeOnBackdrop permitir
       this.container.addEventListener('click', (e) => {
         if (e.target === this.container) {
-          if (!this.currentOptions || this.currentOptions.closeOnOverlay !== false) {
+          const opts = this.currentOptions;
+          const allowClose = opts ? (opts.closeOnOverlay !== undefined ? opts.closeOnOverlay === true : (opts.closeOnBackdrop !== undefined ? opts.closeOnBackdrop === true : true)) : true;
+          if (allowClose) {
             this.cancelAndClose();
           }
         }
@@ -311,6 +313,10 @@ class ModalComponent {
       }
     ];
 
+    const canCloseOnOverlay = options.closeOnOverlay !== undefined
+      ? options.closeOnOverlay === true
+      : (options.closeOnBackdrop !== undefined ? options.closeOnBackdrop === true : false);
+
     this.open({
       id: this.currentConfirmId,
       tag: options.tag || (isDanger ? 'PERIGO • AÇÃO IRREVERSÍVEL' : 'CONFIRMAÇÃO'),
@@ -320,7 +326,7 @@ class ModalComponent {
       submessage: options.submessage || null,
       danger: isDanger,
       closable: options.closable !== false,
-      closeOnOverlay: options.closeOnOverlay !== false,
+      closeOnOverlay: canCloseOnOverlay,
       enterToConfirm: true,
       buttons: buttons,
       onClose: () => {

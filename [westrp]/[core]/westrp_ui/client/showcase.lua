@@ -817,6 +817,7 @@ function OpenShowcaseConfirm(isDanger)
         confirmLabel = isDanger and 'SIM, EXCLUIR' or 'CONFIRMAR COMPRA',
         cancelLabel = 'VOLTAR ATRÁS',
         danger = isDanger == true,
+        closeOnOverlay = false,
         onConfirm = function()
             ShowToast("CONFIRMAÇÃO",
                 isDanger and "Registro excluído com sucesso!" or "Compra confirmada! Vá até o estábulo.", "success")

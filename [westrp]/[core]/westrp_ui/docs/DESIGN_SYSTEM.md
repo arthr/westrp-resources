@@ -129,7 +129,7 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
    - Cartões com fundo em textura `box.png`, preenchimentos configuráveis (`padding-sm`, `padding-md`, `padding-lg`, `padding-xl`) e modo rolável (`scrollable`).
 8. **`RdrModal` (Janela Modal Flutuante & Confirmação Unificada):**
    - Diálogo flutuante centralizado de 520px com textura de fundo `bg.png` (ou `bg-red.png` para a variante `.rdr-modal--danger`), sombra radial cinematográfica de backdrop (`--rdr-color-overlay`), animação de entrada `zoomAndFadeIn` e saída `zoomAndFadeOut`, cantos vivos de 0px e botão nativo de fechar com `nav_close.png`.
-   - Fecha ao teclar `BACKSPACE`, clicar no botão `X` ou clicar na área externa do backdrop.
+   - Fecha ao teclar `BACKSPACE`, clicar no botão `X` ou clicar na área externa do backdrop (comportamento de clique externo configurável via parâmetro `closeOnOverlay` / `closeOnBackdrop`, padronizado como `false` em confirmações e formulários para evitar cancelamentos acidentais ou perda de dados digitados).
    - Confirma a ação primária (`isPrimary = true`) imediatamente ao teclar `[ENTER]`.
    - Botões de ação padronizados com altura de 46px, tipografia `Chinese Rocks`, molduras chanfradas autênticas e hint visual `[ENTER]`.
    - Unifica as operações de `OpenModal` e `OpenConfirm` (rápidas e críticas) sob a mesma identidade e motor visual.
