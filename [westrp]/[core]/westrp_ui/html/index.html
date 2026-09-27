@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
   <link rel="stylesheet" href="css/progress.css">
   <link rel="stylesheet" href="css/toast.css">
 </head>
+
 <body>
 
   <!-- ============================================================
@@ -57,11 +59,13 @@
     <!-- Rodapé de Legenda de Teclas de Navegação Nativa -->
     <footer class="dock-footer-keys">
       <div class="k-group"><span class="k-box">▲▼</span> <span class="k-label">Navegar</span></div>
-      <div class="k-group" id="k-tabs-legend"><span class="k-box">◄►</span> <span class="k-label">Abas/Opções</span></div>
+      <div class="k-group" id="k-tabs-legend"><span class="k-box">◄►</span> <span class="k-label">Abas/Opções</span>
+      </div>
       <div class="k-group"><span class="k-box">↵</span> <span class="k-label">Executar</span></div>
-      <div class="k-group" id="dock-k-cursor-group" title="Pressione ALT para liberar ou travar o cursor do mouse"><span class="k-box" id="dock-k-cursor-box">ALT</span> <span class="k-label" id="dock-k-cursor-label">Mouse [OFF]</span></div>
-      <div class="k-group"><span class="k-box">BACKSPACE</span> <span class="k-label">Voltar</span></div>
-      <div class="k-group"><span class="k-box">ESC</span> <span class="k-label">Fechar</span></div>
+      <div class="k-group" id="dock-k-cursor-group" title="Pressione ALT para liberar ou travar o cursor do mouse"><span
+          class="k-box" id="dock-k-cursor-box">ALT</span> <span class="k-label" id="dock-k-cursor-label">Mouse
+          [OFF]</span></div>
+      <div class="k-group"><span class="k-box">BACKSPACE</span> <span class="k-label">Voltar / Fechar</span></div>
     </footer>
 
   </div>
@@ -72,18 +76,21 @@
   <div id="panel-container" class="panel-container" style="display: none;">
     <div class="panel-backdrop" id="panel-backdrop"></div>
     <div class="panel-modal">
-      
+
       <!-- Cabeçalho do Panel -->
       <header class="panel-header">
         <div class="panel-header-brand">
           <span class="panel-tag" id="panel-tag">ESTABELECIMENTO</span>
           <h1 class="panel-title" id="panel-title">BANCADA DE CRIAÇÃO</h1>
         </div>
-        
+
         <div class="panel-header-actions">
           <!-- Campo de Busca em Tempo Real -->
           <div class="panel-search-wrap" id="panel-search-wrap">
-            <span class="panel-search-icon"><svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg></span>
+            <span class="panel-search-icon"><svg viewBox="0 0 24 24" width="14" height="14">
+                <path fill="currentColor"
+                  d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z" />
+              </svg></span>
             <input type="text" id="panel-search-input" placeholder="Buscar registros..." autocomplete="off">
           </div>
 
@@ -93,20 +100,25 @@
           </div>
 
           <!-- Botão Fechar -->
-          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (ESC)"><svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (BACKSPACE)"><svg viewBox="0 0 24 24"
+              width="14" height="14">
+              <path fill="currentColor"
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg></button>
         </div>
       </header>
 
       <!-- Corpo Principal (Sidebar + Viewport de Conteúdo) -->
       <div class="panel-body">
-        
+
         <!-- Sidebar de Abas Verticais -->
         <aside class="panel-sidebar" id="panel-sidebar">
           <!-- Branding do Servidor / Menu -->
           <div class="panel-sidebar-brand" id="panel-sidebar-brand" style="display: none;">
             <div class="panel-sidebar-logo" id="panel-sidebar-logo">
               <svg viewBox="0 0 24 24" class="sidebar-logo-icon">
-                <path fill="currentColor" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                <path fill="currentColor"
+                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
               </svg>
             </div>
             <div class="panel-sidebar-titles">
@@ -141,17 +153,24 @@
             <!-- Header do Dashboard -->
             <div class="dashboard-header">
               <div class="dashboard-header-icon">
-                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.01-4.09l-2.49-1.46C16.29 17.94 14.28 19 12 19zm1-11v4.41l3.58 2.07-.84 1.45L11.5 13.9V8h1.5z"/></svg>
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path fill="currentColor"
+                    d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.01-4.09l-2.49-1.46C16.29 17.94 14.28 19 12 19zm1-11v4.41l3.58 2.07-.84 1.45L11.5 13.9V8h1.5z" />
+                </svg>
               </div>
               <div class="dashboard-header-text">
                 <h2 class="dashboard-title" id="dashboard-title">DASHBOARD</h2>
-                <p class="dashboard-subtitle" id="dashboard-subtitle">Visão geral do servidor e atalhos rápidos da administração</p>
+                <p class="dashboard-subtitle" id="dashboard-subtitle">Visão geral do servidor e atalhos rápidos da
+                  administração</p>
               </div>
             </div>
 
             <!-- Seção SERVER OVERVIEW (4 Stat Cards) -->
             <div class="dashboard-section-title">
-              <span class="sec-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></span>
+              <span class="sec-icon"><svg viewBox="0 0 24 24" width="16" height="16">
+                  <path fill="currentColor"
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
+                </svg></span>
               <span>SERVER OVERVIEW</span>
             </div>
             <div class="dashboard-overview-grid" id="dashboard-overview-grid">
@@ -160,7 +179,9 @@
 
             <!-- Seção ADMIN ACTIONS (Categorized Actions) -->
             <div class="dashboard-section-title" style="margin-top: 18px;">
-              <span class="sec-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></span>
+              <span class="sec-icon"><svg viewBox="0 0 24 24" width="16" height="16">
+                  <path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z" />
+                </svg></span>
               <span>ADMIN ACTIONS</span>
             </div>
             <div class="dashboard-actions-container" id="dashboard-actions-container">
@@ -172,7 +193,10 @@
           <div class="panel-settings-view" id="panel-settings-view" style="display: none;">
             <div class="settings-header">
               <div class="settings-header-icon">
-                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/></svg>
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path fill="currentColor"
+                    d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z" />
+                </svg>
               </div>
               <div class="settings-header-text">
                 <h2 class="settings-title">SETTINGS</h2>
@@ -227,7 +251,8 @@
             <div class="craft-recipe-list" id="craft-recipe-list"></div>
             <div class="craft-details-card" id="craft-details-card">
               <h3 class="craft-details-title" id="craft-details-title">Selecione uma receita</h3>
-              <p class="craft-details-desc" id="craft-details-desc">Escolha uma receita na lista à esquerda para visualizar os materiais necessários.</p>
+              <p class="craft-details-desc" id="craft-details-desc">Escolha uma receita na lista à esquerda para
+                visualizar os materiais necessários.</p>
               <div class="craft-reqs-wrap">
                 <span class="craft-reqs-label">MATERIAIS EXIGIDOS</span>
                 <div class="craft-reqs-list" id="craft-reqs-list"></div>
@@ -281,12 +306,16 @@
        ============================================================ -->
   <div id="dialog-container" class="dialog-container" style="display: none;">
     <div class="dialog-backdrop" id="dialog-backdrop"></div>
-    <div class="dialog-modal">
+    <div class="dialog-modal" id="dialog-modal">
+      <button class="rdr-modal__close" id="dialog-close-btn" title="Fechar (BACKSPACE)">
+        <img src="assets/textures/nav_close.png" alt="Fechar">
+      </button>
+
       <header class="dialog-header">
         <span class="dialog-tag" id="dialog-tag">ADMINISTRAÇÃO</span>
         <h2 class="dialog-title" id="dialog-title">FORMULÁRIO</h2>
         <p class="dialog-subtitle" id="dialog-subtitle"></p>
-        <button class="dialog-close-btn" id="dialog-close-btn" title="Cancelar (ESC)"><svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        <hr class="rdr-divider">
       </header>
 
       <div class="dialog-body">
@@ -298,8 +327,13 @@
       </div>
 
       <footer class="dialog-footer">
-        <button type="button" class="dialog-btn-secondary" id="dialog-btn-cancel">CANCELAR</button>
-        <button type="button" class="dialog-btn-primary" id="dialog-btn-submit">CONFIRMAR</button>
+        <button type="button" class="rdr-button rdr-button--subtle" id="dialog-btn-cancel">
+          <span class="rdr-button__label">CANCELAR</span>
+        </button>
+        <button type="button" class="rdr-button rdr-button--default rdr-button--primary-action" id="dialog-btn-submit">
+          <span class="rdr-button__label">CONFIRMAR</span>
+          <!-- <span class="rdr-modal-btn__hint">[ENTER]</span> -->
+        </button>
       </footer>
     </div>
   </div>
@@ -311,7 +345,10 @@
     <div class="progressbar-box">
       <div class="progressbar-header">
         <div class="progressbar-label-group">
-          <span class="progressbar-icon" id="progressbar-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg></span>
+          <span class="progressbar-icon" id="progressbar-icon"><svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor"
+                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+            </svg></span>
           <span class="progressbar-label" id="progressbar-label">REALIZANDO AÇÃO...</span>
         </div>
         <span class="progressbar-percentage" id="progressbar-percentage">0%</span>
@@ -320,7 +357,7 @@
         <div class="progressbar-fill" id="progressbar-fill"></div>
       </div>
       <div class="progressbar-footer" id="progressbar-footer">
-        <span class="progressbar-key-badge">ESC / BACKSPACE</span>
+        <span class="progressbar-key-badge">BACKSPACE</span>
         <span class="progressbar-cancel-label">Cancelar ação</span>
       </div>
     </div>
@@ -331,7 +368,7 @@
        ============================================================ -->
   <div id="rdr-modal-container" class="rdr-modal-container" style="display: none;">
     <div class="rdr-modal" id="rdr-modal-dialog">
-      <button class="rdr-modal__close" id="rdr-modal-close-btn" title="Fechar (ESC)">
+      <button class="rdr-modal__close" id="rdr-modal-close-btn" title="Fechar (BACKSPACE)">
         <img src="assets/textures/nav_close.png" alt="Fechar">
       </button>
       <div id="rdr-modal-content"></div>
@@ -343,7 +380,7 @@
        ============================================================ -->
   <div id="rdr-slider-container" class="rdr-slider-container" style="display: none;">
     <div class="rdr-slider__panel rdr-slider__panel--right" id="rdr-slider-panel">
-      <button class="rdr-slider__close" id="rdr-slider-close-btn" title="Fechar (ESC)">
+      <button class="rdr-slider__close" id="rdr-slider-close-btn" title="Fechar (BACKSPACE)">
         <img src="assets/textures/nav_close.png" alt="Fechar">
       </button>
       <div id="rdr-slider-content"></div>
@@ -363,4 +400,5 @@
   <script src="js/components/modal.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>

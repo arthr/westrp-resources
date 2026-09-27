@@ -99,8 +99,7 @@ O **Dock** é a interface lateral clássica da Rockstar (inspirada nos menus nat
 * **[Q] / [E]** ou **[←] / [→] no cabeçalho**: Alternar abas horizontais.
 * **[←] / [→]**: Ajustar sliders (numéricos ou de texto).
 * **[ENTER]**: Executar opção ou alternar toggle.
-* **[BACKSPACE]**: Voltar do submenu ou fechar o menu.
-* **[ESC]**: Fechar o menu imediatamente.
+* **[BACKSPACE]**: Voltar do submenu ou fechar o menu (quando no nível raiz de navegação). *(Nota: a tecla ESC foi desativada em toda a UI para evitar sobreposição com o menu de pausa nativo do RDR2).*
 
 ---
 
@@ -651,7 +650,7 @@ O **Modal de Diálogos Tipados** (`OpenDialog`) é a solução canônica para fo
 | `cancelLabel` | `string` | Não | Rótulo do botão de cancelamento (padrão: `'CANCELAR'`). |
 | `fields` | `DialogField[]`| Sim | Array de definições de campos do formulário. |
 | `onSubmit` | `function(values)` | Não | Disparado quando o usuário preenche os campos válidos e submete. |
-| `onCancel` | `function()` | Não | Disparado quando o usuário cancela ou pressiona `[ESC]`. |
+| `onCancel` | `function()` | Não | Disparado quando o usuário cancela ou pressiona `[BACKSPACE]`. |
 
 ---
 
@@ -680,7 +679,7 @@ Cada campo (`DialogField`) possui a seguinte estrutura:
 * **Validações Integradas no DOM**:
   * Campos `required` não preenchidos acionam borda vermelha (`field-error`) e som de recusa sonora.
   * Campos `number` validam `min`, `max` e parse float seguro.
-  * O fechamento via tecla `[ESC]` dispara o callback `onCancel`.
+  * O fechamento via tecla `[BACKSPACE]` dispara o callback `onCancel` (com proteção inteligente que não fecha o diálogo enquanto o jogador estiver digitando em campos de input ou textarea).
 
 ---
 
@@ -753,9 +752,72 @@ WestRP.Client.UI.ShowToast(title, message, type, duration)
 
 ---
 
-## 7. Módulo E: Modal de Confirmação Rápida (OpenConfirm)
+## 7. Módulo E: Modais Nativos RDR2 (OpenModal, OpenConfirm & OpenSliderPanel)
 
-O **Modal de Confirmação** (`OpenConfirm`) foi projetado para operações binárias (Sim/Não) com impacto crítico, como compras de alto valor, demissões, transferências e exclusões de registros:
+O motor do WestRP UI unifica todas as caixas de diálogo modais e confirmações sobre a arquitetura do **RdrModal** (1:1 com a interface autêntica do Red Dead Redemption 2), utilizando a textura de pergaminho rústico `bg.png`, molduras chanfradas `box.png`/`box-red.png`, cantos vivos de 0px, divisor com losango central (`divider.png`) e animação cúbica nativa `zoomAndFadeIn` / `zoomAndFadeOut`.
+
+### 7.1 Modal Flutuante Parametrizável (`OpenModal`)
+
+Permite renderizar notificações oficiais, despachos da comarca, documentos, contratos ou avisos com botões customizáveis e disparo direto de eventos:
+
+```lua
+WestRP.Client.UI.OpenModal({
+    id = 'despacho_tribunal',
+    tag = 'DESPACHO JUDICIAL',
+    title = 'TRIBUNAL DE NEW HANOVER',
+    subtitle = 'Comarca de Valentine • Notificação Oficial',
+    content = 'Você foi intimado a prestar esclarecimentos perante o Juizado de Paz.',
+    submessage = 'O não comparecimento poderá resultar em mandado de busca pelo xerifado.',
+    danger = false, -- Se true, utiliza textura carmesim bg-red.png
+    width = '540px',
+    closable = true,       -- Exibe o botão fechar nav_close.png
+    closeOnOverlay = true, -- Permite fechar ao clicar no backdrop escuro
+    cancelAction = 'recusar_intimacao',
+    cancelEvent = 'westrp:tribunal:recusado',
+    cancelEventType = 'client', -- 'client' ou 'server'
+    buttons = {
+        {
+            label = 'RECUSAR',
+            variant = 'subtle',
+            action = 'recusar',
+            close = true
+        },
+        {
+            label = 'ASSINAR TERMO',
+            variant = 'default',
+            action = 'assinar',
+            event = 'westrp:tribunal:assinado',
+            eventType = 'server',
+            eventData = { processoId = 1042 },
+            isPrimary = true, -- Acionado automaticamente ao pressionar [ENTER]
+            close = true
+        }
+    },
+    onAction = function(action, data)
+        print("Ação acionada no modal:", action)
+    end,
+    onClose = function()
+        print("Modal fechado.")
+    end
+})
+```
+
+#### Atributos dos Botões (`buttons`):
+* `label` (`string`): Texto do botão em caixa alta (`Chinese Rocks`).
+* `variant` (`string`): `'default'` (moldura chanfrada com hover vermelho), `'subtle'` (estilo minimalista) ou `'danger'` (alerta crítico).
+* `action` (`string`): Identificador entregue ao callback `onAction(action, data)`.
+* `event` (`string`): Nome de evento FiveM/RedM a ser acionado automaticamente.
+* `eventType` (`string`): `'client'` (dispara `TriggerEvent`) ou `'server'` (dispara `TriggerServerEvent`). Padrão: `'client'`.
+* `eventData` (`table`): Tabela de dados enviada como payload do evento.
+* `isPrimary` (`boolean`): Se `true`, vincula o botão à tecla `[ENTER]` e exibe a tag visual `[ENTER]`.
+* `close` (`boolean`): Se `true` (padrão), fecha o modal após o clique.
+* **Garantia Arquitetural de Sequência:** O evento `modalAction` e seus triggers associados são obrigatoriamente concluídos **antes** de qualquer disparo de `modalClosed`.
+
+---
+
+### 7.2 Modal de Confirmação Rápida e Crítica (`OpenConfirm`)
+
+O **Modal de Confirmação** (`OpenConfirm`) é uma especialização binária (Sim/Não) construída sobre o motor `RdrModal`, substituindo definitivamente componentes legados:
 
 ```lua
 WestRP.Client.UI.OpenConfirm({
@@ -766,12 +828,32 @@ WestRP.Client.UI.OpenConfirm({
     submessage = 'O valor será debitado da sua conta bancária imediatamente.',
     confirmLabel = 'ASSINAR ESCRITURA',
     cancelLabel = 'VOLTAR ATRÁS',
-    danger = false, -- Se true, adota tom de alerta vermelho carmesim
+    danger = false, -- Se true, adota tom de alerta vermelho carmesim (bg-red.png)
     onConfirm = function()
-        print("Usuário confirmou!")
+        print("Usuário confirmou via clique ou tecla [ENTER]!")
     end,
     onCancel = function()
-        print("Usuário cancelou!")
+        print("Usuário cancelou via clique ou tecla [BACKSPACE]!")
+    end
+})
+```
+
+---
+
+### 7.3 Gaveta Lateral Deslizante (`OpenSliderPanel`)
+
+Permite exibir um painel lateral deslizante suave (RdrSlider) ancorado à borda da tela sem ocultar o cenário do jogador:
+
+```lua
+WestRP.Client.UI.OpenSliderPanel({
+    id = 'inventario_rapido',
+    side = 'right', -- 'right' ou 'left'
+    width = '380px',
+    title = 'INSPEÇÃO LATERAL',
+    content = 'Exibe detalhes de contexto, registros e ferramentas operacionais.',
+    closable = true,
+    onClose = function()
+        print("Gaveta lateral encerrada.")
     end
 })
 ```
@@ -791,7 +873,7 @@ WestRP.Client.UI.ProgressBar({
     label = 'FORJANDO FACA DE CAÇA...',
     duration = 4500, -- Milissegundos
     icon = '⚒',
-    canCancel = true, -- Permite cancelar via ESC ou BACKSPACE
+    canCancel = true, -- Permite cancelar via tecla BACKSPACE
     disableControls = {
         movement = true, -- Impede andar enquanto forja
         combat = true    -- Impede atirar ou bater

@@ -555,10 +555,10 @@ function OpenShowcaseModal()
         title = 'DESPACHO DO JUIZADO DE PAZ',
         subtitle = 'Comarca de Valentine • New Hanover',
         content =
-        'Este modal nativo utiliza a textura bg.png de pergaminho rústico, cantos retos de 0px, botão de fechar nav_close.png e transição cúbica zoomAndFadeIn. Pressione ESC ou clique no botão X para encerrar.',
+        'Este modal nativo utiliza a textura bg.png de pergaminho rústico, cantos retos de 0px, botão de fechar nav_close.png e transição cúbica zoomAndFadeIn. Pressione BACKSPACE ou clique no botão X para encerrar.',
         buttons = {
-            { label = 'RECUSAR',          variant = 'subtle',  action = 'close' },
-            { label = 'ASSINAR DESPACHO', variant = 'default', action = 'confirm' }
+            { label = 'RECUSAR',          variant = 'subtle',  action = 'reject', close = true },
+            { label = 'ASSINAR DESPACHO', variant = 'default', action = 'confirm', isPrimary = true, close = true }
         },
         onAction = function(action)
             if action == 'confirm' then

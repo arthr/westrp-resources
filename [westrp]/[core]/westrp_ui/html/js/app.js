@@ -78,13 +78,17 @@ window.addEventListener('message', (event) => {
 
 /* ==========================================================================
    GLOBAL KEYBOARD DISPATCHER
+   (Ações de fechamento/retorno migradas de ESC para BACKSPACE para evitar conflito com o menu de pausa nativo)
    ========================================================================== */
 window.addEventListener('keydown', (e) => {
+  const isEditingText = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable);
+
   // A1. Modal RDR2 Aberto (Genérico e Confirmação Unificada)
   if (window.uiModal && window.uiModal.isOpen) {
-    if (e.key === 'Escape') {
+    if (e.key === 'Backspace') {
+      if (isEditingText) return;
       e.preventDefault();
-      window.uiModal.close();
+      window.uiModal.cancelAndClose();
       return;
     }
     if (e.key === 'Enter' || e.key === 'NumpadEnter') {
@@ -92,43 +96,52 @@ window.addEventListener('keydown', (e) => {
       window.uiModal.submitPrimary();
       return;
     }
+    return;
   }
 
   // A2. Slider Panel RDR2 Aberto
   if (window.uiSliderPanel && window.uiSliderPanel.isOpen) {
-    if (e.key === 'Escape') {
+    if (e.key === 'Backspace') {
+      if (isEditingText) return;
       e.preventDefault();
       window.uiSliderPanel.close();
       return;
     }
+    return;
   }
 
   // A. Diálogo de Entrada Aberto (Formulários)
   if (window.uiDialog && window.uiDialog.isOpen) {
-    if (e.key === 'Escape') {
+    if (e.key === 'Backspace') {
+      if (isEditingText) return;
       e.preventDefault();
       window.uiDialog.closeDialog();
+      return;
     } else if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault();
       window.uiDialog.submitDialog();
+      return;
     }
     return;
   }
 
   // C. Barra de Progresso Ativa
   if (window.uiProgress && window.uiProgress.isActive()) {
-    if (e.key === 'Escape' || e.key === 'Backspace') {
+    if (e.key === 'Backspace') {
       e.preventDefault();
       window.uiProgress.cancel(true);
+      return;
     }
     return;
   }
 
   // D. Panel Central Aberto
   if (window.uiPanel && window.uiPanel.isOpen) {
-    if (e.key === 'Escape') {
+    if (e.key === 'Backspace') {
+      if (isEditingText) return;
       e.preventDefault();
       window.uiPanel.close();
+      return;
     }
     return;
   }
@@ -175,10 +188,6 @@ window.addEventListener('keydown', (e) => {
       case 'Backspace':
         e.preventDefault();
         window.uiDock.goBack();
-        break;
-      case 'Escape':
-        e.preventDefault();
-        window.uiDock.close();
         break;
     }
   }

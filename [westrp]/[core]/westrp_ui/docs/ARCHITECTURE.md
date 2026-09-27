@@ -29,11 +29,13 @@ Em vez de permitir que cada novo recurso de gameplay (como bancos, lojas, estáb
 ├──────────────────────────────────┬─────────────────────────────────────┤
 │      CAMADA NUI (Chromium Único) │ CAMADA NATIVA (DataBinding 0.00ms)  │
 ├──────────────────────────────────┼─────────────────────────────────────┤
-│ • Dialog / Input Modal (ex-vorp) │ • Honor / Karma Bar (westrp_karma)  │
-│ • Dock Lateral (350px / Câmera)  │ • Top-Center Timer (Assaltos/Duelo) │
-│ • Panel Central (1000px / Mouse) │ • Dinheiro & Recompensa (Tithing)   │
-│ • Toast Notifications            │ • Rank & XP Progression Bar         │
-│ • Action Progress Bar            │ • Wanted / Law Status               │
+│ • Dialog / Form Modal (Inputs)   │ • Honor / Karma Bar (westrp_karma)  │
+│ • RdrModal & Confirm (Unificado) │ • Top-Center Timer (Assaltos/Duelo) │
+│ • RdrSlider (Gaveta Lateral)     │ • Dinheiro & Recompensa (Tithing)   │
+│ • Dock Lateral (460px / Câmera)  │ • Rank & XP Progression Bar         │
+│ • Panel Central (1440px / Mouse) │ • Wanted / Law Status               │
+│ • Action Progress Bar            │                                     │
+│ • Toast Notifications            │                                     │
 │ • Menu Radial (Quick Actions)    │                                     │
 └──────────────────────────────────┴─────────────────────────────────────┘
 ```
@@ -109,6 +111,21 @@ Mensagens informativas no canto da tela com ícones temáticos e tempo de vida a
 ### 4.5 Módulo E: Menu Radial (Quick Actions Wheel)
 Roda de ações rápida de 8 a 12 slots, ativada por tecla de atalho (`RegisterKeyMapping`), ideal para ações de cavalos, algemas, bolsas e interações de proximidade.
 
+### 4.6 Módulo F: Modal Flutuante Nativo (RdrModal) & Confirmação Unificada
+Substituto canônico de todas as janelas modais e caixas de diálogo de confirmação rápida ou crítica do servidor:
+* **Motor Unificado (`ModalComponent`):** Tanto `OpenModal` quanto `OpenConfirm` compartilham o mesmo motor central de renderização (`html/js/components/modal.js`), eliminando completamente o markup legado `#confirm-container` e estilos duplicados.
+* **Autenticidade Visual RDR2:** Textura rústica `bg.png` (ou `bg-red.png` quando `danger = true`), cantos retos de 0px, divisor com losango central (`divider.png`), botão nativo `nav_close.png` e transições cúbicas `zoomAndFadeIn` / `zoomAndFadeOut`.
+* **Parametrização Declarativa de Botões:** Controle total sobre botões com `label`, `variant` (`default`, `subtle`, `danger`), `action`, `event` (disparo automático de `TriggerEvent` ou `TriggerServerEvent`), `eventType`, `eventData`, `isPrimary` e `close`.
+* **Confirmação Primária via Teclado:** Suporte à tecla `[ENTER]` para acionar o botão primário (`isPrimary = true`).
+
+### 4.7 Módulo G: Gaveta Lateral Deslizante (RdrSlider)
+Painel lateral ancorado à borda direita ou esquerda (`side = 'right'|'left'`), com largura ajustável, suporte a `nav_close.png` e transição `translateX` via curva cúbica, permitindo inspeções e inventários contextuais com o jogo em andamento.
+
+### 4.8 Políticas Globais de Teclado & Sequenciamento Estrito de Eventos NUI
+1. **Migração Global de ESC para BACKSPACE:** A tecla `[ESC]` foi completamente desvinculada de ações de fechamento em todos os componentes (Dock, Panel, Dialog, Modal, Slider, ProgressBar) para evitar conflitos irreversíveis com o menu de pausa nativo do RedM. O retorno em pilhas de navegação e o fechamento de telas ativas foram atribuídos exclusivamente à tecla `[BACKSPACE]`.
+2. **Proteção Inteligente de Campos de Texto:** Pressionar `[BACKSPACE]` enquanto estiver editando campos `<input>`, `<textarea>` ou elementos com `isContentEditable` apaga os caracteres normalmente sem fechar o diálogo/modal.
+3. **Sequenciamento Assíncrono Estrito de Eventos:** Para sanar de forma definitiva a race condition onde o fechamento do modal destruía o estado do Lua antes do processamento de ações, o frontend aguarda (`await fetch('modalAction')`) a resposta da NUI callback antes de invocar `close()` (`modalClosed`). O evento de encerramento jamais é emitido antes do evento de ação ou cancelamento.
+
 ---
 
 ## 5. A Camada de HUD Nativo (RDR2 Scaleform/DataBinding)
@@ -163,11 +180,12 @@ westrp_ui/
         ├── components/
         │   ├── dock.js                <-- Máquina de estado do Dock Lateral
         │   ├── panel.js               <-- Máquina de estado do Panel Central
-        │   ├── dialog.js              <-- Controle do Input / Form Dialog
+        │   ├── dialog.js              <-- Controle do Form Dialog
+        │   ├── modal.js               <-- Motor Unificado RdrModal, OpenConfirm & RdrSlider
         │   ├── progress.js            <-- Temporizador suave da ProgressBar
         │   ├── toast.js               <-- Gerenciador de fila de Toasts
         │   └── radial.js              <-- Roda de ações radial
-        └── app.js                     <-- Roteador de NUI messages (~60 linhas)
+        └── app.js                     <-- Roteador de NUI messages (~80 linhas)
 ```
 
 ---

@@ -127,13 +127,15 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
    - Tabela nativa de livro-razão com cabeçalhos interativos (`data-sort-key`, `data-sort-dir="asc"|"desc"`), setas de ordenação `▲`/`▼` via pseudo-elemento `::after`, densidades `compact`, `default` e `relaxed`, e suporte a rodapé contábil (`<tfoot>`).
 7. **`RdrCard`:**
    - Cartões com fundo em textura `box.png`, preenchimentos configuráveis (`padding-sm`, `padding-md`, `padding-lg`, `padding-xl`) e modo rolável (`scrollable`).
-8. **`RdrModal` (Janela Modal Flutuante):**
-   - Diálogo flutuante centralizado de 520px com textura de fundo `bg.png`, sombra radial cinematográfica de backdrop (`--rdr-color-overlay`), animação de entrada `zoomAndFadeIn` e botão nativo de fechar com `nav_close.png`.
-   - Fecha ao teclar `ESC`, clicar no botão `X` ou clicar na área externa do backdrop.
-   - Suporta cabeçalho `RdrHeader`, textos descritivos, slots de HTML arbitrário e rodapé com botões de ação Rockstar (`RdrButton`).
+8. **`RdrModal` (Janela Modal Flutuante & Confirmação Unificada):**
+   - Diálogo flutuante centralizado de 520px com textura de fundo `bg.png` (ou `bg-red.png` para a variante `.rdr-modal--danger`), sombra radial cinematográfica de backdrop (`--rdr-color-overlay`), animação de entrada `zoomAndFadeIn` e saída `zoomAndFadeOut`, cantos vivos de 0px e botão nativo de fechar com `nav_close.png`.
+   - Fecha ao teclar `BACKSPACE`, clicar no botão `X` ou clicar na área externa do backdrop.
+   - Confirma a ação primária (`isPrimary = true`) imediatamente ao teclar `[ENTER]`.
+   - Botões de ação padronizados com altura de 46px, tipografia `Chinese Rocks`, molduras chanfradas autênticas e hint visual `[ENTER]`.
+   - Unifica as operações de `OpenModal` e `OpenConfirm` (rápidas e críticas) sob a mesma identidade e motor visual.
 9. **`RdrSlider` (Slider Panel / Gaveta Lateral):**
    - Gaveta deslizante ancorada à borda direita (`--right`) ou esquerda (`--left`) da tela, com largura ajustável (padrão `360px` a `380px`), textura rústica `bg.png` e transição `translateX` suave via curva cúbica `cubic-bezier(0.25, 0.8, 0.25, 1)`.
-   - Possui botão nativo `nav_close.png`, suporte a fechamento com `ESC` ou clique externo, e permite exibir inventários complementares, detalhes de registros, logs e ferramentas de suporte mantendo o ambiente do jogo visível.
+   - Possui botão nativo `nav_close.png`, suporte a fechamento com `BACKSPACE` ou clique externo, e permite exibir inventários complementares, detalhes de registros, logs e ferramentas de suporte mantendo o ambiente do jogo visível.
 10. **`RdrInput` (Campo de Texto de Linha Única):**
     - Input de texto temático envolto em `.rdr-input__wrap` com moldura texturizada `crafting_outline.png` (`--rdr-border-image`), cantos vivos de 0px, fundo translúcido `#21212180` no foco e suporte a estado desabilitado (`opacity: 0.5`).
     - Integração de valor reativo com exibição de texto em tempo real (`Valor: [texto]`).
@@ -169,5 +171,4 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
       - Pressionar `ALT` alterna entre o modo teclado (foco NUI sem cursor) e o modo cursor livre do mouse (com bloqueio temporário de controles de câmera/jogo), indicado dinamicamente no rodapé (`Mouse [OFF]` / `Mouse [ON]`).
     - **Ações e Encerramento:**
       - `ENTER`: Executa o item selecionado ou alterna toggle.
-      - `BACKSPACE`: Retorna ao nível anterior de submenu.
-      - `ESC`: Fecha o Dock e restaura o foco padrão.
+      - `BACKSPACE`: Retorna ao nível anterior de submenu ou fecha o Dock quando na raiz de navegação (o atalho `ESC` foi inteiramente desativado para blindagem contra abertura involuntária do menu de pausa nativo do RDR2).

@@ -192,8 +192,7 @@
       </div>
       <div class="k-group"><span class="k-box">↵</span> <span class="k-label">Executar</span></div>
       <div class="k-group" id="dock-k-cursor-group" title="Pressione ALT para liberar ou travar o cursor do mouse"><span class="k-box" id="dock-k-cursor-box">ALT</span> <span class="k-label" id="dock-k-cursor-label">Mouse [OFF]</span></div>
-      <div class="k-group"><span class="k-box">BACKSPACE</span> <span class="k-label">Voltar</span></div>
-      <div class="k-group"><span class="k-box">ESC</span> <span class="k-label">Fechar</span></div>
+      <div class="k-group"><span class="k-box">BACKSPACE</span> <span class="k-label">Voltar / Fechar</span></div>
     </footer>
   </div>
 
@@ -222,7 +221,7 @@
             <span id="panel-meta-text">Saldo: $ 0.00</span>
           </div>
 
-          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (ESC)"><svg viewBox="0 0 24 24" width="14"
+          <button class="panel-close-btn" id="panel-close-btn" title="Fechar (BACKSPACE)"><svg viewBox="0 0 24 24" width="14"
               height="14">
               <path fill="currentColor"
                 d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -391,16 +390,16 @@
        ============================================================ -->
   <div id="dialog-container" class="dialog-container" style="display: none;">
     <div class="dialog-backdrop" id="dialog-backdrop"></div>
-    <div class="dialog-modal">
+    <div class="dialog-modal" id="dialog-modal">
+      <button class="rdr-modal__close" id="dialog-close-btn" title="Fechar (BACKSPACE)">
+        <img src="assets/textures/nav_close.png" alt="Fechar">
+      </button>
+
       <header class="dialog-header">
         <span class="dialog-tag" id="dialog-tag">ADMINISTRAÇÃO</span>
         <h2 class="dialog-title" id="dialog-title">FORMULÁRIO</h2>
         <p class="dialog-subtitle" id="dialog-subtitle"></p>
-        <button class="dialog-close-btn" id="dialog-close-btn" title="Cancelar (ESC)"><svg viewBox="0 0 24 24"
-            width="14" height="14">
-            <path fill="currentColor"
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-          </svg></button>
+        <hr class="rdr-divider">
       </header>
 
       <div class="dialog-body">
@@ -410,8 +409,13 @@
       </div>
 
       <footer class="dialog-footer">
-        <button type="button" class="dialog-btn-secondary" id="dialog-btn-cancel">CANCELAR</button>
-        <button type="button" class="dialog-btn-primary" id="dialog-btn-submit">CONFIRMAR</button>
+        <button type="button" class="rdr-button rdr-button--subtle" id="dialog-btn-cancel">
+          <span class="rdr-button__label">CANCELAR</span>
+        </button>
+        <button type="button" class="rdr-button rdr-button--default rdr-button--primary-action" id="dialog-btn-submit">
+          <span class="rdr-button__label">CONFIRMAR</span>
+          <span class="rdr-modal-btn__hint">[ENTER]</span>
+        </button>
       </footer>
     </div>
   </div>
@@ -435,7 +439,7 @@
         <div class="progressbar-fill" id="progressbar-fill"></div>
       </div>
       <div class="progressbar-footer" id="progressbar-footer">
-        <span class="progressbar-key-badge">ESC / BACKSPACE</span>
+        <span class="progressbar-key-badge">BACKSPACE</span>
         <span class="progressbar-cancel-label">Cancelar ação</span>
       </div>
     </div>
@@ -446,7 +450,7 @@
        ============================================================ -->
   <div id="rdr-modal-container" class="rdr-modal-container" style="display: none;">
     <div class="rdr-modal" id="rdr-modal-dialog">
-      <button class="rdr-modal__close" id="rdr-modal-close-btn" title="Fechar (ESC)">
+      <button class="rdr-modal__close" id="rdr-modal-close-btn" title="Fechar (BACKSPACE)">
         <img src="assets/textures/nav_close.png" alt="Fechar">
       </button>
       <div id="rdr-modal-content"></div>
@@ -458,7 +462,7 @@
        ============================================================ -->
   <div id="rdr-slider-container" class="rdr-slider-container" style="display: none;">
     <div class="rdr-slider__panel rdr-slider__panel--right" id="rdr-slider-panel">
-      <button class="rdr-slider__close" id="rdr-slider-close-btn" title="Fechar (ESC)">
+      <button class="rdr-slider__close" id="rdr-slider-close-btn" title="Fechar (BACKSPACE)">
         <img src="assets/textures/nav_close.png" alt="Fechar">
       </button>
       <div id="rdr-slider-content"></div>
@@ -521,12 +525,16 @@
           action: 'westrp_ui:openModal',
           options: {
             id: 'sandbox_modal',
+            tag: 'DESPACHO JUDICIAL',
             title: 'TRIBUNAL DA COMARCA DE NEW HANOVER',
-            subtitle: 'Notificação Oficial de Despacho Judicial',
-            content: 'Este é o componente RdrModal 100% autêntico do RedM/RDR2. Apresenta animação nativa zoomAndFadeIn com curva cúbica bezier, sombra radial de backdrop, textura de pergaminho rústico e suporte a fechar com a tecla ESC ou botão nav_close.png.',
+            subtitle: 'Notificação Oficial de Despacho • Valentine',
+            content: 'Este é o componente RdrModal 100% autêntico do RedM/RDR2. Apresenta animação nativa zoomAndFadeIn com curva cúbica bezier, sombra radial de backdrop, textura de pergaminho rústico e suporte a fechar com a tecla BACKSPACE ou botão nav_close.png.',
+            submessage: 'A decisão é válida perante todas as instâncias estaduais da comarca.',
+            cancelAction: 'judicial_dismiss',
+            cancelEvent: 'westrp:tribunal:cancelado',
             buttons: [
-              { label: 'DESISTIR', variant: 'subtle', action: 'close' },
-              { label: 'ASSINAR DESPACHO', variant: 'default', action: 'confirm' }
+              { label: 'RECUSAR', variant: 'subtle', action: 'reject', event: 'westrp:tribunal:recusado', close: true },
+              { label: 'ASSINAR DESPACHO', variant: 'default', action: 'sign', event: 'westrp:tribunal:assinado', isPrimary: true, close: true }
             ]
           }
         }, '*');

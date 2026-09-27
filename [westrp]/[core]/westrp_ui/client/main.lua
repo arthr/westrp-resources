@@ -425,7 +425,7 @@ end
 -- ============================================================================
 
 ---Abre o modal nativo RDR2 com animação de zoom e backdrop
----@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, buttons?: table[], onClose?: fun(), onAction?: fun(action: string, data: table) }
+---@param options { id?: string, title?: string, subtitle?: string, content?: string, html?: string, width?: string, height?: string, closable?: boolean, closeOnOverlay?: boolean, buttons?: table[]|boolean, cancelAction?: string, cancelEvent?: string, cancelEventType?: "client"|"server", onClose?: fun(), onAction?: fun(action: string, data: table) }
 function OpenModal(options)
     if not options then return end
 
@@ -440,13 +440,20 @@ function OpenModal(options)
     SetNuiFocusKeepInput(false)
 
     local sanitizedButtons = nil
-    if options.buttons and type(options.buttons) == 'table' then
+    if options.buttons == false then
+        sanitizedButtons = false
+    elseif options.buttons and type(options.buttons) == 'table' then
         sanitizedButtons = {}
         for i, btn in ipairs(options.buttons) do
             sanitizedButtons[i] = {
                 label = btn.label,
                 variant = btn.variant,
-                action = btn.action
+                action = btn.action,
+                event = btn.event,
+                eventType = btn.eventType or 'client',
+                eventData = btn.eventData,
+                isPrimary = btn.isPrimary == true,
+                close = btn.close ~= false
             }
         end
     end
@@ -455,14 +462,20 @@ function OpenModal(options)
         action = 'westrp_ui:openModal',
         options = {
             id = options.id,
+            tag = options.tag,
             title = options.title,
             subtitle = options.subtitle,
             content = options.content,
+            submessage = options.submessage,
             html = options.html,
+            danger = options.danger == true,
             width = options.width,
             height = options.height,
             closable = options.closable ~= false,
             closeOnOverlay = options.closeOnOverlay ~= false,
+            cancelAction = options.cancelAction,
+            cancelEvent = options.cancelEvent,
+            cancelEventType = options.cancelEventType or 'client',
             buttons = sanitizedButtons
         }
     })
@@ -905,6 +918,14 @@ RegisterUnifiedCallback({'modalClosed', 'closeModal'}, function(data, cb)
 end)
 
 RegisterUnifiedCallback({'modalAction'}, function(data, cb)
+    if data and data.event then
+        if data.eventType == 'server' then
+            TriggerServerEvent(data.event, data.eventData or {})
+        else
+            TriggerEvent(data.event, data.eventData or {})
+        end
+    end
+
     if currentActiveModal and currentActiveModal.onAction then
         currentActiveModal.onAction(data.action, data)
     end

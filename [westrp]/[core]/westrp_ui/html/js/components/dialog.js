@@ -55,8 +55,8 @@ class DialogComponent {
     this.subtitleEl.textContent = options.subtitle || '';
     this.subtitleEl.style.display = options.subtitle ? 'block' : 'none';
 
-    this.btnSubmit.textContent = options.submitLabel || 'CONFIRMAR';
-    this.btnCancel.textContent = options.cancelLabel || 'CANCELAR';
+    this.btnSubmit.innerHTML = `<span class="rdr-button__label">${options.submitLabel || 'CONFIRMAR'}</span><span class="rdr-modal-btn__hint">[ENTER]</span>`;
+    this.btnCancel.innerHTML = `<span class="rdr-button__label">${options.cancelLabel || 'CANCELAR'}</span>`;
 
     this.fieldsContainer.innerHTML = '';
 
@@ -136,7 +136,10 @@ class DialogComponent {
       this.fieldsContainer.appendChild(group);
     });
 
+    this.container.classList.remove('is-closing');
     this.container.style.display = 'flex';
+    void this.container.offsetWidth;
+    this.container.classList.add('is-open');
     this.isOpen = true;
     if (window.uiAudio) window.uiAudio.playNav();
 
@@ -165,7 +168,14 @@ class DialogComponent {
     });
 
     if (window.uiAudio) window.uiAudio.playSelect();
-    this.container.style.display = 'none';
+    this.container.classList.remove('is-open');
+    this.container.classList.add('is-closing');
+    setTimeout(() => {
+      if (!this.isOpen && this.container) {
+        this.container.style.display = 'none';
+        this.container.classList.remove('is-closing');
+      }
+    }, 250);
     this.isOpen = false;
 
     fetch('https://westrp_ui/dialogSubmit', {
@@ -177,7 +187,14 @@ class DialogComponent {
 
   closeDialog() {
     if (!this.isOpen) return;
-    this.container.style.display = 'none';
+    this.container.classList.remove('is-open');
+    this.container.classList.add('is-closing');
+    setTimeout(() => {
+      if (!this.isOpen && this.container) {
+        this.container.style.display = 'none';
+        this.container.classList.remove('is-closing');
+      }
+    }, 250);
     this.isOpen = false;
 
     fetch('https://westrp_ui/dialogCancel', {

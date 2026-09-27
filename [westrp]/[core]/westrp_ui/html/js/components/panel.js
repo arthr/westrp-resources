@@ -211,7 +211,7 @@ class PanelComponent {
       if (stepper) stepper.style.display = 'none';
       if (this.ctaBtn) this.ctaBtn.style.display = 'none';
       if (this.selectedNameEl) this.selectedNameEl.textContent = curTab.label || curTab.title || 'PAINEL';
-      if (this.selectedDescEl) this.selectedDescEl.textContent = curTab.description || 'Pressione ESC para fechar ou selecione uma opção.';
+      if (this.selectedDescEl) this.selectedDescEl.textContent = curTab.description || 'Pressione BACKSPACE para fechar ou selecione uma opção.';
     } else {
       if (stepper) stepper.style.display = 'flex';
       if (this.ctaBtn) this.ctaBtn.style.display = 'block';
@@ -839,7 +839,7 @@ class PanelComponent {
             window.uiModal.open({
               title: item.modalTitle || 'MODAL OFICIAL RDR2',
               subtitle: item.modalSubtitle || 'Dialog flutuante central com textura e animação zoom-in',
-              content: item.modalContent || 'Este modal representa fielmente o componente RdrModal do RedM Vue UI, com backdrop sombreado, fechar com ESC ou clique externo, e botão nativo X.',
+              content: item.modalContent || 'Este modal representa fielmente o componente RdrModal do RedM Vue UI, com backdrop sombreado, fechar com BACKSPACE ou clique externo, e botão nativo X.',
               buttons: [
                 { label: 'CANCELAR', variant: 'subtle', action: 'close' },
                 {

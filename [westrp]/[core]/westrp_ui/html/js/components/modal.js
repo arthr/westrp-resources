@@ -33,7 +33,7 @@ class ModalComponent {
     this.initEls();
 
     if (this.closeBtn) {
-      this.closeBtn.addEventListener('click', () => this.close());
+      this.closeBtn.addEventListener('click', () => this.cancelAndClose());
     }
 
     if (this.container) {
@@ -41,7 +41,7 @@ class ModalComponent {
       this.container.addEventListener('click', (e) => {
         if (e.target === this.container) {
           if (!this.currentOptions || this.currentOptions.closeOnOverlay !== false) {
-            this.close();
+            this.cancelAndClose();
           }
         }
       });
@@ -64,7 +64,10 @@ class ModalComponent {
    *   closable?: boolean (default: true)
    *   closeOnOverlay?: boolean (default: true)
    *   enterToConfirm?: boolean (default: true)
-   *   buttons?: Array<{ label: string, variant?: string, action?: string, isPrimary?: boolean, onClick?: Function }>
+   *   cancelAction?: string
+   *   cancelEvent?: string
+   *   cancelEventType?: "client"|"server"
+   *   buttons?: Array<{ label: string, variant?: string, action?: string, event?: string, eventType?: string, eventData?: any, isPrimary?: boolean, close?: boolean, onClick?: Function }>|false
    *   onClose?: Function
    */
   open(options = {}) {
@@ -139,7 +142,7 @@ class ModalComponent {
 
     // Identificação do botão primário para disparo via [ENTER]
     this.primaryButtonIndex = -1;
-    if (options.buttons && options.buttons.length > 0) {
+    if (options.buttons !== false && options.buttons && options.buttons.length > 0) {
       let primIdx = options.buttons.findIndex(b => b.isPrimary === true || b.action === 'confirm');
       if (primIdx === -1) {
         primIdx = options.buttons.findIndex(b => b.variant === 'default' || b.variant === 'danger');
@@ -167,25 +170,40 @@ class ModalComponent {
 
     this.contentEl.innerHTML = innerHtml;
 
-    // Vincular cliques dos botões
-    if (options.buttons && options.buttons.length > 0) {
+    // Vincular cliques dos botões com sequenciamento estrito de eventos
+    if (options.buttons !== false && options.buttons && options.buttons.length > 0) {
       const btnEls = this.contentEl.querySelectorAll('.rdr-modal-actions button');
       btnEls.forEach((el) => {
         const idx = parseInt(el.getAttribute('data-btn-idx'), 10);
         const btnConfig = options.buttons[idx];
-        el.addEventListener('click', () => {
+        el.addEventListener('click', async () => {
           if (window.uiAudio) window.uiAudio.playSelect();
           if (btnConfig.onClick) {
             btnConfig.onClick();
           }
-          if (btnConfig.action === 'close') {
-            this.close();
-          } else if (btnConfig.action && !this.isConfirmMode) {
-            fetch('https://westrp_ui/modalAction', {
+
+          if (this.isConfirmMode) {
+            // Em modo confirmação binária rápida, a resolução já executa o submit/cancel
+            return;
+          }
+
+          // Se houver ação ou evento parametrizado, despacha para o Lua e AGUARDA a confirmação
+          if (btnConfig.action || btnConfig.event) {
+            await fetch('https://westrp_ui/modalAction', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: btnConfig.action, modalId: options.id || 'default_modal' })
+              body: JSON.stringify({
+                action: btnConfig.action || 'action',
+                event: btnConfig.event,
+                eventType: btnConfig.eventType || 'client',
+                eventData: btnConfig.eventData || {},
+                modalId: options.id || 'default_modal'
+              })
             }).catch(() => {});
+          }
+
+          // O fechamento só é disparado APÓS a ação ter sido emitida e confirmada
+          if (btnConfig.close !== false) {
             this.close();
           }
         });
@@ -200,6 +218,35 @@ class ModalComponent {
 
     this.isOpen = true;
     if (window.uiAudio) window.uiAudio.playNav();
+  }
+
+  /**
+   * Trata o cancelamento e fechamento (via botão X, clique externo ou tecla BACKSPACE)
+   * Garante que eventos de cancelAction/cancelEvent sejam emitidos ANTES de modalClosed
+   */
+  async cancelAndClose() {
+    if (!this.isOpen) return;
+
+    if (this.isConfirmMode) {
+      this.close();
+      return;
+    }
+
+    if (this.currentOptions && (this.currentOptions.cancelAction || this.currentOptions.cancelEvent)) {
+      await fetch('https://westrp_ui/modalAction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: this.currentOptions.cancelAction || 'cancel',
+          event: this.currentOptions.cancelEvent,
+          eventType: this.currentOptions.cancelEventType || 'client',
+          eventData: this.currentOptions.eventData || {},
+          modalId: this.currentOptions.id || 'default_modal'
+        })
+      }).catch(() => {});
+    }
+
+    this.close();
   }
 
   /**
