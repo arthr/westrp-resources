@@ -1,0 +1,270 @@
+# Plano Diretor de Arquitetura & Implementação — Player Status HUD (`westrp_ui`)
+> **Documento:** Especificação Técnica, Referências Oficiais e Backlog Detalhado de Tasks/Subtasks  
+> **Versão:** 2.0.0  
+> **Status:** Aprovado para Execução  
+> **Target:** RedM (CitizenFX Game Build 1491+)  
+> **Padrões de Engenharia:** `.agent/skills/fivem-basics`, `.agent/skills/lua-basics`, `.agent/skills/fivem-security`
+
+---
+
+## 1. Hub de Referências & Links de Consulta
+
+Para garantir alinhamento com a comunidade RedM e a melhor engenharia de software, este projeto baseia-se diretamente nas seguintes referências técnicas:
+
+| Referência | Tipo | Link / Caminho | Propósito no Projeto |
+| :--- | :---: | :--- | :--- |
+| **GFX HUD** | Vídeo / Showcase | [YouTube: GFX HUD (2iBbpFX1hLk)](https://www.youtube.com/watch?v=2iBbpFX1hLk) | **Padrão de Ouro de UX/UI:** Anéis circulares elegantes, animações de pulso, HUD de cavalo com fade automático, voz integrada e modo cinemático. |
+| **RedEM:RP Status** | Repositório | [GitHub: RedEM-RP/redemrp_status](https://github.com/RedEM-RP/redemrp_status) | **Referência de Estrutura de Status:** Mapeamento de fome, sede, normalização percentual (0..100) e interfaces modulares de consumo. |
+| **VORP Metabolism** | Script Local | [vorp_metabolism](file:///c:/txData/VORPCore_B1A065.base/resources/[VORP]/vorp_metabolism) | **Mapeamento Atual de Gameplay:** Leitura de `PlayerStatus["Hunger"]` e `PlayerStatus["Thirst"]` (escala 0..1000) e eventos client. |
+| **RDR3 Discoveries (femga)** | Documentação | [GitHub: rdr3_discoveries](https://github.com/femga/rdr3_discoveries/tree/master) | **Natives & Scaleforms RDR2:** Tabela de atributos nativos de ped, montaria, pós-processamentos visuais e temperatura de clima. |
+| **RDR3 Natives Database** | API Reference | [RDR3 Natives](https://rdr3natives.com/) | Consulta oficial de parâmetros e tipos de natives C++ do RedM. |
+| **WestRP UI Engine** | Core UI | [westrp_ui/client/native_hud.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/client/native_hud.lua) | Camada nativa C++ existente (Barra de Honra, Timers, Saldo, Rank). |
+| **WestRP Design System** | Documentação | [docs/DESIGN_SYSTEM.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/docs/DESIGN_SYSTEM.md) | Tokens de cor, tipografia (`Chinese Rocks`, `Hapna`), texturas e raios de borda. |
+| **WestRP Arquitetura** | Documentação | [docs/ARCHITECTURE.md](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/docs/ARCHITECTURE.md) | Princípios de Instância Única Chromium, ausência de memory leaks e DX declarativo. |
+
+---
+
+## 2. Decisão Arquitetural: Divisão de Responsabilidades
+
+### 2.1 Separação Estrita em Camadas (View vs. Simulation)
+
+A resposta técnica sobre a separação do resource baseia-se no princípio fundamental da arquitetura limpa (**Separation of Concerns**):
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│             CAMADA DE SIMULAÇÃO & GAMEPLAY (BACKEND / DB)              │
+│            (vorp_metabolism atual / futuro westrp_metabolism)          │
+├────────────────────────────────────────────────────────────────────────┤
+│ • Regras de negócio de sobrevivência (decaimento calórico por tick)    │
+│ • Persistência no banco MySQL (tabela characters/metabolism)           │
+│ • Registro e consumo de itens (comidas, bebidas, tônicos, remédios)    │
+│ • Aplicação de efeitos fisiológicos e dano por inanição                │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ Eventos Client / Exports
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│             CAMADA DE APRESENTAÇÃO VISUAL (VIEW & RENDERER)            │
+│                              (westrp_ui)                               │
+├────────────────────────────────────────────────────────────────────────┤
+│ • Instância Chromium Única: Elimina alocação de processo CEF extra     │
+│ • client/hud.lua: Thread com Tick Adaptativo (0.00ms idle)             │
+│ • html/js/components/hud.js: Renderizador procedural de SVG (60 FPS)   │
+│ • html/css/hud.css: Design System 1:1 RDR2 com SafeZone dinâmica       │
+│ • Orquestração Global: Oculta o HUD ao abrir Modais, Panels ou Dock    │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Justificativa Técnica
+
+1. **Por que a View pertence ao `westrp_ui`?**
+   * **Instância NUI Única:** Se criássemos um resource separado com sua própria `ui_page`, o RedM alocaria um segundo processo Chromium CEF. Isso consumiria de 60MB a 120MB de RAM adicionais e geraria disputas de draw calls na GPU.
+   * **Reaproveitamento de Memória:** O `westrp_ui` já tem carregadas na VRAM as texturas rústicas (`bg.png`, `box.png`, `divider.png`), as fontes tipográficas oficiais (`Chinese Rocks`, `Hapna Slab Serif`) e o motor de áudio procedural WebAudio.
+   * **Orquestração de Interface:** Quando o jogador abre o Panel de 1440px ou entra no modo cinemático, o `westrp_ui` esmaece o HUD imediatamente, sem necessidade de comunicação lenta entre recursos via NUI.
+
+2. **Por que a Simulação NÃO pertence ao `westrp_ui`?**
+   * O `westrp_ui` deve permanecer agnóstico de regras de negócio. Ele não deve salvar em banco de dados, nem conhecer tabelas de itens do VORP.
+   * Ele apenas recebe percentuais normalizados de `0.0` a `100.0%` via Adapter/Bridge client-side.
+
+---
+
+## 3. Especificação Técnica dos Componentes de HUD
+
+### 3.1 Catálogo Completo de Atributos
+
+| Atributo | Ícone Temático | Cor de Acento RDR2 | Origem Técnica dos Dados | Condição de Exibição |
+| :--- | :---: | :--- | :--- | :--- |
+| **Vida (Health)** | Coração | `#B62A2A` (Vermelho RDR2) | Native: `GetEntityHealth(ped)` & `GetPedMaxHealth(ped)` | Sempre visível; pulso de alerta quando < 25%. |
+| **Estamina (Stamina)** | Raio / Energia | `#dfb76c` (Dourado Couro) | Native: `GetPlayerStamina(PlayerId())` & max stamina | Sempre visível; decai ativamente ao correr/pular. |
+| **Fome (Hunger)** | Prato / Pão Rústico | `#d48b38` (Âmbar Queimado) | Bridge: `vorp_metabolism` (`PlayerStatus["Hunger"]`) | Sempre visível; pulso de alerta quando < 15%. |
+| **Sede (Thirst)** | Gota de Água | `#4a90e2` (Azul Celeste) | Bridge: `vorp_metabolism` (`PlayerStatus["Thirst"]`) | Sempre visível; pulso de alerta quando < 15%. |
+| **Temperatura (Temp)** | Termômetro | `#64b5f6` (Frio) / `#e53935` (Calor) | Native: `GetTemperatureAtCoords(coords)` | Dinâmico: visível quando a temp. for extrema (< 5°C ou > 35°C). |
+| **Voz (Voice Range)** | Microfone / Ondas | `#fafafa` (Idle) / `#2e7d32` (Falando) | Native: `MumbleGetTalkerProximity()` / PMA-Voice | Sempre visível; 3 arcos (1.5m Sussurro, 3.0m Normal, 8.0m Grito). |
+| **Vida do Cavalo** | Coração Equino | `#8e0000` (Carmesim Profundo) | Native: `GetEntityHealth(mount)` & max health | **Contextual:** Visível apenas quando `IsPedOnMount(ped) == true`. |
+| **Estamina do Cavalo**| Raio Equino | `#c5a059` (Ouro Envelhecido) | Native: `GetAttributeCoreValue(mount, 1)` | **Contextual:** Visível apenas quando `IsPedOnMount(ped) == true`. |
+
+---
+
+### 3.2 Contrato de Dados NUI (Payload JSON)
+
+A thread client em Lua despachará dados para o Chromium através de um payload consolidado:
+
+```json
+{
+  "action": "westrp_ui:updatePlayerHud",
+  "data": {
+    "health": 85.0,
+    "stamina": 92.5,
+    "hunger": 64.0,
+    "thirst": 48.0,
+    "temperature": 18.5,
+    "tempStatus": "normal",
+    "voice": {
+      "level": 2,
+      "isTalking": true
+    },
+    "mount": {
+      "active": true,
+      "health": 95.0,
+      "stamina": 78.0
+    },
+    "isCinematic": false,
+    "isPaused": false
+  }
+}
+```
+
+---
+
+## 4. Backlog Detalhado de Implementação (Fases, Tasks & Subtasks)
+
+```
+[FASE 1: Coletor Client Lua (client/hud.lua)]
+       │
+       ▼
+[FASE 2: Componente Frontend SVG (html/js/components/hud.js & hud.css)]
+       │
+       ▼
+[FASE 3: Bridge de Integração VORP/RedEM & Sistema de Voz]
+       │
+       ▼
+[FASE 4: Vitals de Montaria Contextuais (Auto-Mount/Dismount)]
+       │
+       ▼
+[FASE 5: Modos Dinâmicos, Cinemático & Otimização Resmon 0.00ms]
+```
+
+---
+
+### 📌 FASE 1: Coletor Nativo Client-Side (`client/hud.lua`)
+**Objetivo:** Criar o coletor de telemetria nativa do jogador com arquitetura de tick adaptativo para garantir resmon de **0.00ms a 0.01ms**.  
+**Padrão de Código:** `.agent/skills/lua-basics` (locais cacheados, sem `Wait(0)` desnecessário) e `.agent/skills/fivem-basics`.
+
+- [ ] **Task 1.1: Estruturação do Arquivo e Registro no Manifest**
+  - [ ] Subtask 1.1.1: Criar o arquivo `client/hud.lua`.
+  - [ ] Subtask 1.1.2: Registrar `'client/hud.lua'` em `client_scripts` no [fxmanifest.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/fxmanifest.lua).
+  - [ ] Subtask 1.1.3: Declarar tabela local de estado `PlayerHudState = {}` contendo snapshots anteriores para envio delta.
+
+- [ ] **Task 1.2: Implementação do Loop de Tick Adaptativo**
+  - [ ] Subtask 1.2.1: Cachear `PlayerPedId()`, `PlayerId()` e coordenadas em variáveis locais no escopo do loop.
+  - [ ] Subtask 1.2.2: Implementar leitura de vida normalizada:
+    ```lua
+    local health = GetEntityHealth(ped)
+    local maxHealth = GetPedMaxHealth(ped)
+    local healthPct = math.max(0.0, math.min(100.0, (health / maxHealth) * 100.0))
+    ```
+  - [ ] Subtask 1.2.3: Implementar leitura de estamina via native float RDR2 (`0x0FF421E467373FCF` / `GetPlayerStamina`).
+  - [ ] Subtask 1.2.4: Implementar controle adaptativo de tempo de espera:
+    * Se o jogador estiver correndo, nadando ou a cavalo galopando: `Wait(100)` (alta fluidez).
+    * Se o jogador estiver parado/idle com valores estáveis: `Wait(350)` (economia de CPU / 0.00ms).
+
+- [ ] **Task 1.3: Filtro Delta de Transmissão NUI (Throttling)**
+  - [ ] Subtask 1.3.1: Comparar os novos valores com o último snapshot enviado.
+  - [ ] Subtask 1.3.2: Só invocar `SendNUIMessage` se houver alteração significativa (`math.abs(new - old) >= 0.5`) ou mudança de estado de voz/montaria, evitando saturação do CEF.
+
+---
+
+### 📌 FASE 2: Componente Frontend NUI (`hud.js` & `hud.css`)
+**Objetivo:** Desenhar os anéis de status em SVG procedural vetorial com transição acelerada por GPU, cantos nítidos de época e zero dependências pesadas (sem jQuery/Canvas).
+
+- [ ] **Task 2.1: Estrutura HTML do Contêiner no DOM**
+  - [ ] Subtask 2.1.1: Adicionar contêiner `#player-hud-container` no [html/index.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/index.html) ancorado na SafeZone inferior esquerda.
+  - [ ] Subtask 2.1.2: Declarar o layout em grade/flex com os grupos:
+    * Grupo A: Vitals do Jogador (Vida, Estamina, Fome, Sede).
+    * Grupo B: Vitals de Montaria (Vida do Cavalo, Estamina do Cavalo) - oculto por padrão.
+    * Grupo C: Indicador de Voz e Temperatura.
+  - [ ] Subtask 2.1.3: Replicar a mesma marcação sem quebras no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html) para testes em navegador.
+
+- [ ] **Task 2.2: Estilização Visual 1:1 RDR2 (`html/css/hud.css`)**
+  - [ ] Subtask 2.2.1: Criar o arquivo `html/css/hud.css` e registrá-lo no `index.html` e `fxmanifest.lua`.
+  - [ ] Subtask 2.2.2: Criar classes para anéis SVG de diâmetro `46px`:
+    ```css
+    .rdr-hud-ring {
+      width: 46px;
+      height: 46px;
+      transform: rotate(-90deg); /* Inicia o preenchimento pelo topo */
+    }
+    .rdr-hud-circle-fill {
+      fill: none;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.3s ease-out;
+    }
+    ```
+  - [ ] Subtask 2.2.3: Implementar animação CSS `@keyframes pulseAlert` (escala 1.0 -> 1.08 com borda vermelha viva) para atributos críticos.
+  - [ ] Subtask 2.2.4: Aplicar texturas de fundo rústico semitransparente em cada anel.
+
+- [ ] **Task 2.3: Máquina de Estado JavaScript (`html/js/components/hud.js`)**
+  - [ ] Subtask 2.3.1: Criar o componente `HudComponent` e instanciar em `window.uiPlayerHud`.
+  - [ ] Subtask 2.3.2: Implementar método `update(data)` que calcula a fórmula do perímetro do círculo SVG:
+    $$\text{offset} = \text{circunferência} - \left(\frac{\text{valor}}{100} \times \text{circunferência}\right)$$
+  - [ ] Subtask 2.3.3: Integrar ao roteador principal [html/js/app.js](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/js/app.js) para escutar a action `westrp_ui:updatePlayerHud`.
+
+---
+
+### 📌 FASE 3: Bridge de Integração (Metabolismo VORP + Sistema de Voz)
+**Objetivo:** Conectar os dados de fome e sede do `vorp_metabolism` e a telemetria do sistema de áudio VOIP ao HUD sem gerar acoplamento rígido.
+
+- [ ] **Task 3.1: Bridge com `vorp_metabolism`**
+  - [ ] Subtask 3.1.1: Interceptar no cliente os eventos de atualização de status do VORP:
+    * Evento: `vorpmetabolism:updateStatus` ou leitura periódica da tabela global `PlayerStatus`.
+  - [ ] Subtask 3.1.2: Normalizar a escala original do VORP (0 a 1000) para percentual (0 a 100%):
+    ```lua
+    local hungerPct = (PlayerStatus["Hunger"] or 1000) / 10.0
+    local thirstPct = (PlayerStatus["Thirst"] or 1000) / 10.0
+    ```
+  - [ ] Subtask 3.1.3: Implementar export público `exports['westrp_ui']:UpdateMetabolismStatus(hunger, thirst)` permitindo que qualquer framework (VORP, RedEM ou WestRP Core) injete dados de fome/sede diretamente.
+
+- [ ] **Task 3.2: Integração com Sistema de Voz (PMA-Voice / Mumble / SaltyChat)**
+  - [ ] Subtask 3.2.1: Detectar nativamente se o microfone está ativo: `MumbleIsPlayerTalking(PlayerId())` ou `NetworkIsPlayerTalking(PlayerId())`.
+  - [ ] Subtask 3.2.2: Mapear os níveis de proximidade do PMA-Voice / Mumble:
+    * Nível 1 (Sussurro): Raio de 1.5m (1 barra acesa).
+    * Nível 2 (Normal): Raio de 3.0m (2 barras acesas).
+    * Nível 3 (Grito): Raio de 8.0m (3 barras acesas).
+  - [ ] Subtask 3.2.3: Atualizar visualmente o anel/ondas de voz no NUI com cor de destaque verde/dourado ao falar.
+
+- [ ] **Task 3.3: Leitura de Temperatura Ambiental Nativa**
+  - [ ] Subtask 3.3.1: Invocação da native `GetTemperatureAtCoords(coords.x, coords.y, coords.z)`.
+  - [ ] Subtask 3.3.2: Classificação térmica:
+    * Frio Extremo: `< 2°C` (adiciona classe `.temp--freezing` com tom ciano).
+    * Normal: `15°C a 28°C` (oculta ou exibe tom neutro).
+    * Calor Extremo: `> 36°C` (adiciona classe `.temp--heat` com tom âmbar/vermelho).
+
+---
+
+### 📌 FASE 4: Vitals de Montaria (Cavalo) Contextuais
+**Objetivo:** Exibir os anéis de vida e estamina equina automaticamente ao montar e ocultar com fade suave ao desmontar.
+
+- [ ] **Task 4.1: Detecção de Montaria no Client Lua**
+  - [ ] Subtask 4.1.1: Verificar periodicamente `IsPedOnMount(ped)`.
+  - [ ] Subtask 4.1.2: Quando verdadeiro, capturar `local mount = GetMount(ped)`.
+  - [ ] Subtask 4.1.3: Ler vida da montaria via `GetEntityHealth(mount)` / `GetPedMaxHealth(mount)`.
+  - [ ] Subtask 4.1.4: Ler estamina do cavalo via native de attribute core equino (`GetAttributeCoreValue(mount, 1)`).
+
+- [ ] **Task 4.2: Transições Suaves no Frontend NUI**
+  - [ ] Subtask 4.2.1: Criar classe CSS `.rdr-mount-vitals` com `opacity: 0; transform: scale(0.85); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);`.
+  - [ ] Subtask 4.2.2: Adicionar classe `.is-mounted` quando `mount.active == true`, ativando `zoomAndFadeIn`.
+  - [ ] Subtask 4.2.3: Executar transição de saída `zoomAndFadeOut` ao desmontar antes de setar `display: none`.
+
+---
+
+### 📌 FASE 5: Modos Dinâmicos, Cinemático & Otimização
+**Objetivo:** Proporcionar ergonomia máxima, respeitar o modo cinemático nativo e garantir resmon constante de **0.00ms idle / ≤ 0.01ms ativo**.
+
+- [ ] **Task 5.1: Orquestração com Outros Menus da Engine**
+  - [ ] Subtask 5.1.1: Quando `OpenPanel`, `OpenDock` ou `OpenDialog` forem abertos, emitir evento interno para atenuar a opacidade do HUD para `15%` ou ocultá-lo temporariamente.
+  - [ ] Subtask 5.1.2: Restaurar opacidade de 100% imediatamente ao fechar os menus.
+
+- [ ] **Task 5.2: Suporte a Modo Cinemático (Letterbox)**
+  - [ ] Subtask 5.2.1: Escutar comando/tecla de modo cinemático nativo do servidor.
+  - [ ] Subtask 5.2.2: Exportar função `exports['westrp_ui']:SetHudVisible(visible: boolean)`.
+
+- [ ] **Task 5.3: Simulação e Testes de Bancada**
+  - [ ] Subtask 5.3.1: Criar bateria de testes no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html) com sliders para manipular vida, estamina, fome, sede, cavalo e voz em tempo real no navegador.
+  - [ ] Subtask 5.3.2: Adicionar comando `/testhud` no [client/showcase.lua](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/client/showcase.lua) para injetar status de estresse no servidor de testes.
+  - [ ] Subtask 5.3.3: Executar medição no Profiler do RedM (`resmon 1`) confirmando estabilidade em **0.00ms**.
+
+---
+
+## 5. Próximos Passos de Execução
+
+1. **Aprovação do Plano:** Alinhar se as 5 fases e subtasks atendem integralmente ao escopo desejado.
+2. **Execução Sequencial:** Iniciar pela **Fase 1 (Coletor Client Lua)** e **Fase 2 (Componente Frontend SVG)**, mantendo a integridade total do resource.

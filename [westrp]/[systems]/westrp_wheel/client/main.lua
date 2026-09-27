@@ -144,7 +144,7 @@ local function NotifyItemUsed(itemName)
 
     -- Tenta usar o sistema unificado de UI do WestRP
     if WestRP.Client and WestRP.Client.UI and WestRP.Client.UI.ShowToast then
-        WestRP.Client.UI.ShowToast("info", string.format("%s %s", title, label))
+        WestRP.Client.UI.ShowToast(title, label, "info", Config.Notify.Duration or 3500)
     else
         -- Fallback nativo limpo
         local str = CreateVarString(10, 'LITERAL_STRING', msg)

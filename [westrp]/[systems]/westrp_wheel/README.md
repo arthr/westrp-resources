@@ -209,3 +209,26 @@ resources/[westrp]/[systems]/westrp_wheel/
 | **Alocação de Memória** | Alta (Instancia buffers em todo frame) | **Zero GC (Buffer Pooling estático)** |
 | **Proteção Anti-Cheat** | Zero proteção no servidor | **Rate-limit, Validação de Vida e Remoção Atômica** |
 | **Acoplamento** | VORP puro (Italiano) | **WestRP Bridge SDK (PT-BR)** |
+
+---
+
+## 5. Banco de Dados & Registro de Itens (`items_wheel.sql`)
+
+### Diagnóstico do `items.sql` Original do GitHub
+No repositório original (`awz_inputwheel/items.sql`), o autor incluiu um script SQL com sérios riscos para servidores em produção:
+1. **IDs Fixos e Hardcoded (`id` de 1 a 111)**: Como a tabela `items` do VORP utiliza chave primária com `AUTO_INCREMENT`, executar aquele script causa erro fatal de **chave primária duplicada (`Duplicate entry '1' for key 'PRIMARY'`)**, além do risco de corromper itens já existentes.
+2. **Textos em Italiano**: Todas as labels e descrições originais estão em italiano (`'Mela'`, `'Fagioli'`, `'Conhaque di Qualità'`).
+3. **Ausência de Cláusula de Conflito**: Um simples `INSERT INTO` causará crash na importação caso qualquer um dos itens (como `consumable_peach` ou `consumable_apple`) já esteja cadastrado no seu banco.
+
+### Solução WestRP: `items_wheel.sql`
+Criamos o arquivo oficial [`items_wheel.sql`](file:///c:/txData/VORPCore_B1A065.base/resources/%5Bwestrp%5D/%5Bsystems%5D/westrp_wheel/items_wheel.sql):
+- **111 Itens Traduzidos**: Mapeados para PT-BR em paridade estrita com o [`config.lua`](file:///c:/txData/VORPCore_B1A065.base/resources/%5Bwestrp%5D/%5Bsystems%5D/westrp_wheel/config.lua).
+- **Sem IDs Fixos**: A coluna `id` foi omitida, permitindo que o MySQL gere os IDs sequenciais corretos sem jamais colidir com itens do seu servidor.
+- **Cláusula `INSERT IGNORE INTO`**: Se o seu servidor já possuir itens como `consumable_apple` ou `consumable_haycube`, eles **não serão duplicados nem corrompidos**. O MySQL inserirá apenas os itens que faltavam.
+
+### Como Executar a Migração
+1. Abra o seu gerenciador de banco de dados MySQL (HeidiSQL, DBeaver ou phpMyAdmin).
+2. Selecione o banco de dados do seu servidor RedM (ex: `vorp_core` ou similar).
+3. Abra e execute o arquivo:
+   `resources/[westrp]/[systems]/westrp_wheel/items_wheel.sql`
+4. Reinicie o recurso `vorp_inventory` ou o servidor para que o cache de itens do VORP recarregue as novas entradas.

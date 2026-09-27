@@ -289,6 +289,8 @@ CreateThread(function()
 
         if cfgWheel or cfgStatus then
             local isWheelInputActive = cfgWheel and (
+                LocalPlayer.state.isWheelOpen == true or
+                IsUiappRunning("hud_quick_select") or
                 IsControlPressed(0, `INPUT_TOGGLE_HOLSTER`) or
                 IsControlPressed(0, `INPUT_SELECT_WEAPON`) or
                 IsDisabledControlPressed(0, `INPUT_TOGGLE_HOLSTER`) or
@@ -306,7 +308,13 @@ CreateThread(function()
 
             if isWheelInputActive then
                 sleep = 0
-                if wheelHoldStart == 0 then
+                if LocalPlayer.state.isWheelOpen or IsUiappRunning("hud_quick_select") then
+                    if not isOverlayVisible then
+                        isOverlayVisible = true
+                        local val = NativeHUD.GetCachedHonor()
+                        NativeHUD.SetHonor(val, 0)
+                    end
+                elseif wheelHoldStart == 0 then
                     wheelHoldStart = GetGameTimer()
                 elseif (GetGameTimer() - wheelHoldStart) >= 180 then
                     -- Jogador segurando TAB há mais de 180ms (Roda de Armas aberta)
