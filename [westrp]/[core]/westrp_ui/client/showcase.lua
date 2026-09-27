@@ -138,7 +138,7 @@ function OpenShowcaseDock()
                         description = 'Acesse os serviços de quarto e higiene pessoal.',
                         subItems = {
                             { id = 'bath_service', label = 'Banho Quente Completo', badge = '$ 2.00', badgeType = 'gold', description = 'Recupera totalmente os núcleos de vida e fôlego.' },
-                            { id = 'hair_cut', label = 'Aparar Barba e Cabelo', badge = '$ 1.50', badgeType = 'gold', description = 'Serviço de barbearia higiênica.' }
+                            { id = 'hair_cut',     label = 'Aparar Barba e Cabelo', badge = '$ 1.50', badgeType = 'gold', description = 'Serviço de barbearia higiênica.' }
                         }
                     }
                 }
@@ -188,10 +188,10 @@ function OpenShowcasePanel(targetTabId)
                 viewType = 'grid',
                 pageSize = 6,
                 filters = {
-                    { id = 'all', label = 'Todos os Produtos', default = true },
-                    { id = 'weapons', label = 'Armamentos', key = 'category', value = 'weapons' },
-                    { id = 'tools', label = 'Ferramentas', key = 'category', value = 'tools' },
-                    { id = 'provisions', label = 'Provisões', key = 'category', value = 'provisions' }
+                    { id = 'all',        label = 'Todos os Produtos', default = true },
+                    { id = 'weapons',    label = 'Armamentos',        key = 'category', value = 'weapons' },
+                    { id = 'tools',      label = 'Ferramentas',       key = 'category', value = 'tools' },
+                    { id = 'provisions', label = 'Provisões',         key = 'category', value = 'provisions' }
                 },
                 items = {
                     {
@@ -274,29 +274,30 @@ function OpenShowcasePanel(targetTabId)
                 viewType = 'table',
                 pageSize = 5,
                 filters = {
-                    { id = 'all', label = 'Todas as Transações', default = true },
-                    { id = 'completed', label = 'Concluídas', key = 'status_type', value = 'on' },
-                    { id = 'pending', label = 'Pendentes', key = 'status_type', value = 'off' },
-                    { id = 'cancelled', label = 'Canceladas', key = 'status_type', value = 'danger' }
+                    { id = 'all',       label = 'Todas as Transações', default = true },
+                    { id = 'completed', label = 'Concluídas',          key = 'status_type', value = 'on' },
+                    { id = 'pending',   label = 'Pendentes',           key = 'status_type', value = 'off' },
+                    { id = 'cancelled', label = 'Canceladas',          key = 'status_type', value = 'danger' }
                 },
                 columns = {
-                    { key = 'code', label = 'Nº', width = '10%', align = 'center' },
-                    { key = 'date', label = 'DATA', width = '12%' },
-                    { key = 'desc', label = 'MERCADORIA / OPERAÇÃO', width = '34%' },
-                    { key = 'client', label = 'CIDADÃO', width = '22%' },
-                    { key = 'amount', label = 'VALOR', width = '12%', align = 'right' },
-                    { key = 'status', label = 'STATUS', width = '10%', align = 'center', type = 'pill' }
+                    { key = 'code',   label = 'Nº',                    width = '10%', align = 'center' },
+                    { key = 'date',   label = 'DATA',                  width = '12%' },
+                    { key = 'desc',   label = 'MERCADORIA / OPERAÇÃO', width = '34%' },
+                    { key = 'client', label = 'CIDADÃO',               width = '22%' },
+                    { key = 'amount', label = 'VALOR',                 width = '12%', align = 'right' },
+                    { key = 'status', label = 'STATUS',                width = '10%', align = 'center', type = 'pill' }
                 },
                 rows = {
-                    { id = 'r1', code = '#201', date = '24/09', desc = 'Venda: Tomahawk de Caça', client = 'Arthur Morgan', amount = '$ 35.00', status = 'CONCLUÍDO', status_type = 'on' },
-                    { id = 'r2', code = '#202', date = '24/09', desc = 'Encomenda: 50x Balas .44', client = 'John Marston', amount = '$ 12.50', status = 'PENDENTE', status_type = 'off' },
+                    { id = 'r1', code = '#201', date = '24/09', desc = 'Venda: Tomahawk de Caça',   client = 'Arthur Morgan',   amount = '$ 35.00', status = 'CONCLUÍDO', status_type = 'on' },
+                    { id = 'r2', code = '#202', date = '24/09', desc = 'Encomenda: 50x Balas .44',  client = 'John Marston',    amount = '$ 12.50', status = 'PENDENTE',  status_type = 'off' },
                     { id = 'r3', code = '#203', date = '24/09', desc = 'Lote Devolvido: Querosene', client = 'Bill Williamson', amount = '$ 28.00', status = 'CANCELADO', status_type = 'danger' },
-                    { id = 'r4', code = '#204', date = '23/09', desc = 'Compra: Minério de Ferro', client = 'Hosea Matthews', amount = '$ 42.00', status = 'CONCLUÍDO', status_type = 'on' },
-                    { id = 'r5', code = '#205', date = '23/09', desc = 'Manutenção de Carroça', client = 'Sadie Adler', amount = '$ 15.00', status = 'CONCLUÍDO', status_type = 'on' },
-                    { id = 'r6', code = '#206', date = '22/09', desc = 'Pensão do Estábulo (7d)', client = 'Charles Smith', amount = '$ 7.00', status = 'PENDENTE', status_type = 'off' },
-                    { id = 'r7', code = '#207', date = '22/09', desc = 'Carga de Peles de Cervo', client = 'Javier Escuella', amount = '$ 54.00', status = 'CONCLUÍDO', status_type = 'on' }
+                    { id = 'r4', code = '#204', date = '23/09', desc = 'Compra: Minério de Ferro',  client = 'Hosea Matthews',  amount = '$ 42.00', status = 'CONCLUÍDO', status_type = 'on' },
+                    { id = 'r5', code = '#205', date = '23/09', desc = 'Manutenção de Carroça',     client = 'Sadie Adler',     amount = '$ 15.00', status = 'CONCLUÍDO', status_type = 'on' },
+                    { id = 'r6', code = '#206', date = '22/09', desc = 'Pensão do Estábulo (7d)',   client = 'Charles Smith',   amount = '$ 7.00',  status = 'PENDENTE',  status_type = 'off' },
+                    { id = 'r7', code = '#207', date = '22/09', desc = 'Carga de Peles de Cervo',   client = 'Javier Escuella', amount = '$ 54.00', status = 'CONCLUÍDO', status_type = 'on' }
                 },
-                footerText = 'Registros auditados pelo Tribunal de Saint Denis • Clique nos cabeçalhos das colunas para alternar ordenação (▲/▼)'
+                footerText =
+                'Registros auditados pelo Tribunal de Saint Denis • Clique nos cabeçalhos das colunas para alternar ordenação (▲/▼)'
             },
 
             -- ABA 3: CONTROLES & COMPONENTES RDR2 (Sliders, Checkboxes, Dropdowns, Buttons, Cards)
@@ -321,9 +322,9 @@ function OpenShowcasePanel(targetTabId)
                         title = 'Faca de Caça Rústica',
                         subtitle = 'Forja com têmpera especial em água mineral fria.',
                         requirements = {
-                            { item = 'resource_iron_dirty', label = 'Minério de Ferro', current = 6, required = 2 },
-                            { item = 'resource_coal', label = 'Carvão Mineral', current = 12, required = 1 },
-                            { item = 'lumber_pine_wood_plank', label = 'Madeira de Pinho', current = 4, required = 1 }
+                            { item = 'resource_iron_dirty',    label = 'Minério de Ferro', current = 6,  required = 2 },
+                            { item = 'resource_coal',          label = 'Carvão Mineral',   current = 12, required = 1 },
+                            { item = 'lumber_pine_wood_plank', label = 'Madeira de Pinho', current = 4,  required = 1 }
                         }
                     },
                     {
@@ -331,9 +332,9 @@ function OpenShowcasePanel(targetTabId)
                         title = 'Machadinha de Aço Forjado',
                         subtitle = 'Lâmina equilibrada para alta penetração e impacto.',
                         requirements = {
-                            { item = 'resource_iron_dirty', label = 'Minério de Ferro', current = 6, required = 4 },
-                            { item = 'resource_coal', label = 'Carvão Mineral', current = 12, required = 2 },
-                            { item = 'leather_strip', label = 'Tiras de Couro', current = 1, required = 3 }
+                            { item = 'resource_iron_dirty', label = 'Minério de Ferro', current = 6,  required = 4 },
+                            { item = 'resource_coal',       label = 'Carvão Mineral',   current = 12, required = 2 },
+                            { item = 'leather_strip',       label = 'Tiras de Couro',   current = 1,  required = 3 }
                         }
                     },
                     {
@@ -341,8 +342,8 @@ function OpenShowcasePanel(targetTabId)
                         title = 'Gazua de Aço Reforçado',
                         subtitle = 'Ferramenta flexível com ponta endurecida.',
                         requirements = {
-                            { item = 'resource_iron_dirty', label = 'Minério de Ferro', current = 6, required = 1 },
-                            { item = 'resource_coal', label = 'Carvão Mineral', current = 12, required = 1 }
+                            { item = 'resource_iron_dirty', label = 'Minério de Ferro', current = 6,  required = 1 },
+                            { item = 'resource_coal',       label = 'Carvão Mineral',   current = 12, required = 1 }
                         }
                     }
                 }
@@ -402,19 +403,19 @@ function OpenShowcasePanel(targetTabId)
                         title = 'TELEPORT & LOCALIZAÇÃO',
                         icon = 'fa-location-arrow',
                         actions = {
-                            { id = 'tp_waypoint', label = 'Ir para Marcador (TPM)', icon = 'fa-map-pin', type = 'action' },
-                            { id = 'copy_coords', label = 'Copiar Minhas Coordenadas', icon = 'fa-copy', type = 'action' },
-                            { id = 'tp_coords', label = 'Teleportar Coords (X,Y,Z)', icon = 'fa-crosshairs', type = 'action' }
+                            { id = 'tp_waypoint', label = 'Ir para Marcador (TPM)',    icon = 'fa-map-pin',    type = 'action' },
+                            { id = 'copy_coords', label = 'Copiar Minhas Coordenadas', icon = 'fa-copy',       type = 'action' },
+                            { id = 'tp_coords',   label = 'Teleportar Coords (X,Y,Z)', icon = 'fa-crosshairs', type = 'action' }
                         }
                     },
                     {
                         title = 'OPERADOR (SELF BOOSTERS)',
                         icon = 'fa-user-shield',
                         actions = {
-                            { id = 'godmode', label = 'Modo Deus (GodMode)', icon = 'fa-shield-alt', type = 'toggle', active = true },
-                            { id = 'noclip', label = 'Modo Voo (NoClip)', icon = 'fa-rocket', type = 'toggle', active = false },
-                            { id = 'invis', label = 'Invisibilidade', icon = 'fa-ghost', type = 'toggle', active = false },
-                            { id = 'self_heal', label = 'Curar Personagem', icon = 'fa-medkit', type = 'action' }
+                            { id = 'godmode',   label = 'Modo Deus (GodMode)', icon = 'fa-shield-alt', type = 'toggle', active = true },
+                            { id = 'noclip',    label = 'Modo Voo (NoClip)',   icon = 'fa-rocket',     type = 'toggle', active = false },
+                            { id = 'invis',     label = 'Invisibilidade',      icon = 'fa-ghost',      type = 'toggle', active = false },
+                            { id = 'self_heal', label = 'Curar Personagem',    icon = 'fa-medkit',     type = 'action' }
                         }
                     }
                 }
@@ -429,27 +430,29 @@ function OpenShowcasePanel(targetTabId)
                 viewType = 'settings',
                 currentPosition = 'mid_left',
                 positions = {
-                    { id = 'top_left', label = 'Top Left' },
-                    { id = 'top_right', label = 'Top Right' },
-                    { id = 'mid_left', label = 'Mid Left', active = true },
-                    { id = 'mid_right', label = 'Mid Right' },
-                    { id = 'bottom_left', label = 'Bottom Left' },
+                    { id = 'top_left',     label = 'Top Left' },
+                    { id = 'top_right',    label = 'Top Right' },
+                    { id = 'mid_left',     label = 'Mid Left',    active = true },
+                    { id = 'mid_right',    label = 'Mid Right' },
+                    { id = 'bottom_left',  label = 'Bottom Left' },
                     { id = 'bottom_right', label = 'Bottom Right' }
                 },
                 quickActions = {
-                    { id = 'noclip', label = 'Modo Voo (NoClip)', icon = 'fa-rocket', enabled = true },
-                    { id = 'show_names', label = 'GamerTags 3D (ESP)', icon = 'fa-id-badge', enabled = true },
-                    { id = 'godmode', label = 'Modo Invencível (GodMode)', icon = 'fa-shield-alt', enabled = true },
-                    { id = 'show_blips', label = 'Radar de Jogadores', icon = 'fa-map-marker-alt', enabled = false }
+                    { id = 'noclip',     label = 'Modo Voo (NoClip)',         icon = 'fa-rocket',         enabled = true },
+                    { id = 'show_names', label = 'GamerTags 3D (ESP)',        icon = 'fa-id-badge',       enabled = true },
+                    { id = 'godmode',    label = 'Modo Invencível (GodMode)', icon = 'fa-shield-alt',     enabled = true },
+                    { id = 'show_blips', label = 'Radar de Jogadores',        icon = 'fa-map-marker-alt', enabled = false }
                 }
             }
         },
         onAction = function(action, item, tabId, qty, data)
             LogShowcase('PANEL_ACTION', { action = action, item = item, tabId = tabId, quantity = qty, data = data })
             if action == 'confirm' then
-                ShowToast("COMPRA CONCLUÍDA", string.format("Comprado: %s (x%d)", item.title or item.label or item.id, qty or 1), "success", 3500)
+                ShowToast("COMPRA CONCLUÍDA",
+                    string.format("Comprado: %s (x%d)", item.title or item.label or item.id, qty or 1), "success", 3500)
             elseif action == 'craft' then
-                ShowToast("BANCADA DE CRIAÇÃO", string.format("Produzindo: %s (x%d)", item.title or item.id, qty or 1), "info", 3500)
+                ShowToast("BANCADA DE CRIAÇÃO", string.format("Produzindo: %s (x%d)", item.title or item.id, qty or 1),
+                    "info", 3500)
             elseif action == 'collect_job' then
                 ShowToast("LOTE COLETADO", "Lote transferido para o inventário!", "success", 3000)
             elseif action == 'cancel_job' then
@@ -457,7 +460,8 @@ function OpenShowcasePanel(targetTabId)
             elseif action == 'set_dock_position' then
                 ShowToast("POSIÇÃO DO MENU", "Ancoragem alterada para: " .. tostring(data.position or item), "info", 2500)
             elseif action == 'toggle_quick_action' then
-                ShowToast("ATALHO RÁPIDO", string.format("Atalho '%s' = %s", data.actionId or "ação", tostring(data.enabled)), "info", 2000)
+                ShowToast("ATALHO RÁPIDO",
+                    string.format("Atalho '%s' = %s", data.actionId or "ação", tostring(data.enabled)), "info", 2000)
             else
                 ShowToast("AÇÃO DO PAINEL", "Ação: " .. tostring(action), "info", 2500)
             end
@@ -487,9 +491,9 @@ function OpenShowcaseDialog()
                 label = 'Infração Registrada',
                 required = true,
                 options = {
-                    { value = 'desordem', label = 'Perturbação da Ordem em Estabelecimento ($ 15.00)' },
+                    { value = 'desordem',    label = 'Perturbação da Ordem em Estabelecimento ($ 15.00)' },
                     { value = 'porte_armas', label = 'Porte Não Autorizado de Dinamite ($ 45.00)' },
-                    { value = 'desacato', label = 'Desacato à Autoridade Policial ($ 30.00)' }
+                    { value = 'desacato',    label = 'Desacato à Autoridade Policial ($ 30.00)' }
                 }
             },
             {
@@ -512,7 +516,9 @@ function OpenShowcaseDialog()
         },
         onSubmit = function(values)
             LogShowcase('DIALOG_SUBMIT', values)
-            ShowToast("FORMULÁRIO ENVIADO", string.format("Sanção de $ %.2f aplicada! Motivo: %s", tonumber(values.valor_multa) or 0, values.infracao), "success", 4000)
+            ShowToast("FORMULÁRIO ENVIADO",
+                string.format("Sanção de $ %.2f aplicada! Motivo: %s", tonumber(values.valor_multa) or 0, values
+                .infracao), "success", 4000)
         end,
         onCancel = function()
             LogShowcase('DIALOG_CANCEL', { status = 'cancelled' })
@@ -526,13 +532,17 @@ end
 -- ============================================================================
 function OpenShowcaseToasts()
     CreateThread(function()
-        ShowToast("NOTIFICAÇÃO (INFO)", "Informação de sistema com acento ouro velho.", "info", 3000)
-        Wait(800)
-        ShowToast("SUCESSO (GREEN)", "Ação executada e validada pelo servidor com êxito!", "success", 3000)
-        Wait(800)
-        ShowToast("ALERTA (AMBER)", "Atenção: Área de fronteira com patrulha armada.", "alert", 3000)
-        Wait(800)
-        ShowToast("PERIGO (DANGER)", "Erro: Você não possui autorização para esta ação.", "error", 3500)
+        -- 1. Notificação Primária (Textura Rústica bg.png) - Telegrama
+        ShowToast("ESTAÇÃO DE CORREIOS", "Nova correspondência registrada na agência postal.", "primary", 3200)
+        Wait(900)
+        -- 2. Notificação Primária (Textura Rústica bg.png) - Registro Contábil
+        ShowToast("BANCO DE VALENTINE", "Depósito de $ 45.00 computado com sucesso no livro-caixa.", "success", 3200)
+        Wait(900)
+        -- 3. Notificação Vermelha - Alerta de Vigilância
+        ShowToast("XERIFE DE BLACKWATER", "Aviso de patrulha armada nos arredores da cidade.", "alert", 3500)
+        Wait(900)
+        -- 4. Notificação Vermelha - Perigo / Wanted
+        ShowToast("MANDADO DE PRISÃO", "Procurado vivo ou morto. Evite aproximação de patrulhas.", "danger", 4000)
     end)
 end
 
@@ -544,9 +554,10 @@ function OpenShowcaseModal()
         id = 'showcase_modal',
         title = 'DESPACHO DO JUIZADO DE PAZ',
         subtitle = 'Comarca de Valentine • New Hanover',
-        content = 'Este modal nativo utiliza a textura bg.png de pergaminho rústico, cantos retos de 0px, botão de fechar nav_close.png e transição cúbica zoomAndFadeIn. Pressione ESC ou clique no botão X para encerrar.',
+        content =
+        'Este modal nativo utiliza a textura bg.png de pergaminho rústico, cantos retos de 0px, botão de fechar nav_close.png e transição cúbica zoomAndFadeIn. Pressione ESC ou clique no botão X para encerrar.',
         buttons = {
-            { label = 'RECUSAR', variant = 'subtle', action = 'close' },
+            { label = 'RECUSAR',          variant = 'subtle',  action = 'close' },
             { label = 'ASSINAR DESPACHO', variant = 'default', action = 'confirm' }
         },
         onClose = function()
@@ -564,7 +575,8 @@ function OpenShowcaseSlider()
         side = 'right',
         width = '380px',
         title = 'INSPEÇÃO LATERAL',
-        content = 'Esta gaveta lateral (RdrSlider) desliza suavemente da borda direita da tela sem bloquear a visualização do ambiente.',
+        content =
+        'Esta gaveta lateral (RdrSlider) desliza suavemente da borda direita da tela sem bloquear a visualização do ambiente.',
         html = [[
             <p style="color: var(--rdr-color-text-muted); font-size: 14px; margin-bottom: 14px;">
                 Ideal para inventários complementares, detalhes de mandados e ferramentas operacionais.
@@ -603,14 +615,16 @@ local function OpenMasterShowcaseMenu()
                         label = '1. Dock Lateral (350px)',
                         badge = 'TECLADO',
                         badgeType = 'gold',
-                        description = 'Testa todos os controles nativos do Dock: buttons, badges, toggles, sliders e submenus.'
+                        description =
+                        'Testa todos os controles nativos do Dock: buttons, badges, toggles, sliders e submenus.'
                     },
                     {
                         id = 'test_panel_all',
                         label = '2. Painel Central (1040px)',
                         badge = '6 MODOS',
                         badgeType = 'on',
-                        description = 'Abre o Panel completo com abas de Loja (Grid), Livro (Table), Forja (Craft), Fila (Queue), Dashboard e Settings.'
+                        description =
+                        'Abre o Panel completo com abas de Loja (Grid), Livro (Table), Forja (Craft), Fila (Queue), Dashboard e Settings.'
                     },
                     {
                         id = 'test_dialog',
@@ -624,7 +638,8 @@ local function OpenMasterShowcaseMenu()
                         label = '4. Bateria de Notificações Toasts',
                         badge = '4 CORES',
                         badgeType = 'gold',
-                        description = 'Dispara uma sequência de 4 toasts (Info, Sucesso, Alerta e Erro) com áudio procedural.'
+                        description =
+                        'Dispara uma sequência de 4 toasts (Info, Sucesso, Alerta e Erro) com áudio procedural.'
                     },
                     {
                         id = 'test_confirm',
@@ -674,7 +689,8 @@ local function OpenMasterShowcaseMenu()
                         label = '11. Controles, Inputs & Sliders (1440px)',
                         badge = 'NOVO',
                         badgeType = 'on',
-                        description = 'Abre o painel na aba de Controles demonstrando RdrInput, RdrTextarea, Sliders, Dropdowns e Checkboxes.'
+                        description =
+                        'Abre o painel na aba de Controles demonstrando RdrInput, RdrTextarea, Sliders, Dropdowns e Checkboxes.'
                     },
                     {
                         id = 'sep_panel_shortcuts',
@@ -774,7 +790,7 @@ function OpenShowcaseConfirm(isDanger)
         id = 'showcase_confirm',
         title = isDanger and 'EXCLUIR REGISTRO DEFINITIVO' or 'ADQUIRIR CAVALO PURO-SANGUE',
         tag = isDanger and 'PERIGO • AÇÃO IRREVERSÍVEL' or 'ESTÁBULO DE VALENTINE',
-        message = isDanger 
+        message = isDanger
             and 'Deseja realmente apagar este histórico de ficha criminal? Todos os dados serão perdidos permanentemente.'
             or 'Confirmar compra do garanhão Puro-Sangue Árabe pela quantia de $ 180.00 com sela de couro artesanal?',
         submessage = isDanger
@@ -784,7 +800,8 @@ function OpenShowcaseConfirm(isDanger)
         cancelLabel = 'VOLTAR ATRÁS',
         danger = isDanger == true,
         onConfirm = function()
-            ShowToast("CONFIRMAÇÃO", isDanger and "Registro excluído com sucesso!" or "Compra confirmada! Vá até o estábulo.", "success")
+            ShowToast("CONFIRMAÇÃO",
+                isDanger and "Registro excluído com sucesso!" or "Compra confirmada! Vá até o estábulo.", "success")
         end,
         onCancel = function()
             ShowToast("CANCELADO", "Operação cancelada pelo usuário.", "info")
@@ -811,7 +828,8 @@ function OpenShowcaseProgressBar(duration)
             if exports['westrp_core'] then
                 local ok, core = pcall(function() return exports['westrp_core']:GetCoreObject() end)
                 if ok and core and core.Client and core.Client.Feed then
-                    core.Client.Feed.ItemReceived("+1 Faca de Caça", "Armamento Artesanal", "inventory_items", "generic_item", 3500)
+                    core.Client.Feed.ItemReceived("+1 Faca de Caça", "Armamento Artesanal", "inventory_items",
+                        "generic_item", 3500)
                 end
             end
         end,
@@ -872,7 +890,8 @@ RegisterCommand('uitest', function(source, args)
             placeholder = '0.00'
         }, function(amount)
             if amount then
-                ShowToast("BANCO DE VALENTINE", string.format("Depósito confirmado: $ %.2f", tonumber(amount) or 0), "success", 4000)
+                ShowToast("BANCO DE VALENTINE", string.format("Depósito confirmado: $ %.2f", tonumber(amount) or 0),
+                    "success", 4000)
             else
                 ShowToast("BANCO DE VALENTINE", "Operação cancelada pelo cliente.", "alert", 3000)
             end
@@ -884,7 +903,8 @@ RegisterCommand('uitest', function(source, args)
             NativeHUD.SetRank("FORASTEIRO", 3, 72.5)
             NativeHUD.SetBounty("Bounty: $ 25.00", true)
             NativeHUD.StartTimer(25, 8)
-            ShowToast("HUD NATIVO (0.00ms)", "Honra, Dinheiro, Rank, Bounty e Timer foram acionados nativamente!", "info", 5000)
+            ShowToast("HUD NATIVO (0.00ms)", "Honra, Dinheiro, Rank, Bounty e Timer foram acionados nativamente!", "info",
+                5000)
         end
     elseif sub == 'toast' or sub == 'toasts' then
         OpenShowcaseToasts()
@@ -936,4 +956,5 @@ RegisterCommand('testfeed', function()
     OpenShowcaseFeeds()
 end, false)
 
-print("^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7.")
+print(
+"^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7.")

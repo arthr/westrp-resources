@@ -748,7 +748,7 @@ WestRP.Client.UI.ShowToast(title, message, type, duration)
 | :--- | :--- | :--- | :--- |
 | `title` | `string` | `"NOTIFICAÇÃO"` | Cabeçalho em destaque. |
 | `message` | `string` | `""` | Mensagem descritiva. |
-| `type` | `string` | `"info"` | `"info"` (ouro), `"success"` (verde), `"alert"` (amarelo), `"error"` (vermelho). |
+| `type` | `string` | `"primary"` | `"primary"` / `"info"` / `"success"` (Textura Rústica `bg.png`) ou `"danger"` / `"alert"` / `"error"`. |
 | `duration`| `number` | `3500` | Tempo de exibição em milissegundos. |
 
 ---
