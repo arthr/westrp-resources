@@ -150,6 +150,7 @@ class ModalComponent {
       });
     }
 
+    this.container.classList.remove('is-closing');
     this.container.style.display = 'flex';
     // Forçar reflow para ativar animação CSS
     void this.container.offsetWidth;
@@ -165,9 +166,11 @@ class ModalComponent {
 
     if (this.container) {
       this.container.classList.remove('is-open');
+      this.container.classList.add('is-closing');
       setTimeout(() => {
         if (!this.isOpen) {
           this.container.style.display = 'none';
+          this.container.classList.remove('is-closing');
         }
       }, 250);
     }

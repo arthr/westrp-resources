@@ -83,8 +83,13 @@
      ========================================================================== */
   --rdr-border-width: 1px;
   --rdr-border-radius: 0px;
+  --rdr-transition-duration-fast: 0.15s;
+  --rdr-transition-duration-normal: 0.3s;
+  --rdr-ease-cubic: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --rdr-ease-out: ease-out;
+
   --rdr-transition-fast: 0.15s ease-out;
-  --rdr-transition-normal: 0.3s ease-out;
+  --rdr-transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   --transition-fast: var(--rdr-transition-fast);
   --transition-normal: var(--rdr-transition-normal);

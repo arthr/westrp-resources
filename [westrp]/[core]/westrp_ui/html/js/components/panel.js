@@ -161,7 +161,7 @@ class PanelComponent {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: this.panelId })
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   renderTabs() {
@@ -729,7 +729,7 @@ class PanelComponent {
         const pad = item.padding || 'md';
         const isRed = item.variant === 'red' ? 'rdr-panel--red' : '';
         wrap.innerHTML = `
-          <div class="rdr-panel ${isRed} rdr-panel--padding-${pad}" style="border: 1px solid var(--rdr-color-border);">
+          <div class="rdr-panel ${isRed} rdr-panel--padding-${pad}">
             ${item.title ? `<div class="rdr-header" style="margin-bottom: 12px;"><h3>${item.title}</h3><hr class="rdr-divider"></div>` : ''}
             <p style="color: var(--rdr-color-text-muted); font-size: var(--rdr-font-size-xs); line-height: 1.5; margin-bottom: 14px;">${item.content || 'Este é um painel texturizado nativo (RdrPanel).'}</p>
             ${item.buttonLabel ? `<button class="rdr-button rdr-button--default" style="align-self: flex-start;"><span class="rdr-button__label">${item.buttonLabel}</span></button>` : ''}
@@ -747,29 +747,61 @@ class PanelComponent {
 
       case 'transition_test': {
         wrap.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <button class="rdr-button rdr-button--default toggle-transition-btn">
-              <span class="rdr-button__label">Alternar Caixa Animada (Zoom-In)</span>
-            </button>
-            <div class="transition-test-box animate-zoom-in" style="background: var(--rdr-texture-box); padding: 18px; border: 1px solid var(--rdr-color-border); display: block;">
-              <h4 style="font-family: var(--rdr-font-title); font-size: 18px; color: var(--rdr-color-text); margin-bottom: 6px;">Caixa com Transição Zoom-In</h4>
-              <p style="color: var(--rdr-color-text-muted); font-size: 14px;">A animação nativa utiliza curva cúbica Rockstar bezier(0.25, 0.8, 0.25, 1) com transição de opacidade e escala.</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <button class="rdr-button rdr-button--default toggle-zoom-btn">
+                <span class="rdr-button__label">Test Zoom-In (Simple Box)</span>
+              </button>
+              <button class="rdr-button rdr-button--subtle rdr-button--size-md open-modal-transition-btn">
+                <span class="rdr-button__label">Demo Modal (Zoom Transition)</span>
+              </button>
             </div>
+
+            <!-- Viewport fixo para a caixa animar suavemente com scale e fade sem pular a tela (idêntico ao redm-vue-ui) -->
+            <div class="transition-viewport">
+              <div class="transition-test-box">
+                <h3 style="font-family: var(--rdr-font-title); font-size: 20px; color: var(--rdr-color-text); margin-bottom: 8px;">Zoom-In Test Box</h3>
+                <p style="color: var(--rdr-color-text-muted); font-size: 14px; line-height: 1.5;">Se você ver esta caixa suavizar e dar zoom ao entrar e sair, a transição está 100% funcional!</p>
+              </div>
+            </div>
+
+            <p style="margin-top: 4px; opacity: 0.8; font-size: 13px; color: var(--rdr-color-text-muted);">
+              Modal utiliza a transição ZoomIn (escala 0.8 &harr; 1.0), Slider utiliza a transição SlideIn.
+            </p>
           </div>
         `;
-        const tBtn = wrap.querySelector('.toggle-transition-btn');
+
+        const tBtn = wrap.querySelector('.toggle-zoom-btn');
+        const modalBtn = wrap.querySelector('.open-modal-transition-btn');
         const tBox = wrap.querySelector('.transition-test-box');
+
         let isVisible = true;
+
         tBtn.addEventListener('click', () => {
           isVisible = !isVisible;
-          if (isVisible) {
-            tBox.style.display = 'block';
-            tBox.className = 'transition-test-box animate-zoom-in';
-          } else {
-            tBox.style.display = 'none';
-          }
           if (window.uiAudio) window.uiAudio.playToggle();
+
+          if (isVisible) {
+            tBox.classList.remove('is-hidden');
+          } else {
+            tBox.classList.add('is-hidden');
+          }
         });
+
+        if (modalBtn) {
+          modalBtn.addEventListener('click', () => {
+            if (window.uiModal) {
+              window.uiModal.open({
+                title: 'DEMO MODAL (ZOOM TRANSITION)',
+                subtitle: 'Transição nativa ZoomIn do Red Dead Redemption 2',
+                content: 'Este diálogo modal ilustra a transição ZoomIn em tela cheia com backdrop radial escurecido e escala suave.',
+                buttons: [
+                  { label: 'FECHAR', variant: 'default', action: 'close' }
+                ]
+              });
+            }
+          });
+        }
         break;
       }
 
@@ -787,9 +819,11 @@ class PanelComponent {
               content: item.modalContent || 'Este modal representa fielmente o componente RdrModal do RedM Vue UI, com backdrop sombreado, fechar com ESC ou clique externo, e botão nativo X.',
               buttons: [
                 { label: 'CANCELAR', variant: 'subtle', action: 'close' },
-                { label: 'CONFIRMAR AÇÃO', variant: 'default', onClick: () => {
-                  if (window.uiToast) window.uiToast.show('MODAL CONFIRMADO', 'Ação confirmada através do RdrModal!', 'success');
-                }, action: 'close' }
+                {
+                  label: 'CONFIRMAR AÇÃO', variant: 'default', onClick: () => {
+                    if (window.uiToast) window.uiToast.show('MODAL CONFIRMADO', 'Ação confirmada através do RdrModal!', 'success');
+                  }, action: 'close'
+                }
               ]
             });
           }
@@ -1010,7 +1044,7 @@ class PanelComponent {
         item: this.selectedItem,
         quantity: this.stepperQuantity
       })
-    }).catch(() => {});
+    }).catch(() => { });
   }
 }
 
