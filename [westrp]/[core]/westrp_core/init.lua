@@ -300,6 +300,26 @@ if not isServer then
                 return exports['westrp_ui']:NativeHUD_GetHonorScale()
             end
         end,
+        ConfigureHonorOverlays = function(wheel, status, delay)
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_ConfigureHonorOverlays(wheel, status, delay)
+            end
+        end,
+        GetHonorOverlaysConfig = function()
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_GetHonorOverlaysConfig()
+            end
+        end,
+        CacheHonor = function(val)
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_CacheHonor(val)
+            end
+        end,
+        GetCachedHonor = function()
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_GetCachedHonor()
+            end
+        end,
         NormalizeHonor = function(val, customMin, customMax)
             if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
                 return exports['westrp_ui']:NativeHUD_NormalizeHonor(val, customMin, customMax)

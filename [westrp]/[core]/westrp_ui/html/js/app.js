@@ -32,12 +32,12 @@ window.addEventListener('message', (event) => {
       if (window.uiDialog) window.uiDialog.closeDialog();
       break;
 
-    // 4. CONFIRM MODAL
+    // 4. CONFIRM MODAL (PADRONIZADO VIA MOTOR RDRMODAL)
     case 'westrp_ui:openConfirm':
-      if (window.uiDialog) window.uiDialog.openConfirm(data.options || {});
+      if (window.uiModal) window.uiModal.openConfirm(data.options || {});
       break;
     case 'westrp_ui:closeConfirm':
-      if (window.uiDialog) window.uiDialog.closeConfirm();
+      if (window.uiModal) window.uiModal.close();
       break;
 
     // 5. ACTION PROGRESS BAR
@@ -80,11 +80,16 @@ window.addEventListener('message', (event) => {
    GLOBAL KEYBOARD DISPATCHER
    ========================================================================== */
 window.addEventListener('keydown', (e) => {
-  // A1. Modal RDR2 Aberto
+  // A1. Modal RDR2 Aberto (Genérico e Confirmação Unificada)
   if (window.uiModal && window.uiModal.isOpen) {
     if (e.key === 'Escape') {
       e.preventDefault();
       window.uiModal.close();
+      return;
+    }
+    if (e.key === 'Enter' || e.key === 'NumpadEnter') {
+      e.preventDefault();
+      window.uiModal.submitPrimary();
       return;
     }
   }
@@ -98,7 +103,7 @@ window.addEventListener('keydown', (e) => {
     }
   }
 
-  // A. Diálogo de Entrada Aberto
+  // A. Diálogo de Entrada Aberto (Formulários)
   if (window.uiDialog && window.uiDialog.isOpen) {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -106,18 +111,6 @@ window.addEventListener('keydown', (e) => {
     } else if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault();
       window.uiDialog.submitDialog();
-    }
-    return;
-  }
-
-  // B. Modal de Confirmação Aberto
-  if (window.uiDialog && window.uiDialog.isConfirmOpen) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      window.uiDialog.closeConfirm();
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      window.uiDialog.submitConfirm();
     }
     return;
   }

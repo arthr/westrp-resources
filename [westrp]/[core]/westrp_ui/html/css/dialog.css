@@ -3,7 +3,7 @@
  * Substituto Oficial do vorp_inputs com estética autêntica RDR2 (redm-vue-ui)
  */
 
-.dialog-container, .confirm-container {
+.dialog-container {
   position: fixed;
   inset: 0;
   display: flex;
@@ -12,7 +12,7 @@
   z-index: 200;
 }
 
-.dialog-modal, .confirm-modal {
+.dialog-modal {
   position: relative;
   width: 480px;
   max-width: 90vw;
@@ -41,13 +41,13 @@
 /* ==========================================================================
    CABEÇALHO DO DIALOG & CONFIRM
    ========================================================================== */
-.dialog-header, .confirm-header {
+.dialog-header {
   position: relative;
   padding: 20px 24px 18px;
   background: var(--rdr-color-surface-header);
 }
 
-.dialog-header::after, .confirm-header::after {
+.dialog-header::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -60,7 +60,7 @@
   background-size: 100% 100%;
 }
 
-.dialog-tag, .confirm-tag {
+.dialog-tag {
   display: block;
   font-family: var(--rdr-font-decorative);
   font-size: var(--rdr-font-size-xs);
@@ -70,7 +70,7 @@
   margin-bottom: 2px;
 }
 
-.dialog-title, .confirm-title {
+.dialog-title {
   font-family: var(--rdr-font-decorative);
   font-size: var(--rdr-font-size-xl);
   font-weight: normal;
@@ -200,31 +200,9 @@
 }
 
 /* ==========================================================================
-   CONFIRM MODAL CORPO
+   RODAPÉ DE AÇÕES DO DIALOG
    ========================================================================== */
-.confirm-body {
-  padding: 24px;
-  background: rgba(14, 14, 14, 0.7);
-}
-
-.confirm-message {
-  font-family: var(--rdr-font-body);
-  font-size: var(--rdr-font-size-md);
-  color: var(--rdr-color-text);
-  line-height: 1.5;
-}
-
-.confirm-submessage {
-  font-size: var(--rdr-font-size-xs);
-  color: var(--rdr-color-text-muted);
-  margin-top: 8px;
-  font-style: italic;
-}
-
-/* ==========================================================================
-   RODAPÉ DE AÇÕES (CONFIRMAR / CANCELAR COM BOTÕES ROCKSTAR)
-   ========================================================================== */
-.dialog-footer, .confirm-footer {
+.dialog-footer {
   position: relative;
   padding: 16px 24px;
   background: var(--rdr-color-surface-header);
@@ -234,7 +212,7 @@
   gap: 12px;
 }
 
-.dialog-footer::before, .confirm-footer::before {
+.dialog-footer::before {
   content: '';
   position: absolute;
   top: 0;
@@ -247,7 +225,7 @@
   background-size: 100% 100%;
 }
 
-.dialog-btn-secondary, .confirm-btn-secondary {
+.dialog-btn-secondary {
   background: rgba(25, 25, 25, 0.7);
   border: 1px solid var(--rdr-color-border);
   color: var(--rdr-color-text-muted);
@@ -262,14 +240,14 @@
   transition: all var(--rdr-transition-fast);
 }
 
-.dialog-btn-secondary:hover, .confirm-btn-secondary:hover {
+.dialog-btn-secondary:hover {
   background: var(--rdr-color-surface-hover);
   border-color: var(--rdr-color-border-hover);
   color: var(--rdr-color-text);
 }
 
 /* Botão Primário Rockstar com Textura box.png -> box-red.png */
-.dialog-btn-primary, .confirm-btn-primary {
+.dialog-btn-primary {
   background: var(--rdr-texture-box) no-repeat center / 100% 100%;
   border: none;
   color: #fafafa;
@@ -283,18 +261,13 @@
   transition: transform var(--rdr-transition-fast), filter var(--rdr-transition-fast);
 }
 
-.dialog-btn-primary:hover, .confirm-btn-primary:hover {
+.dialog-btn-primary:hover {
   background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
   color: #ffffff;
   transform: scale(1.02);
 }
 
-.dialog-btn-primary:active, .confirm-btn-primary:active {
+.dialog-btn-primary:active {
   transform: scale(0.98);
-}
-
-/* Modo Perigo no Confirm (ex: Excluir/Prender) */
-.confirm-modal.danger .confirm-btn-primary {
-  background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
 }
 

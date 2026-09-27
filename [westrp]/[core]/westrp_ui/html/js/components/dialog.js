@@ -14,19 +14,8 @@ class DialogComponent {
     this.btnCancel = document.getElementById('dialog-btn-cancel');
     this.btnClose = document.getElementById('dialog-close-btn');
 
-    this.confirmContainer = document.getElementById('confirm-container');
-    this.confirmModal = document.getElementById('confirm-modal');
-    this.confirmTagEl = document.getElementById('confirm-tag');
-    this.confirmTitleEl = document.getElementById('confirm-title');
-    this.confirmMsgEl = document.getElementById('confirm-message');
-    this.confirmSubMsgEl = document.getElementById('confirm-submessage');
-    this.confirmBtnSubmit = document.getElementById('confirm-btn-confirm');
-    this.confirmBtnCancel = document.getElementById('confirm-btn-cancel');
-
     this.currentDialogId = null;
-    this.currentConfirmId = null;
     this.isOpen = false;
-    this.isConfirmOpen = false;
 
     this.setupEvents();
   }
@@ -42,16 +31,6 @@ class DialogComponent {
       this.btnCancel = document.getElementById('dialog-btn-cancel');
       this.btnClose = document.getElementById('dialog-close-btn');
     }
-    if (!this.confirmContainer) {
-      this.confirmContainer = document.getElementById('confirm-container');
-      this.confirmModal = document.getElementById('confirm-modal');
-      this.confirmTagEl = document.getElementById('confirm-tag');
-      this.confirmTitleEl = document.getElementById('confirm-title');
-      this.confirmMsgEl = document.getElementById('confirm-message');
-      this.confirmSubMsgEl = document.getElementById('confirm-submessage');
-      this.confirmBtnSubmit = document.getElementById('confirm-btn-confirm');
-      this.confirmBtnCancel = document.getElementById('confirm-btn-cancel');
-    }
   }
 
   setupEvents() {
@@ -63,12 +42,6 @@ class DialogComponent {
     }
     if (this.btnClose) {
       this.btnClose.addEventListener('click', () => this.closeDialog());
-    }
-    if (this.confirmBtnSubmit) {
-      this.confirmBtnSubmit.addEventListener('click', () => this.submitConfirm());
-    }
-    if (this.confirmBtnCancel) {
-      this.confirmBtnCancel.addEventListener('click', () => this.closeConfirm());
     }
   }
 
@@ -215,61 +188,18 @@ class DialogComponent {
   }
 
   /* ==========================================================================
-     CONFIRM MODAL
+     CONFIRM MODAL (PADRONIZADO VIA MOTOR UNIFICADO RDRMODAL)
      ========================================================================== */
   openConfirm(options) {
-    this.initEls();
-    if (!this.confirmContainer) return;
-
-    this.currentConfirmId = options.id || 'default_confirm';
-    this.confirmTagEl.textContent = options.tag || 'CONFIRMAÇÃO';
-    this.confirmTitleEl.textContent = options.title || 'DESEJA CONTINUAR?';
-    this.confirmMsgEl.textContent = options.message || '';
-
-    if (options.submessage) {
-      this.confirmSubMsgEl.textContent = options.submessage;
-      this.confirmSubMsgEl.style.display = 'block';
-    } else {
-      this.confirmSubMsgEl.style.display = 'none';
+    if (window.uiModal) {
+      window.uiModal.openConfirm(options);
     }
-
-    this.confirmBtnSubmit.textContent = options.confirmLabel || 'CONFIRMAR';
-    this.confirmBtnCancel.textContent = options.cancelLabel || 'CANCELAR';
-
-    if (options.danger) {
-      this.confirmModal.classList.add('danger');
-    } else {
-      this.confirmModal.classList.remove('danger');
-    }
-
-    this.confirmContainer.style.display = 'flex';
-    this.isConfirmOpen = true;
-    if (window.uiAudio) window.uiAudio.playNav();
-  }
-
-  submitConfirm() {
-    if (!this.isConfirmOpen) return;
-    if (window.uiAudio) window.uiAudio.playSelect();
-    this.confirmContainer.style.display = 'none';
-    this.isConfirmOpen = false;
-
-    fetch('https://westrp_ui/confirmSubmit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: this.currentConfirmId, confirmed: true })
-    }).catch(() => {});
   }
 
   closeConfirm() {
-    if (!this.isConfirmOpen) return;
-    this.confirmContainer.style.display = 'none';
-    this.isConfirmOpen = false;
-
-    fetch('https://westrp_ui/confirmCancel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: this.currentConfirmId })
-    }).catch(() => {});
+    if (window.uiModal) {
+      window.uiModal.close();
+    }
   }
 }
 

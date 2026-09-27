@@ -120,6 +120,8 @@ O arquivo `client/native_hud.lua` fornece funções utilitárias que manipulam a
 | `WestRP.Client.UI.NativeHUD.SetHonor(val, dur, min, max)` | `RPGStatusIcons / HonorIcon` (1 a 16) | Conexão dinâmica com `westrp_karma` (mapeia qualquer escala para 1..16). |
 | `WestRP.Client.UI.NativeHUD.AnimateHonor(from, to, step, hold, min, max)` | Animação suave com interpolação de frames | Feedback visual de ganho/perda de honra. |
 | `WestRP.Client.UI.NativeHUD.ConfigureHonorScale(min, max, dur)` | Configuração em runtime da escala global | Permite que o framework defina sua própria amplitude moral. |
+| `WestRP.Client.UI.NativeHUD.ConfigureHonorOverlays(wheel, status, delay)` | Ativação automática ao segurar TAB / ALT | Sincroniza a barra com a Roda de Armas e a telemetria do RDR2. |
+| `WestRP.Client.UI.NativeHUD.CacheHonor(val)` | Armazena em cache o karma atual | Mantém o valor pronto para exibição instantânea no TAB/ALT. |
 | `WestRP.Client.UI.NativeHUD.StartTimer(sec, alertSec)` | `centralInfoDatastore / timerString` | Roubos, duelos, contagem de missões. |
 | `WestRP.Client.UI.NativeHUD.StopTimer()` | Destrói a máquina de estado do timer. | Cancelamento de roubo/evento. |
 | `WestRP.Client.UI.NativeHUD.ShowCash(player, camp)` | `Tithing / PlayerCash / CampFunds` | Exibição de saldo na carteira. |

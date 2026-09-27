@@ -1233,7 +1233,7 @@ hr.rdr-divider {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   /* border: 1px solid var(--rdr-color-border); */
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+  /* box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95); */
   padding: var(--rdr-spacing-xl);
   position: relative;
   border-radius: 0;
@@ -1282,6 +1282,114 @@ hr.rdr-divider {
 
 .rdr-modal__close:hover img {
   opacity: 1;
+}
+
+/* Variante de Perigo / Confirmação Crítica (textura bg-red.png) */
+.rdr-modal.rdr-modal--danger {
+  background-image: var(--rdr-texture-bg-red);
+}
+
+.rdr-modal__tag {
+  display: block;
+  font-family: var(--rdr-font-decorative);
+  font-size: var(--rdr-font-size-xs);
+  color: var(--color-gold-light);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.rdr-modal__tag--danger {
+  color: var(--color-danger-light);
+  text-shadow: 0 0 8px rgba(224, 56, 56, 0.7);
+}
+
+.rdr-modal__subtitle {
+  color: var(--rdr-color-text-muted);
+  font-size: var(--rdr-font-size-xs);
+  margin-top: -6px;
+  margin-bottom: var(--rdr-spacing-md);
+  line-height: 1.4;
+  font-family: var(--rdr-font-body);
+}
+
+.rdr-modal__content {
+  color: var(--rdr-color-text);
+  font-size: var(--rdr-font-size-sm);
+  line-height: 1.5;
+  margin-bottom: var(--rdr-spacing-md);
+  font-family: var(--rdr-font-body);
+}
+
+.rdr-modal__submessage {
+  color: var(--rdr-color-text-muted);
+  font-size: var(--rdr-font-size-xs);
+  font-style: italic;
+  margin-top: 8px;
+  margin-bottom: var(--rdr-spacing-md);
+  line-height: 1.4;
+  border-left: 2px solid var(--rdr-color-primary);
+  padding-left: 10px;
+}
+
+.rdr-modal--danger .rdr-modal__submessage {
+  border-left-color: var(--color-danger-light);
+  color: #fca5a5;
+}
+
+/* Ações e Botões do Modal RDR2 */
+.rdr-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--rdr-spacing-md);
+  margin-top: var(--rdr-spacing-lg);
+  flex-wrap: wrap;
+}
+
+.rdr-modal-actions .rdr-button {
+  height: 46px;
+  min-height: 46px;
+  padding: 0 20px;
+  font-size: var(--rdr-font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  outline: none;
+  transition: transform var(--rdr-transition-fast), filter var(--rdr-transition-fast);
+}
+
+.rdr-modal-actions .rdr-button--danger {
+  background: var(--rdr-texture-box-red) no-repeat center / 100% 100%;
+  color: #ffffff;
+  border: none;
+  font-family: var(--rdr-font-decorative);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.rdr-modal-actions .rdr-button--danger:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: scale(1.02);
+}
+
+.rdr-modal-actions .rdr-button--danger:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.rdr-modal-btn__hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 /* --- RdrSlider (Slider Panel / Drawer Lateral) --- */

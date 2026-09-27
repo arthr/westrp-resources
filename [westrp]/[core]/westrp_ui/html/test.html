@@ -147,7 +147,8 @@
     <button class="sandbox-btn" onclick="runSim('dock')">Dock Lateral (350px)</button>
     <button class="sandbox-btn" onclick="runSim('panel_grid')">Vitrine (Grid Cards)</button>
     <button class="sandbox-btn" onclick="runSim('dialog')">Dialog (Formulário)</button>
-    <button class="sandbox-btn" onclick="runSim('confirm')">Confirm (Modal)</button>
+    <button class="sandbox-btn" onclick="runSim('confirm')">Confirm Rápido (Estábulo)</button>
+    <button class="sandbox-btn" style="border-color: var(--color-danger-light);" onclick="runSim('confirm_danger')">Confirm Crítico (Perigo)</button>
     <button class="sandbox-btn" onclick="runSim('progress')">Progress Bar</button>
     <button class="sandbox-btn" onclick="runSim('toasts')">Toasts (Despachos)</button>
     <button class="sandbox-btn btn-close" onclick="runSim('close_all')">Fechar Todos</button>
@@ -411,27 +412,6 @@
       <footer class="dialog-footer">
         <button type="button" class="dialog-btn-secondary" id="dialog-btn-cancel">CANCELAR</button>
         <button type="button" class="dialog-btn-primary" id="dialog-btn-submit">CONFIRMAR</button>
-      </footer>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       4. MODAL DE CONFIRMAÇÃO RÁPIDA (ROCKSTAR STYLE CONFIRM)
-       ============================================================ -->
-  <div id="confirm-container" class="confirm-container" style="display: none;">
-    <div class="confirm-backdrop" id="confirm-backdrop"></div>
-    <div class="confirm-modal" id="confirm-modal">
-      <header class="confirm-header">
-        <span class="confirm-tag" id="confirm-tag">CONFIRMAÇÃO</span>
-        <h2 class="confirm-title" id="confirm-title">DESEJA CONTINUAR?</h2>
-      </header>
-      <div class="confirm-body">
-        <p class="confirm-message" id="confirm-message"></p>
-        <p class="confirm-submessage" id="confirm-submessage" style="display: none;"></p>
-      </div>
-      <footer class="confirm-footer">
-        <button type="button" class="confirm-btn-secondary" id="confirm-btn-cancel">CANCELAR</button>
-        <button type="button" class="confirm-btn-primary" id="confirm-btn-confirm">CONFIRMAR</button>
       </footer>
     </div>
   </div>
@@ -1021,11 +1001,30 @@
         window.postMessage({
           action: 'westrp_ui:openConfirm',
           options: {
-            title: 'DESEJA REALMENTE COMPRAR?',
-            message: 'Você está prestes a adquirir uma Faca de Caça Rústica por $ 15.00.',
-            submessage: 'Esta transação é definitiva e debitará da sua conta bancária.',
-            confirmText: 'CONFIRMAR COMPRA',
-            cancelText: 'DESISTIR'
+            id: 'sandbox_confirm_fast',
+            tag: 'ESTÁBULO DE VALENTINE',
+            title: 'ADQUIRIR CAVALO PURO-SANGUE',
+            message: 'Confirmar compra do garanhão Puro-Sangue Árabe pela quantia de $ 180.00 com sela de couro artesanal?',
+            submessage: 'O animal será transferido imediatamente para a sua baia privada no estábulo.',
+            confirmLabel: 'CONFIRMAR COMPRA',
+            cancelLabel: 'VOLTAR ATRÁS',
+            danger: false
+          }
+        }, '*');
+      }
+
+      else if (type === 'confirm_danger') {
+        window.postMessage({
+          action: 'westrp_ui:openConfirm',
+          options: {
+            id: 'sandbox_confirm_danger',
+            tag: 'PERIGO • AÇÃO IRREVERSÍVEL',
+            title: 'EXCLUIR REGISTRO DEFINITIVO',
+            message: 'Deseja realmente apagar este histórico de ficha criminal? Todos os dados serão perdidos permanentemente.',
+            submessage: 'Esta operação exige autorização de xerife ou juiz de paz e não poderá ser desfeita.',
+            confirmLabel: 'SIM, EXCLUIR',
+            cancelLabel: 'VOLTAR ATRÁS',
+            danger: true
           }
         }, '*');
       }

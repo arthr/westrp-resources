@@ -913,6 +913,38 @@ local function HandleTestHonorCommand(args)
         return
     end
 
+    -- Subcomando para configurar overlays (TAB/ALT): /testhonor overlays [wheel:0|1] [status:0|1] [holdDelay]
+    if args[1] and (tostring(args[1]):lower() == 'overlays' or tostring(args[1]):lower() == 'wheel') then
+        if args[2] ~= nil then
+            local wheel = args[2] == '1' or args[2] == 'true' or args[2] == 'on'
+            local status = args[3] == nil and true or (args[3] == '1' or args[3] == 'true' or args[3] == 'on')
+            local delay = tonumber(args[4]) or 1500
+            local newOvl = NativeHUD.ConfigureHonorOverlays(wheel, status, delay)
+            ShowToast("OVERLAYS DE HONRA", string.format("Roda (TAB): %s | Status (ALT): %s | Delay: %dms",
+                newOvl.showOnWeaponWheel and "ATIVADO" or "DESATIVADO",
+                newOvl.showOnStatusOverlay and "ATIVADO" or "DESATIVADO",
+                newOvl.overlayHoldDelay), "success", 4000)
+            print(string.format("^2[WestRP UI]^7 Overlays de Honra: WeaponWheel=%s, StatusOverlay=%s, HoldDelay=%dms",
+                tostring(newOvl.showOnWeaponWheel), tostring(newOvl.showOnStatusOverlay), newOvl.overlayHoldDelay))
+        else
+            local ovl = NativeHUD.GetHonorOverlaysConfig()
+            ShowToast("OVERLAYS DE HONRA", string.format("Roda (TAB): %s | Status (ALT): %s | Delay: %dms\nUso: /testhonor overlays 1 1 1500",
+                ovl.showOnWeaponWheel and "ATIVADO" or "DESATIVADO",
+                ovl.showOnStatusOverlay and "ATIVADO" or "DESATIVADO",
+                ovl.overlayHoldDelay), "info", 4500)
+        end
+        return
+    end
+
+    -- Subcomando para atualizar cache de honra: /testhonor cache <valor>
+    if args[1] and tostring(args[1]):lower() == 'cache' then
+        local val = tonumber(args[2]) or 0
+        NativeHUD.CacheHonor(val)
+        local visualLvl = NativeHUD.NormalizeHonor(val)
+        ShowToast("CACHE DE HONRA", string.format("Karma em cache: %d (Visual: Nível %d/16)", val, visualLvl), "info", 3000)
+        return
+    end
+
     local arg1 = args[1] and tonumber(args[1])
     local arg2 = args[2] and tonumber(args[2])
     local customMin = args[3] and tonumber(args[3])

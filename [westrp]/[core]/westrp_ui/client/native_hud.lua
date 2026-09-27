@@ -15,9 +15,13 @@ local NativeHUD = {}
 local HonorConfig = {
     min = -1000,
     max = 1000,
-    defaultDuration = 4500
+    defaultDuration = 4500,
+    showOnWeaponWheel = true,     -- Opção 3: Exibir barra na Roda de Armas (ao segurar TAB / LB)
+    showOnStatusOverlay = true,    -- Opção 3: Exibir barra na telemetria nativa (ao tocar/segurar Left Alt / D-Pad Baixo)
+    overlayHoldDelay = 1500        -- Tempo em ms de permanência após soltar a tecla (padrão: 1500ms)
 }
 
+local currentCachedHonor = 0 -- Armazena em cache o valor de honra/karma atual do jogador
 local rpgContainer = nil
 local honorContainer = nil
 local honorStateEntry = nil
@@ -78,6 +82,61 @@ function NativeHUD.GetHonorScale()
     }
 end
 
+---Configura a exibição automática da barra de honra nas teclas de Roda de Armas (TAB/LB) e Status (ALT/D-Pad Baixo)
+---@param enableWeaponWheel? boolean Exibir ao segurar TAB / LB
+---@param enableStatusOverlay? boolean Exibir ao tocar/segurar Left Alt / D-Pad Baixo
+---@param holdDelayMs? number Tempo de permanência após soltar a tecla (padrão: 1500ms)
+---@return table Configuração atualizada { showOnWeaponWheel, showOnStatusOverlay, overlayHoldDelay }
+function NativeHUD.ConfigureHonorOverlays(enableWeaponWheel, enableStatusOverlay, holdDelayMs)
+    if type(enableWeaponWheel) == 'boolean' then
+        HonorConfig.showOnWeaponWheel = enableWeaponWheel
+    end
+    if type(enableStatusOverlay) == 'boolean' then
+        HonorConfig.showOnStatusOverlay = enableStatusOverlay
+    end
+    if type(holdDelayMs) == 'number' and holdDelayMs >= 0 then
+        HonorConfig.overlayHoldDelay = math.floor(holdDelayMs)
+    end
+    return {
+        showOnWeaponWheel = HonorConfig.showOnWeaponWheel,
+        showOnStatusOverlay = HonorConfig.showOnStatusOverlay,
+        overlayHoldDelay = HonorConfig.overlayHoldDelay
+    }
+end
+
+---Retorna a configuração atual de exibição automática de overlays
+---@return table { showOnWeaponWheel: boolean, showOnStatusOverlay: boolean, overlayHoldDelay: number }
+function NativeHUD.GetHonorOverlaysConfig()
+    return {
+        showOnWeaponWheel = HonorConfig.showOnWeaponWheel,
+        showOnStatusOverlay = HonorConfig.showOnStatusOverlay,
+        overlayHoldDelay = HonorConfig.overlayHoldDelay
+    }
+end
+
+---Atualiza o valor de honra/karma armazenado em cache sem abrir a barra
+---@param value number
+---@return number
+function NativeHUD.CacheHonor(value)
+    if type(value) == 'number' then
+        currentCachedHonor = value
+        if honorStateEntry and DatabindingIsEntryValid(honorStateEntry) then
+            local visualLevel = NativeHUD.NormalizeHonor(value)
+            DatabindingWriteDataInt(honorStateEntry, visualLevel)
+        end
+    end
+    return currentCachedHonor
+end
+
+---Retorna o valor de honra/karma atualmente em cache
+---@return number
+function NativeHUD.GetCachedHonor()
+    if LocalPlayer and LocalPlayer.state and LocalPlayer.state.karma ~= nil then
+        return tonumber(LocalPlayer.state.karma) or currentCachedHonor
+    end
+    return currentCachedHonor
+end
+
 ---Normaliza qualquer valor de karma para o frame visual nativo do Scaleform do RDR2 (1 a 16)
 ---1..8 = Foragido / Vermelho, 9..16 = Honrado / Branco
 ---@param value number Valor bruto de karma/honra
@@ -126,6 +185,7 @@ end
 ---@param customMax? number (Opcional) Escala máxima customizada
 ---@return integer visualLevel O nível visual (1..16) que foi renderizado no HUD nativo
 function NativeHUD.SetHonor(value, durationMs, customMin, customMax)
+    currentCachedHonor = tonumber(value) or currentCachedHonor
     local visualLevel = NativeHUD.NormalizeHonor(value, customMin, customMax)
     durationMs = tonumber(durationMs) or HonorConfig.defaultDuration
 
@@ -204,6 +264,89 @@ function NativeHUD.AnimateHonor(fromValue, toValue, stepDelayMs, holdDurationMs,
 
     return fromLevel, toLevel
 end
+
+-- ============================================================================
+-- SINCRONIZAÇÃO AUTOMÁTICA COM westrp_karma (SE PRESENTE NO SERVIDOR)
+-- ============================================================================
+RegisterNetEvent('westrp_karma:client:onKarmaUpdated', function(payload)
+    if payload and payload.currentKarma ~= nil then
+        NativeHUD.CacheHonor(payload.currentKarma)
+    end
+end)
+
+-- ============================================================================
+-- MONITORAMENTO REATIVO DAS TECLAS TAB (WEAPON WHEEL) E ALT (STATUS OVERLAY)
+-- 0.00ms Resmon Idle • Intervalo adaptativo de 200ms -> 0ms durante ativação
+-- ============================================================================
+local isOverlayVisible = false
+local wheelHoldStart = 0
+
+CreateThread(function()
+    while true do
+        local sleep = 200
+        local cfgWheel = HonorConfig.showOnWeaponWheel
+        local cfgStatus = HonorConfig.showOnStatusOverlay
+
+        if cfgWheel or cfgStatus then
+            local isWheelInputActive = cfgWheel and (
+                IsControlPressed(0, `INPUT_TOGGLE_HOLSTER`) or
+                IsControlPressed(0, `INPUT_SELECT_WEAPON`) or
+                IsDisabledControlPressed(0, `INPUT_TOGGLE_HOLSTER`) or
+                IsDisabledControlPressed(0, `INPUT_SELECT_WEAPON`)
+            )
+
+            local isStatusInputActive = cfgStatus and (
+                IsControlPressed(0, `INPUT_REVEAL_HUD`) or
+                IsControlPressed(0, `INPUT_RADAR_EXPAND`) or
+                IsControlPressed(0, `INPUT_PC_FREE_LOOK`) or
+                IsDisabledControlPressed(0, `INPUT_REVEAL_HUD`) or
+                IsDisabledControlPressed(0, `INPUT_RADAR_EXPAND`) or
+                IsDisabledControlPressed(0, `INPUT_PC_FREE_LOOK`)
+            )
+
+            if isWheelInputActive then
+                sleep = 0
+                if wheelHoldStart == 0 then
+                    wheelHoldStart = GetGameTimer()
+                elseif (GetGameTimer() - wheelHoldStart) >= 180 then
+                    -- Jogador segurando TAB há mais de 180ms (Roda de Armas aberta)
+                    if not isOverlayVisible then
+                        isOverlayVisible = true
+                        local val = NativeHUD.GetCachedHonor()
+                        NativeHUD.SetHonor(val, 0)
+                    end
+                end
+            elseif isStatusInputActive then
+                sleep = 0
+                wheelHoldStart = 0
+                if not isOverlayVisible then
+                    isOverlayVisible = true
+                    local val = NativeHUD.GetCachedHonor()
+                    NativeHUD.SetHonor(val, 0)
+                end
+            else
+                wheelHoldStart = 0
+                if isOverlayVisible then
+                    isOverlayVisible = false
+                    sleep = 0
+                    local holdDelay = HonorConfig.overlayHoldDelay or 1500
+                    honorTimerId = honorTimerId + 1
+                    local currentTimer = honorTimerId
+                    CreateThread(function()
+                        Wait(holdDelay)
+                        if honorTimerId == currentTimer and not isOverlayVisible then
+                            HideHonorHUD()
+                        end
+                    end)
+                end
+            end
+        else
+            sleep = 1000
+        end
+
+        Wait(sleep)
+    end
+end)
 
 -- ============================================================================
 -- 2. CRONÔMETRO CENTRAL SUPERIOR (TOP-CENTER TIMER / ASSALTOS E EVENTOS)
@@ -393,6 +536,10 @@ end)
 -- Exports do HUD Nativo
 exports('NativeHUD_ConfigureHonorScale', NativeHUD.ConfigureHonorScale)
 exports('NativeHUD_GetHonorScale', NativeHUD.GetHonorScale)
+exports('NativeHUD_ConfigureHonorOverlays', NativeHUD.ConfigureHonorOverlays)
+exports('NativeHUD_GetHonorOverlaysConfig', NativeHUD.GetHonorOverlaysConfig)
+exports('NativeHUD_CacheHonor', NativeHUD.CacheHonor)
+exports('NativeHUD_GetCachedHonor', NativeHUD.GetCachedHonor)
 exports('NativeHUD_NormalizeHonor', NativeHUD.NormalizeHonor)
 exports('NativeHUD_SetHonor', NativeHUD.SetHonor)
 exports('NativeHUD_AnimateHonor', NativeHUD.AnimateHonor)
