@@ -409,3 +409,24 @@
   letter-spacing: 0.5px;
 }
 
+.dock-footer-keys .k-box.active {
+  background: var(--rdr-color-primary);
+  border-color: var(--rdr-color-primary);
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.dock-footer-keys .k-label.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+#dock-k-cursor-group {
+  cursor: pointer;
+  transition: opacity var(--rdr-transition-fast);
+}
+
+#dock-k-cursor-group:hover {
+  opacity: 0.85;
+}
+

@@ -16,8 +16,11 @@ class DockComponent {
     this.infoTextEl = document.getElementById('dock-info-text');
     this.breadcrumbEl = document.getElementById('dock-breadcrumb');
     this.breadcrumbTitleEl = document.getElementById('dock-breadcrumb-title');
+    this.kCursorBox = document.getElementById('dock-k-cursor-box');
+    this.kCursorLabel = document.getElementById('dock-k-cursor-label');
 
     this.isOpen = false;
+    this.hasCursor = false;
     this.menuId = 'default_menu';
     this.tabs = [];
     this.activeTabIndex = 0;
@@ -41,6 +44,8 @@ class DockComponent {
       this.infoTextEl = document.getElementById('dock-info-text');
       this.breadcrumbEl = document.getElementById('dock-breadcrumb');
       this.breadcrumbTitleEl = document.getElementById('dock-breadcrumb-title');
+      this.kCursorBox = document.getElementById('dock-k-cursor-box');
+      this.kCursorLabel = document.getElementById('dock-k-cursor-label');
     }
   }
 
@@ -49,6 +54,11 @@ class DockComponent {
     const btnNext = document.getElementById('btn-tab-next');
     if (btnPrev) btnPrev.addEventListener('click', () => this.prevTab());
     if (btnNext) btnNext.addEventListener('click', () => this.nextTab());
+
+    const cursorGroup = document.getElementById('dock-k-cursor-group');
+    if (cursorGroup) {
+      cursorGroup.addEventListener('click', () => this.toggleCursor());
+    }
   }
 
   open(options) {
@@ -81,6 +91,9 @@ class DockComponent {
     this.renderTabs();
     this.renderItems();
 
+    this.hasCursor = false;
+    this.updateCursorIndicator();
+
     this.container.style.display = 'flex';
     this.isOpen = true;
     if (window.uiAudio) window.uiAudio.playNav();
@@ -91,6 +104,8 @@ class DockComponent {
     this.container.style.display = 'none';
     this.container.style.width = '';
     this.isOpen = false;
+    this.hasCursor = false;
+    this.updateCursorIndicator();
     this.submenuStack = [];
 
     fetch('https://westrp_ui/close', {
@@ -182,7 +197,25 @@ class DockComponent {
           const vIdx = item.valueIndex !== undefined ? item.valueIndex : 0;
           displayVal = item.options[vIdx] || item.options[0];
         }
-        sliderWrap.innerHTML = `<span>◄</span> <strong>${displayVal}</strong> <span>►</span>`;
+        sliderWrap.innerHTML = `<span class="slider-arrow prev" style="cursor:pointer;padding:2px 6px;">◄</span> <strong>${displayVal}</strong> <span class="slider-arrow next" style="cursor:pointer;padding:2px 6px;">►</span>`;
+
+        const prevBtn = sliderWrap.querySelector('.slider-arrow.prev');
+        const nextBtn = sliderWrap.querySelector('.slider-arrow.next');
+        if (prevBtn) {
+          prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.activeItemIndex = index;
+            this.adjustSlider('left');
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.activeItemIndex = index;
+            this.adjustSlider('right');
+          });
+        }
+
         right.appendChild(sliderWrap);
       }
       // Toggle
@@ -258,9 +291,8 @@ class DockComponent {
   adjustSlider(direction) {
     const items = this.getCurrentItems();
     const item = items[this.activeItemIndex];
-    if (!item || item.disabled) return;
 
-    if (item.type === 'slider') {
+    if (item && !item.disabled && item.type === 'slider') {
       if (item.options && item.options.length > 0) {
         let vIdx = item.valueIndex !== undefined ? item.valueIndex : 0;
         if (direction === 'left') {
@@ -286,6 +318,12 @@ class DockComponent {
       this.renderItems();
       if (window.uiAudio) window.uiAudio.playToggle();
       this.postChange(item, item.value);
+    } else if (this.tabs && this.tabs.length > 1 && this.submenuStack.length === 0) {
+      if (direction === 'left') {
+        this.prevTab();
+      } else {
+        this.nextTab();
+      }
     }
   }
 
@@ -380,6 +418,38 @@ class DockComponent {
         value: value
       })
     }).catch(() => {});
+  }
+
+  toggleCursor() {
+    this.setCursorState(!this.hasCursor, true);
+  }
+
+  setCursorState(hasCursor, notifyServer = false) {
+    this.hasCursor = !!hasCursor;
+    this.updateCursorIndicator();
+
+    if (notifyServer) {
+      fetch('https://westrp_ui/toggleDockCursor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hasCursor: this.hasCursor })
+      }).catch(() => {});
+    }
+
+    if (window.uiAudio) window.uiAudio.playToggle();
+  }
+
+  updateCursorIndicator() {
+    if (!this.kCursorBox) this.kCursorBox = document.getElementById('dock-k-cursor-box');
+    if (!this.kCursorLabel) this.kCursorLabel = document.getElementById('dock-k-cursor-label');
+
+    if (this.kCursorBox) {
+      this.kCursorBox.classList.toggle('active', this.hasCursor);
+    }
+    if (this.kCursorLabel) {
+      this.kCursorLabel.classList.toggle('active', this.hasCursor);
+      this.kCursorLabel.textContent = this.hasCursor ? 'Mouse [ON]' : 'Mouse [OFF]';
+    }
   }
 }
 

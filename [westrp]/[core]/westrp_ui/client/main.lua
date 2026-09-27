@@ -1,4 +1,5 @@
 local isDockOpen = false
+local isDockCursorActive = false
 local currentActiveMenu = nil
 local keepInputThreadActive = false
 
@@ -32,7 +33,7 @@ local function StartKeepInputControlLoop()
     keepInputThreadActive = true
 
     CreateThread(function()
-        while isDockOpen and currentActiveMenu and currentActiveMenu.keepInput do
+        while isDockOpen and currentActiveMenu and currentActiveMenu.keepInput and not isDockCursorActive do
             -- Desabilita disparo, mira, coronhada, socos e troca de armas
             DisableControlAction(0, 0x07CE1E0D, true) -- Attack 1
             DisableControlAction(0, 0xF84FA74F, true) -- Attack 2
@@ -71,6 +72,7 @@ function OpenDock(options)
     }
 
     isDockOpen = true
+    isDockCursorActive = false
 
     -- Configura foco no NUI
     if currentActiveMenu.keepInput then
@@ -100,6 +102,7 @@ end
 function CloseDock()
     if not isDockOpen then return end
     isDockOpen = false
+    isDockCursorActive = false
 
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
@@ -738,6 +741,7 @@ end)
 RegisterUnifiedCallback({'closed', 'close'}, function(data, cb)
     cb({ ok = true })
     isDockOpen = false
+    isDockCursorActive = false
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
 
@@ -748,6 +752,32 @@ RegisterUnifiedCallback({'closed', 'close'}, function(data, cb)
         end)
     end
     currentActiveMenu = nil
+end)
+
+RegisterUnifiedCallback({'toggleDockCursor'}, function(data, cb)
+    if not isDockOpen then
+        cb({ ok = false })
+        return
+    end
+
+    if data and data.hasCursor ~= nil then
+        isDockCursorActive = data.hasCursor
+    else
+        isDockCursorActive = not isDockCursorActive
+    end
+
+    if isDockCursorActive then
+        -- Modo Mouse: Cursor liberado, bloqueia controles do jogo
+        SetNuiFocus(true, true)
+        SetNuiFocusKeepInput(false)
+    else
+        -- Modo Câmera Livre: Oculta cursor, devolve controles para o jogo
+        SetNuiFocus(true, false)
+        SetNuiFocusKeepInput(true)
+        StartKeepInputControlLoop()
+    end
+
+    cb({ ok = true, hasCursor = isDockCursorActive })
 end)
 
 -- Callbacks do Panel

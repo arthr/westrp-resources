@@ -68,6 +68,11 @@ window.addEventListener('message', (event) => {
     case 'westrp_ui:closeSliderPanel':
       if (window.uiSliderPanel) window.uiSliderPanel.close();
       break;
+
+    // 9. DOCK CURSOR TOGGLE (MOUSE / CÂMERA LIVRE)
+    case 'westrp_ui:setDockCursor':
+      if (window.uiDock) window.uiDock.setCursorState(!!data.hasCursor);
+      break;
   }
 });
 
@@ -137,23 +142,26 @@ window.addEventListener('keydown', (e) => {
 
   // E. Dock Lateral Aberto (Navegação Rockstar 350px)
   if (window.uiDock && window.uiDock.isOpen) {
+    if (e.key === 'Alt' || e.code === 'AltLeft' || e.code === 'AltRight') {
+      e.preventDefault();
+      if (e.repeat) return;
+      window.uiDock.toggleCursor();
+      return;
+    }
+
     switch (e.code) {
-      case 'KeyW':
       case 'ArrowUp':
         e.preventDefault();
         window.uiDock.navigate('up');
         break;
-      case 'KeyS':
       case 'ArrowDown':
         e.preventDefault();
         window.uiDock.navigate('down');
         break;
-      case 'KeyA':
       case 'ArrowLeft':
         e.preventDefault();
         window.uiDock.adjustSlider('left');
         break;
-      case 'KeyD':
       case 'ArrowRight':
         e.preventDefault();
         window.uiDock.adjustSlider('right');

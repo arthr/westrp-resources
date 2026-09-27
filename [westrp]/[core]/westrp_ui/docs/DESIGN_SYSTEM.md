@@ -87,7 +87,7 @@ Para garantir **zero dependência de arquivos de áudio pesados** (.wav/.mp3/.og
 
 ## 6. Padrões de Responsividade e SafeZone
 
-1. **Dock Lateral:** Largura base ampliada para `460px` (via token CSS `--rdr-dock-width: 460px;`, com suporte a override dinâmico via `options.width` e clamping responsivo `max-width: 90vw`). Garante legibilidade superior para títulos e descrições longas em monitores Ultrawide (21:9 e 32:9 de 34" a 49") e 1440p sem quebras de linha indesejadas, mantendo o campo de visão do personagem 3D totalmente desobstruído no centro-direita.
+1. **Dock Lateral:** Largura base ampliada para `460px` (via token CSS `--rdr-dock-width: 460px;`, com suporte a override dinâmico via `options.width` e clamping responsivo `max-width: 90vw`). Garante legibilidade superior para títulos e descrições longas em monitores Ultrawide (21:9 e 32:9 de 34" a 49") e 1440p sem quebras de linha indesejadas, mantendo o campo de visão do personagem 3D totalmente desobstruído no centro-direita. Suporta alternância fluida entre modo câmera livre (teclado/WASD) e modo cursor livre com bloqueio de controles do jogo via tecla `ALT` (com indicador visual `Mouse [ON/OFF]` no rodapé).
 2. **Panel Central (Ultrawide Ready):** Largura padrão de `1440px` (com `max-width: 95vw; height: 820px; max-height: 92vh;`). Projetado especificamente para monitores Ultrawide (21:9 e 32:9 de 34" a 49"), proporcionando um espaço de trabalho imponente e legível sem achatar tabelas ou controles, enquanto se adapta perfeitamente via clamping proporcional a monitores padrão 1080p e 1440p (16:9).
 3. **SafeZone RedM:** Todos os elementos de HUD próximos às bordas utilizam `margin: env(safe-area-inset-top, 20px)` ou compensação baseada na resolução nativa do jogador.
 
@@ -159,6 +159,15 @@ Todos os componentes renderizados em `https://alebertz.github.io/redm-vue-ui/` e
 17. **`RdrCraftView` & `RdrQueueView` (Bancada de Forja & Acompanhamento de Produção):**
     - `CraftView`: Lista de receitas artesanais com seleção interativa, exibição comparativa de materiais possuídos vs necessários (`6 / 2` em dourado quando suficiente, vermelho quando insuficiente) e despacho de ordem de produção.
     - `QueueView`: Acompanhamento de lotes em forjamento com barra de progresso, percentual, tempo restante em segundos e botões de cancelamento ou coleta de lote finalizado.
-
-
-
+18. **`RdrDock` (Dock Lateral / Quick Actions Menu):**
+    - Contêiner vertical de navegação nativa RDR2 ancorado à tela (largura base `350px`).
+    - **Navegação Exclusiva por Setas (`▲▼◄►`):**
+      - `▲` (`ArrowUp`) / `▼` (`ArrowDown`): Navegação vertical entre os itens da lista.
+      - `◄` (`ArrowLeft`) / `►` (`ArrowRight`): Ajuste de controles deslizantes (`slider`) ou alternância de abas (`prevTab`/`nextTab`) caso o item ativo não seja um slider.
+      - As teclas `W`, `A`, `S`, `D` são intencionalmente desvinculadas da interface para manter total liberdade de movimentação do personagem e montaria no modo Câmera Livre (`keepInput = true`).
+    - **Controle Dinâmico de Cursor (`ALT`):**
+      - Pressionar `ALT` alterna entre o modo teclado (foco NUI sem cursor) e o modo cursor livre do mouse (com bloqueio temporário de controles de câmera/jogo), indicado dinamicamente no rodapé (`Mouse [OFF]` / `Mouse [ON]`).
+    - **Ações e Encerramento:**
+      - `ENTER`: Executa o item selecionado ou alterna toggle.
+      - `BACKSPACE`: Retorna ao nível anterior de submenu.
+      - `ESC`: Fecha o Dock e restaura o foco padrão.
