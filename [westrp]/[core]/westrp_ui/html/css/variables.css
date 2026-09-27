@@ -99,6 +99,7 @@
    --transition-fast: var(--rdr-transition-fast);
    --transition-normal: var(--rdr-transition-normal);
    --shadow-deep: 0 16px 45px rgba(0, 0, 0, 0.9);
+   --rdr-dock-width: 460px;
 
    /* ==========================================================================
      5. TEXTURAS NATIVAS RDR2 (ASSETS LOCAIS)

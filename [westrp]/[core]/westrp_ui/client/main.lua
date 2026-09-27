@@ -89,6 +89,7 @@ function OpenDock(options)
             title = options.title,
             tag = options.tag,
             position = options.position,
+            width = options.width,
             tabs = options.tabs,
             items = options.items
         }

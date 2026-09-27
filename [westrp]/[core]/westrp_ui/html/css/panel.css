@@ -46,8 +46,7 @@
    ========================================================================== */
 .panel-header {
   position: relative;
-  height: 64px;
-  padding: 0 24px;
+  padding: 18px 20px 16px;
   background: var(--rdr-color-surface-header);
   display: flex;
   align-items: center;

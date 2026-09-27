@@ -87,7 +87,7 @@ Para garantir **zero dependência de arquivos de áudio pesados** (.wav/.mp3/.og
 
 ## 6. Padrões de Responsividade e SafeZone
 
-1. **Dock Lateral:** Fixado estritamente em `360px`. Não estica em telas 4K ou Ultrawide, garantindo que o personagem 3D permaneça visível no centro-direita.
+1. **Dock Lateral:** Largura base ampliada para `460px` (via token CSS `--rdr-dock-width: 460px;`, com suporte a override dinâmico via `options.width` e clamping responsivo `max-width: 90vw`). Garante legibilidade superior para títulos e descrições longas em monitores Ultrawide (21:9 e 32:9 de 34" a 49") e 1440p sem quebras de linha indesejadas, mantendo o campo de visão do personagem 3D totalmente desobstruído no centro-direita.
 2. **Panel Central (Ultrawide Ready):** Largura padrão de `1440px` (com `max-width: 95vw; height: 820px; max-height: 92vh;`). Projetado especificamente para monitores Ultrawide (21:9 e 32:9 de 34" a 49"), proporcionando um espaço de trabalho imponente e legível sem achatar tabelas ou controles, enquanto se adapta perfeitamente via clamping proporcional a monitores padrão 1080p e 1440p (16:9).
 3. **SafeZone RedM:** Todos os elementos de HUD próximos às bordas utilizam `margin: env(safe-area-inset-top, 20px)` ou compensação baseada na resolução nativa do jogador.
 

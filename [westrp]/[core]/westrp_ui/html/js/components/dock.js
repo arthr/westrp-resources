@@ -59,6 +59,12 @@ class DockComponent {
     this.tagEl.textContent = options.tag || 'FRONTIER';
     this.titleEl.textContent = options.title || 'REGISTRO';
 
+    if (options.width) {
+      this.container.style.width = typeof options.width === 'number' ? `${options.width}px` : options.width;
+    } else {
+      this.container.style.width = '';
+    }
+
     // Normaliza abas / itens
     if (options.tabs && options.tabs.length > 0) {
       this.tabs = options.tabs;
@@ -83,6 +89,7 @@ class DockComponent {
   close() {
     if (!this.isOpen) return;
     this.container.style.display = 'none';
+    this.container.style.width = '';
     this.isOpen = false;
     this.submenuStack = [];
 

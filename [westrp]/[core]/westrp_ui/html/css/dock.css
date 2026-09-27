@@ -1,5 +1,5 @@
 /**
- * WestRP UI Engine — Dock Lateral (350px / Teclado / Câmera Livre)
+ * WestRP UI Engine — Dock Lateral (460px / Teclado / Câmera Livre)
  * 1:1 Red Dead Redemption 2 Theme (Inspired by redm-vue-ui)
  */
 
@@ -7,7 +7,8 @@
   position: fixed;
   top: 50px;
   left: 50px;
-  width: 360px;
+  width: var(--rdr-dock-width, 460px);
+  max-width: 90vw;
   max-height: calc(100vh - 100px);
   background: rgba(20, 20, 20, 0.94) var(--rdr-texture-bg);
   border: 1px solid var(--rdr-color-border);
@@ -217,7 +218,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-width: 65%;
+  flex: 1;
+  min-width: 0;
 }
 
 .dock-item-label {
@@ -251,6 +253,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+  margin-left: 14px;
 }
 
 /* Badges e Preços RDR2: Tipografia Pura em Chinese Rocks sem pílulas coloridas */
