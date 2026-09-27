@@ -290,9 +290,19 @@ if not isServer then
 
     -- Submódulo de HUD Nativo (0.00ms via Scaleform / DataBinding)
     WestRP.Client.UI.NativeHUD = {
-        SetHonor = function(lvl)
+        SetHonor = function(lvl, dur)
             if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
-                return exports['westrp_ui']:NativeHUD_SetHonor(lvl)
+                return exports['westrp_ui']:NativeHUD_SetHonor(lvl, dur)
+            end
+        end,
+        AnimateHonor = function(fromLvl, toLvl, stepDelay, holdDur)
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_AnimateHonor(fromLvl, toLvl, stepDelay, holdDur)
+            end
+        end,
+        HideHonor = function()
+            if GetResourceState('westrp_ui') == 'started' and exports['westrp_ui'] then
+                return exports['westrp_ui']:NativeHUD_HideHonor()
             end
         end,
         StartTimer = function(dur, alert)

@@ -79,6 +79,8 @@ exports {
     'CancelProgressBar',
     'IsProgressBarActive',
     'NativeHUD_SetHonor',
+    'NativeHUD_AnimateHonor',
+    'NativeHUD_HideHonor',
     'NativeHUD_StartTimer',
     'NativeHUD_StopTimer',
     'NativeHUD_ShowCash',

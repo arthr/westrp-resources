@@ -11,11 +11,46 @@ local NativeHUD = {}
 local rpgContainer = nil
 local honorContainer = nil
 local honorStateEntry = nil
+local honorTimerId = 0
+local HONOR_CTX_HASH = `HUD_CTX_HONOR_SHOW` -- 121713391 (forceHonor)
+
+local function ShowHonorHUD()
+    if DisableHudContext then
+        DisableHudContext(HONOR_CTX_HASH)
+    end
+    pcall(function()
+        Citizen.InvokeNative(0x9A48FC6836ED0B6A, HONOR_CTX_HASH)
+    end)
+    pcall(function()
+        Citizen.InvokeNative(0x4CC5F2FC1332577F, HONOR_CTX_HASH)
+    end)
+end
+
+local function HideHonorHUD()
+    if EnableHudContext then
+        EnableHudContext(HONOR_CTX_HASH)
+    end
+    pcall(function()
+        Citizen.InvokeNative(0xBB7CB4FA30C28258, HONOR_CTX_HASH)
+    end)
+    pcall(function()
+        Citizen.InvokeNative(0x8BC7C1F929D07BF3, HONOR_CTX_HASH)
+    end)
+end
+
+---Oculta a barra de honra imediatamente da tela
+function NativeHUD.HideHonor()
+    honorTimerId = honorTimerId + 1
+    HideHonorHUD()
+end
 
 ---Define o nível visual de honra/karma do jogador (1 = Mais baixo / Foragido, 16 = Mais alto / Honrado)
+---Exibe a barra de honra imediatamente e a oculta suavemente após o tempo especificado.
 ---@param level integer (1 a 16)
-function NativeHUD.SetHonor(level)
+---@param durationMs? integer Tempo em ms para manter a barra visível (padrão: 4500)
+function NativeHUD.SetHonor(level, durationMs)
     level = math.max(1, math.min(16, tonumber(level) or 8))
+    durationMs = tonumber(durationMs) or 4500
 
     if not rpgContainer or not DatabindingIsEntryValid(rpgContainer) then
         rpgContainer = DatabindingAddDataContainerFromPath("", "RPGStatusIcons")
@@ -30,6 +65,57 @@ function NativeHUD.SetHonor(level)
     else
         DatabindingWriteDataInt(honorStateEntry, level)
     end
+
+    -- Exibe a barra de honra na tela imediatamente
+    ShowHonorHUD()
+
+    -- Controle de tempo para ocultação suave (Debounce com reset caso chamado novamente)
+    honorTimerId = honorTimerId + 1
+    local currentTimerId = honorTimerId
+
+    if durationMs > 0 then
+        CreateThread(function()
+            Wait(durationMs)
+            if honorTimerId == currentTimerId then
+                HideHonorHUD()
+            end
+        end)
+    end
+end
+
+---Executa a animação de transição da barra de honra de um nível inicial para um nível final
+---@param fromLevel integer Nível inicial (1 a 16)
+---@param toLevel integer Nível final (1 a 16)
+---@param stepDelayMs? integer Atraso entre cada nível na transição (padrão: 140ms)
+---@param holdDurationMs? integer Tempo para manter a barra aberta após concluir (padrão: 3500ms)
+function NativeHUD.AnimateHonor(fromLevel, toLevel, stepDelayMs, holdDurationMs)
+    fromLevel = math.max(1, math.min(16, tonumber(fromLevel) or 1))
+    toLevel = math.max(1, math.min(16, tonumber(toLevel) or 16))
+    stepDelayMs = tonumber(stepDelayMs) or 140
+    holdDurationMs = tonumber(holdDurationMs) or 3500
+
+    local steps = math.abs(toLevel - fromLevel)
+    local totalDisplayTime = 600 + (steps * stepDelayMs) + holdDurationMs
+
+    -- 1. Exibe a barra na posição inicial
+    NativeHUD.SetHonor(fromLevel, totalDisplayTime)
+
+    if fromLevel == toLevel then return end
+
+    -- 2. Thread de interpolação fluida do ponteiro
+    CreateThread(function()
+        Wait(600)
+        local stepDir = fromLevel < toLevel and 1 or -1
+        local current = fromLevel
+
+        while current ~= toLevel do
+            current = current + stepDir
+            if honorStateEntry and DatabindingIsEntryValid(honorStateEntry) then
+                DatabindingWriteDataInt(honorStateEntry, current)
+            end
+            Wait(stepDelayMs)
+        end
+    end)
 end
 
 -- ============================================================================
@@ -213,11 +299,14 @@ end
 AddEventHandler('onResourceStop', function(res)
     if res == GetCurrentResourceName() then
         NativeHUD.StopTimer()
+        HideHonorHUD()
     end
 end)
 
 -- Exports do HUD Nativo
 exports('NativeHUD_SetHonor', NativeHUD.SetHonor)
+exports('NativeHUD_AnimateHonor', NativeHUD.AnimateHonor)
+exports('NativeHUD_HideHonor', NativeHUD.HideHonor)
 exports('NativeHUD_StartTimer', NativeHUD.StartTimer)
 exports('NativeHUD_StopTimer', NativeHUD.StopTimer)
 exports('NativeHUD_ShowCash', NativeHUD.ShowCash)

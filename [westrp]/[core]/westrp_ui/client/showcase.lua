@@ -698,6 +698,14 @@ local function OpenMasterShowcaseMenu()
                         'Abre o painel na aba de Controles demonstrando RdrInput, RdrTextarea, Sliders, Dropdowns e Checkboxes.'
                     },
                     {
+                        id = 'test_honor',
+                        label = '12. Animação de Honra (Nível 1 ➔ 15)',
+                        badge = '0.00ms',
+                        badgeType = 'gold',
+                        description =
+                        'Testa a barra de honra nativa animando a transição do nível 1 (Foragido) até o nível 15 (Honrado).'
+                    },
+                    {
                         id = 'sep_panel_shortcuts',
                         label = 'ATALHOS DIRETOS DO PANEL',
                         type = 'separator'
@@ -766,6 +774,11 @@ local function OpenMasterShowcaseMenu()
                 CloseDock()
                 Wait(200)
                 OpenShowcasePanel('controls_showcase')
+            elseif item.id == 'test_honor' then
+                if NativeHUD and NativeHUD.AnimateHonor then
+                    NativeHUD.AnimateHonor(1, 15, 140, 4000)
+                    ShowToast("HONRA NATIVA", "Animando Honra: Nível 1 ➔ Nível 15", "info", 2500)
+                end
             elseif item.id == 'quick_grid' then
                 CloseDock()
                 Wait(200)
@@ -901,9 +914,24 @@ RegisterCommand('uitest', function(source, args)
                 ShowToast("BANCO DE VALENTINE", "Operação cancelada pelo cliente.", "alert", 3000)
             end
         end)
+    elseif sub == 'honor' or sub == 'karma' then
+        local arg1 = args[2] and tonumber(args[2]) or 15
+        local arg2 = args[3] and tonumber(args[3])
+        if arg2 then
+            if NativeHUD and NativeHUD.AnimateHonor then
+                NativeHUD.AnimateHonor(arg1, arg2, 140, 3500)
+                ShowToast("HONRA NATIVA", string.format("Animando Honra: Nível %d ➔ Nível %d", arg1, arg2), "info", 2500)
+            end
+        else
+            if NativeHUD then
+                NativeHUD.SetHonor(arg1, 4500)
+                local statusDesc = arg1 >= 12 and "Honrado / Protetor" or (arg1 <= 5 and "Foragido / Criminoso" or "Neutro")
+                ShowToast("HONRA NATIVA", string.format("Barra de Honra: Nível %d/16 (%s)", arg1, statusDesc), "info", 2500)
+            end
+        end
     elseif sub == 'nativehud' or sub == 'hud' then
         if NativeHUD then
-            NativeHUD.SetHonor(15)
+            NativeHUD.SetHonor(15, 6000)
             NativeHUD.ShowCash(150, 75)
             NativeHUD.SetRank("FORASTEIRO", 3, 72.5)
             NativeHUD.SetBounty("Bounty: $ 25.00", true)
@@ -961,5 +989,29 @@ RegisterCommand('testfeed', function()
     OpenShowcaseFeeds()
 end, false)
 
+RegisterCommand('testhonor', function(source, args)
+    local arg1 = args[1] and tonumber(args[1])
+    local arg2 = args[2] and tonumber(args[2])
+
+    if not arg1 then
+        arg1 = 15
+    end
+
+    if arg2 then
+        -- Modo transição/animação: /testhonor 1 6
+        if NativeHUD and NativeHUD.AnimateHonor then
+            NativeHUD.AnimateHonor(arg1, arg2, 140, 3500)
+            ShowToast("HONRA NATIVA", string.format("Animando Honra: Nível %d ➔ Nível %d", arg1, arg2), "info", 2500)
+        end
+    else
+        -- Modo estático direto: /testhonor 16
+        if NativeHUD then
+            NativeHUD.SetHonor(arg1, 4500)
+            local statusDesc = arg1 >= 12 and "Honrado / Protetor" or (arg1 <= 5 and "Foragido / Criminoso" or "Neutro")
+            ShowToast("HONRA NATIVA", string.format("Barra de Honra: Nível %d/16 (%s)", arg1, statusDesc), "info", 2500)
+        end
+    end
+end, false)
+
 print(
-"^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7.")
+"^2[WestRP UI]^7 Módulo de Showcase carregado com sucesso! Utilize ^3/uitest^7, ^3/uipanel^7, ^3/uimodal^7, ^3/uislider^7, ^3/testhonor^7.")
