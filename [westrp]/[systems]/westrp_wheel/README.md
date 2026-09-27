@@ -232,3 +232,25 @@ Criamos o arquivo oficial [`items_wheel.sql`](file:///c:/txData/VORPCore_B1A065.
 3. Abra e execute o arquivo:
    `resources/[westrp]/[systems]/westrp_wheel/items_wheel.sql`
 4. Reinicie o recurso `vorp_inventory` ou o servidor para que o cache de itens do VORP recarregue as novas entradas.
+
+---
+
+## 6. Próximos Passos: Cadastro dos Itens no Sistema de Consumo (100% de Funcionalidade)
+
+Para que a experiência atinja **100% de completude e funcionalidade no ecossistema WestRP**, o próximo trabalho planejado é a integração e homologação dos itens consumíveis:
+
+### 6.1. Diagnóstico do Comportamento de Consumo
+- **Sincronização Nativa Concluída**: Os 111 itens cadastrados no banco via `items_wheel.sql` já são perfeitamente espelhados nas bolsas nativas (C++ Satchel) e exibidos nas abas de **Provisões** (Tab 1) e **Cavalo** (Tab 2).
+- **Causa Raiz da Pendência**: Ao soltar a roda sobre um item, o motor nativo da Rockstar (`HUD_QUICK_SELECT`) emite a deixa sonora de preparação de consumo (*ringsong* / efeito de fortificação de núcleos). Como esses itens recém-inseridos ainda não possuem manipuladores registrados no servidor (`vorp_inventory:registerUsableItem`), o backend aborta silenciosamente sem disparar as animações do personagem nem subtrair o item.
+- **Safeguard de Áudio Aplicado**: Adicionamos ao `HandleWheelRelease` no cliente a chamada `Citizen.InvokeNative(0xBAC7FC81A75EC1A1)` (`STOP_AUDIO_SCENES`), cortando imediatamente qualquer resíduo sonoro pendente ao fechar a roda caso o item não tenha manipulador ativo.
+
+### 6.2. Plano de Execução do Próximo Trabalho
+1. **Mapeamento no Sistema de Metabolismo / Consumíveis (`vorp_metabolism` ou Módulo WestRP)**:
+   - Configurar valores nutricionais e metabólicos para cada um dos consumíveis (Fome, Sede, Estamina, Vida e Núcleos Dourados).
+2. **Atribuição de Animações e Props**:
+   - Mapear as animações nativas correspondentes (`drink`, `eat`, `stew`, `syringe`, etc.) e props 3D (`s_inv_whiskey02x`, maçãs, garrafas, latas abertas).
+3. **Consumo de Itens de Cavalo**:
+   - Integrar itens da aba de cavalo (`consumable_haycube`, estimulantes, remédios e escova) para regeneração direta dos núcleos da montaria.
+4. **Resolução do Ciclo de Vida**:
+   - Com as animações e tarefas de consumo ativas (`TaskItemInteraction`), o motor nativo do RDR2 resolve o áudio com o acorde final de conclusão naturalmente, completando a imersão de forma definitiva.
+
