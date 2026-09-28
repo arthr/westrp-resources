@@ -50,12 +50,13 @@ local forcedVitals = {
     staminaCore = nil
 }
 
--- Estado de Núcleo Dourado / Fortificado (Golden Core)
+-- Estado de Núcleo Dourado / Fortificado (Golden Core) - overrides manuais de teste
+-- Quando nil, o coletor lê em tempo real diretamente das natives do RedM
 local forcedGolden = {
-    health = false,
-    stamina = false,
-    mountHealth = false,
-    mountStamina = false
+    health = nil,
+    stamina = nil,
+    mountHealth = nil,
+    mountStamina = nil
 }
 
 -- Metabolism buffer (updated via VORP events, sync thread, or public exports)
@@ -159,17 +160,49 @@ local function getNormalizedStaminaBar(ped)
     return 100.0
 end
 
----Verifica se o núcleo do ped está em estado overpower / dourado (Golden Core)
+---Verifica se o atributo ou núcleo do ped está em estado overpower / dourado (Golden Core)
+---Verifica tanto o núcleo interno (_IS_ATTRIBUTE_CORE_OVERPOWERED 0x200373A8DF081F22)
+---quanto a barra externa (_IS_ATTRIBUTE_OVERPOWERED 0x103C2F885ABEB00B)
 ---@param ped integer
----@param attributeIndex integer 0: Vida, 1: Estamina
+---@param attributeIndex integer 0: Vida, 1: Estamina, 2: DeadEye
 ---@return boolean
 local function isCoreOverpowered(ped, attributeIndex)
-    if not DoesEntityExist(ped) then return false end
-    -- Leitura nativa de segundos restantes de overpower (0x4AF5A4C7B8FB80CE)
-    local ok, secs = pcall(Citizen.InvokeNative, 0x4AF5A4C7B8FB80CE, ped, attributeIndex, Citizen.ResultAsFloat())
-    if ok and type(secs) == "number" and secs > 0.0 then
-        return true
+    if not ped or ped == 0 or not DoesEntityExist(ped) then return false end
+
+    -- 1. RedM globals se exportados pelo runtime
+    if IsAttributeCoreOverpowered then
+        local ok, res = pcall(IsAttributeCoreOverpowered, ped, attributeIndex)
+        if ok and (res == true or res == 1) then return true end
     end
+    if IsAttributeOverpowered then
+        local ok, res = pcall(IsAttributeOverpowered, ped, attributeIndex)
+        if ok and (res == true or res == 1) then return true end
+    end
+    if _IS_ATTRIBUTE_CORE_OVERPOWERED then
+        local ok, res = pcall(_IS_ATTRIBUTE_CORE_OVERPOWERED, ped, attributeIndex)
+        if ok and (res == true or res == 1) then return true end
+    end
+    if _IS_ATTRIBUTE_OVERPOWERED then
+        local ok, res = pcall(_IS_ATTRIBUTE_OVERPOWERED, ped, attributeIndex)
+        if ok and (res == true or res == 1) then return true end
+    end
+
+    -- 2. Invocação nativa direta por Hash (RDR2 NativeDB)
+    -- 0x200373A8DF081F22 = _IS_ATTRIBUTE_CORE_OVERPOWERED (núcleo interno dourado)
+    local okCore, resCore = pcall(Citizen.InvokeNative, 0x200373A8DF081F22, ped, attributeIndex)
+    if okCore and (resCore == true or resCore == 1) then return true end
+
+    -- 0x103C2F885ABEB00B = _IS_ATTRIBUTE_OVERPOWERED (barra externa dourada)
+    local okAttr, resAttr = pcall(Citizen.InvokeNative, 0x103C2F885ABEB00B, ped, attributeIndex)
+    if okAttr and (resAttr == true or resAttr == 1) then return true end
+
+    -- 3. Fallbacks com tipagem explícita Citizen.ResultAsInteger
+    local okCoreInt, resCoreInt = pcall(Citizen.InvokeNative, 0x200373A8DF081F22, ped, attributeIndex, Citizen.ResultAsInteger())
+    if okCoreInt and (resCoreInt == 1 or resCoreInt == true) then return true end
+
+    local okAttrInt, resAttrInt = pcall(Citizen.InvokeNative, 0x103C2F885ABEB00B, ped, attributeIndex, Citizen.ResultAsInteger())
+    if okAttrInt and (resAttrInt == 1 or resAttrInt == true) then return true end
+
     return false
 end
 
@@ -231,15 +264,15 @@ end
 
 ---Lê dados da montaria caso o ped esteja montado
 ---@param ped integer
----@return boolean, number, number, number, number
+---@return boolean, number, number, number, number, integer
 local function getMountData(ped)
     if not IsPedOnMount(ped) then
-        return false, 0.0, 0.0, 0.0, 0.0
+        return false, 0.0, 0.0, 0.0, 0.0, 0
     end
 
     local mount = GetMount(ped)
     if not mount or mount == 0 or not DoesEntityExist(mount) then
-        return false, 0.0, 0.0, 0.0, 0.0
+        return false, 0.0, 0.0, 0.0, 0.0, 0
     end
 
     -- Health Core & Bar para o cavalo
@@ -279,7 +312,7 @@ local function getMountData(ped)
         end
     end
 
-    return true, healthBar, healthCore, staminaBar, staminaCore
+    return true, healthBar, healthCore, staminaBar, staminaCore, mount
 end
 
 ---Verifica se algum menu principal da engine de UI está aberto
@@ -575,12 +608,18 @@ end
 exports('GetHudConfig', getHudConfig)
 
 ---Define o estado de Núcleo Dourado / Fortificado (Golden Core)
----@param attribute string 'health' | 'stamina' | 'mountHealth' | 'mountStamina'
----@param isGolden boolean|string|number|nil true para ativar, false para desativar
+---@param attribute string 'health' | 'stamina' | 'mountHealth' | 'mountStamina' | 'all'
+---@param isGolden boolean|string|number|nil true para ativar, false para desativar, "restore" ou nil para restaurar leitura nativa
 local function setGoldenCore(attribute, isGolden)
     if type(attribute) ~= "string" then return end
     local lower = string.lower(attribute)
-    local state = (isGolden == true or isGolden == "true" or isGolden == 1 or isGolden == "on")
+    local state = nil
+    if isGolden == "restore" or isGolden == "auto" or isGolden == "reset" or isGolden == nil then
+        state = nil
+    else
+        state = (isGolden == true or isGolden == "true" or isGolden == 1 or isGolden == "on")
+    end
+
     if lower == "health" then
         forcedGolden.health = state
     elseif lower == "stamina" then
@@ -588,6 +627,11 @@ local function setGoldenCore(attribute, isGolden)
     elseif lower == "mounthealth" or lower == "mount_health" then
         forcedGolden.mountHealth = state
     elseif lower == "mountstamina" or lower == "mount_stamina" then
+        forcedGolden.mountStamina = state
+    elseif lower == "all" then
+        forcedGolden.health = state
+        forcedGolden.stamina = state
+        forcedGolden.mountHealth = state
         forcedGolden.mountStamina = state
     end
 end
@@ -739,8 +783,11 @@ CreateThread(function()
         if forcedVitals.staminaBar ~= nil then sBar = forcedVitals.staminaBar end
         if forcedVitals.staminaCore ~= nil then sCore = forcedVitals.staminaCore end
 
-        local hGold = forcedGolden.health or isCoreOverpowered(ped, 0)
-        local sGold = forcedGolden.stamina or isCoreOverpowered(ped, 1)
+        local hGold = isCoreOverpowered(ped, 0)
+        if forcedGolden.health ~= nil then hGold = forcedGolden.health end
+
+        local sGold = isCoreOverpowered(ped, 1)
+        if forcedGolden.stamina ~= nil then sGold = forcedGolden.stamina end
 
         -- 2. Leitura de Fome e Sede
         local hungerPct = currentMetabolism.hunger
@@ -751,9 +798,12 @@ CreateThread(function()
         local voiceLevel, isTalking = getVoiceData(playerId)
 
         -- 4. Leitura de Montaria Contextual
-        local isMounted, mountHealthBar, mountHealthCore, mountStaminaBar, mountStaminaCore = getMountData(ped)
-        local mHGold = forcedGolden.mountHealth
-        local mSGold = forcedGolden.mountStamina
+        local isMounted, mountHealthBar, mountHealthCore, mountStaminaBar, mountStaminaCore, mountPed = getMountData(ped)
+        local mHGold = (isMounted and mountPed ~= 0 and isCoreOverpowered(mountPed, 0)) or false
+        if forcedGolden.mountHealth ~= nil then mHGold = forcedGolden.mountHealth end
+
+        local mSGold = (isMounted and mountPed ~= 0 and isCoreOverpowered(mountPed, 1)) or false
+        if forcedGolden.mountStamina ~= nil then mSGold = forcedGolden.mountStamina end
 
         -- 5. Leitura de Estado de Menus da Engine
         local isMenuOpen = checkAnyMenuOpen()

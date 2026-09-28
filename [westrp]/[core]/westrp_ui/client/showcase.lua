@@ -1187,25 +1187,36 @@ RegisterCommand('testhud', function(source, args)
         end
     elseif sub == 'golden' or sub == 'gold' then
         local target = args[2] and string.lower(args[2]) or 'health'
-        local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on' or args[3] == nil)
-        if target == 'restore' or target == 'off' then
-            exports['westrp_ui']:SetGoldenCore('health', false)
-            exports['westrp_ui']:SetGoldenCore('stamina', false)
-            exports['westrp_ui']:SetGoldenCore('mounthealth', false)
-            exports['westrp_ui']:SetGoldenCore('mountstamina', false)
-            print("^3[WestRP UI]^7 Efeito de Golden Core desativado em todos os atributos.")
+        if target == 'restore' or target == 'auto' or target == 'reset' then
+            exports['westrp_ui']:SetGoldenCore('all', 'restore')
+            print("^3[WestRP UI]^7 Override de Golden Core desativado em todos os atributos (retornando à leitura nativa do RedM).")
+        elseif target == 'off' then
+            exports['westrp_ui']:SetGoldenCore('all', false)
+            print("^3[WestRP UI]^7 Golden Core forçado para OFF em todos os atributos.")
+        elseif target == 'all' then
+            local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on' or args[3] == nil)
+            if args[3] == 'restore' or args[3] == 'auto' then
+                exports['westrp_ui']:SetGoldenCore('all', 'restore')
+                print("^3[WestRP UI]^7 Override de Golden Core desativado em todos os atributos (retornando à leitura nativa do RedM).")
+            else
+                exports['westrp_ui']:SetGoldenCore('all', enabled)
+                print(string.format("^3[WestRP UI]^7 Golden Core para todos os atributos definido como: %s", tostring(enabled)))
+            end
         else
-            exports['westrp_ui']:SetGoldenCore(target, enabled)
-            print(string.format("^3[WestRP UI]^7 Golden Core para '%s' definido como: %s", target, tostring(enabled)))
+            if args[3] == 'restore' or args[3] == 'auto' or args[3] == 'nil' then
+                exports['westrp_ui']:SetGoldenCore(target, 'restore')
+                print(string.format("^3[WestRP UI]^7 Override de Golden Core desativado para '%s' (retornando à leitura nativa do RedM).", target))
+            else
+                local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on' or args[3] == nil)
+                exports['westrp_ui']:SetGoldenCore(target, enabled)
+                print(string.format("^3[WestRP UI]^7 Golden Core para '%s' definido como: %s", target, tostring(enabled)))
+            end
         end
     elseif sub == 'restore' then
         exports['westrp_ui']:UpdateMetabolismStatus("restore", "restore")
         exports['westrp_ui']:SetHealthOverride("restore")
         exports['westrp_ui']:SetStaminaOverride("restore")
-        exports['westrp_ui']:SetGoldenCore('health', false)
-        exports['westrp_ui']:SetGoldenCore('stamina', false)
-        exports['westrp_ui']:SetGoldenCore('mounthealth', false)
-        exports['westrp_ui']:SetGoldenCore('mountstamina', false)
+        exports['westrp_ui']:SetGoldenCore('all', 'restore')
         exports['westrp_ui']:SetVoiceTalking(false)
         exports['westrp_ui']:SetVoiceLevel(2)
         exports['westrp_ui']:SetTemperatureOverride(nil)

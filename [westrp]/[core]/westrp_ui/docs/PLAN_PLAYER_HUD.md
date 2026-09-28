@@ -296,13 +296,13 @@ Após a homologação visual em relação aos marcadores originais do RDR2 acima
   - **Vida, Estamina e Cavalo:** Mantêm o sistema dual nativo ativo (`dynamic = true`).
   - **Customização e Controle:** Export `ConfigureHudSettings(settings)` e comando `/testhud core <hunger|thirst|health|stamina> <on/off>` disponíveis para alternância dinâmica.
 * **Suporte Completo a Núcleos Dourados (Golden Core / Overpowered):**
-  - Efeito visual autêntico do RDR2 aplicado via classe `.is-golden` ([html/css/hud.css](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/css/hud.css)): coloração dourada metálica (`#f5c542`), drop-shadow com halo luminoso e animação lenta de pulso cintilante (`@keyframes rdrHudGoldenPulse`).
-  - Leitura nativa de overpower via `0x4AF5A4C7B8FB80CE` no RedM.
-  - Export `SetGoldenCore(attribute, isGolden)` para integração direta com sistemas de tônicos, poções e carnes especiais cozidas.
-  - Comando `/testhud golden <health|stamina|mount> <on/off>` e simulação interativa no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html).
+  - Efeito visual autêntico do RDR2 aplicado via classe `.hud-golden-pulse` ([html/css/hud.css](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/css/hud.css)): coloração dourada nativa (`#dfb76c`), sincronizada no anel externo (`.rdr-hud-fill`) e no ícone central (`.rdr-hud-icon-fill`) com pulso idêntico ao estado crítico nativo do jogo (1.15s, escala 1.0 a 1.09).
+  - Leitura nativa em tempo real de overpower via `_IS_ATTRIBUTE_CORE_OVERPOWERED` (`0x200373A8DF081F22`) e `_IS_ATTRIBUTE_OVERPOWERED` (`0x103C2F885ABEB00B`), com compatibilidade total para ativação via `adminMenu`, tônicos, alimentos e montarias.
+  - Export `SetGoldenCore(attribute, isGolden)` para integração direta com sistemas de tônicos, poções, carnes especiais cozidas ou simulação de teste (`'restore'` para reativar leitura nativa).
+  - Comando `/testhud golden <health|stamina|mount|all> <on/off/restore>` e simulação interativa no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html).
 * **Comandos de Teste e Overrides:**
   - `/testhud health <bar> [core]` e `/testhud stamina <bar> [core]` para simulação independente.
-  - `/testhud golden <health|stamina|mount> <on/off>` para simular o efeito de Golden Core.
+  - `/testhud golden <health|stamina|mount|all> <on/off/restore>` para simular o efeito de Golden Core ou restaurar à detecção nativa.
   - `/testhud core <hunger|thirst|health|stamina> <on/off>` para ativar ou desativar o efeito dinâmico por indicador.
   - Exports `SetHealthOverride(bar, core)`, `SetStaminaOverride(bar, core)`, `SetGoldenCore(attr, state)`, `ConfigureHudSettings(settings)` e `GetHudConfig()` registrados no `fxmanifest.lua`.
 
