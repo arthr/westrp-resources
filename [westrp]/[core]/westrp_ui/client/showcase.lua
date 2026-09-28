@@ -1116,13 +1116,35 @@ RegisterCommand('testhud', function(source, args)
         local val = tonumber(args[2]) or 50.0
         exports['westrp_ui']:UpdateMetabolismStatus(nil, val, true)
         print(string.format("^3[WestRP UI]^7 Sede simulada para: %.1f%% (Trava de teste ativada, não sofre overwrite do VORP).", val))
+    elseif sub == 'health' then
+        if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' then
+            exports['westrp_ui']:SetHealthOverride("restore")
+            print("^3[WestRP UI]^7 Override de vida desativado (retornando à leitura nativa).")
+        else
+            local bar = tonumber(args[2]) or 100.0
+            local core = tonumber(args[3])
+            exports['westrp_ui']:SetHealthOverride(bar, core)
+            print(string.format("^3[WestRP UI]^7 Vida simulada — Barra Externa: %.1f%% | Núcleo Interno: %s", bar, core and string.format("%.1f%%", core) or "Inalterado"))
+        end
+    elseif sub == 'stamina' then
+        if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' then
+            exports['westrp_ui']:SetStaminaOverride("restore")
+            print("^3[WestRP UI]^7 Override de estamina desativado (retornando à leitura nativa).")
+        else
+            local bar = tonumber(args[2]) or 100.0
+            local core = tonumber(args[3])
+            exports['westrp_ui']:SetStaminaOverride(bar, core)
+            print(string.format("^3[WestRP UI]^7 Estamina simulada — Barra Externa: %.1f%% | Núcleo Interno: %s", bar, core and string.format("%.1f%%", core) or "Inalterado"))
+        end
     elseif sub == 'cinematic' then
         local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
         exports['westrp_ui']:SetCinematicMode(active)
         print(string.format("^3[WestRP UI]^7 Modo Cinemático definido para: %s", tostring(active)))
     elseif sub == 'stress' then
         exports['westrp_ui']:UpdateMetabolismStatus(12.0, 8.0, true)
-        print("^3[WestRP UI]^7 Status de estresse crítico injetado (Fome 12%, Sede 8% — trava de teste ativada).")
+        exports['westrp_ui']:SetHealthOverride(10.0, 15.0)
+        exports['westrp_ui']:SetStaminaOverride(5.0, 10.0)
+        print("^3[WestRP UI]^7 Status de estresse crítico injetado (Vida 10%/15%, Estamina 5%/10%, Fome 12%, Sede 8% — trava de teste ativada).")
     elseif sub == 'voice' then
         local lvl = tonumber(args[2]) or 2
         exports['westrp_ui']:SetVoiceLevel(lvl)
@@ -1152,14 +1174,54 @@ RegisterCommand('testhud', function(source, args)
         local voice = exports['westrp_ui']:GetVoiceData()
         print(string.format("^3[WestRP UI]^7 Telemetria Atual — Fome: %.1f%% | Sede: %.1f%% | Voz: Nível %d (%s)",
             status.hunger, status.thirst, voice.level, voice.isTalking and "Falando" or "Mudo"))
+    elseif sub == 'core' then
+        local target = args[2] and string.lower(args[2])
+        local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on')
+        if target and (target == 'hunger' or target == 'thirst' or target == 'health' or target == 'stamina' or target == 'mounthealth' or target == 'mountstamina') then
+            local dyn = {}
+            dyn[target] = enabled
+            exports['westrp_ui']:ConfigureHudSettings({ dynamicCores = dyn })
+            print(string.format("^3[WestRP UI]^7 Efeito de núcleo dinâmico para '%s' definido como: %s", target, tostring(enabled)))
+        else
+            print("^3[WestRP UI]^7 Uso: /testhud core <hunger|thirst|health|stamina> <on/off>")
+        end
+    elseif sub == 'golden' or sub == 'gold' then
+        local target = args[2] and string.lower(args[2]) or 'health'
+        local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on' or args[3] == nil)
+        if target == 'restore' or target == 'off' then
+            exports['westrp_ui']:SetGoldenCore('health', false)
+            exports['westrp_ui']:SetGoldenCore('stamina', false)
+            exports['westrp_ui']:SetGoldenCore('mounthealth', false)
+            exports['westrp_ui']:SetGoldenCore('mountstamina', false)
+            print("^3[WestRP UI]^7 Efeito de Golden Core desativado em todos os atributos.")
+        else
+            exports['westrp_ui']:SetGoldenCore(target, enabled)
+            print(string.format("^3[WestRP UI]^7 Golden Core para '%s' definido como: %s", target, tostring(enabled)))
+        end
     elseif sub == 'restore' then
         exports['westrp_ui']:UpdateMetabolismStatus("restore", "restore")
+        exports['westrp_ui']:SetHealthOverride("restore")
+        exports['westrp_ui']:SetStaminaOverride("restore")
+        exports['westrp_ui']:SetGoldenCore('health', false)
+        exports['westrp_ui']:SetGoldenCore('stamina', false)
+        exports['westrp_ui']:SetGoldenCore('mounthealth', false)
+        exports['westrp_ui']:SetGoldenCore('mountstamina', false)
         exports['westrp_ui']:SetVoiceTalking(false)
         exports['westrp_ui']:SetVoiceLevel(2)
         exports['westrp_ui']:SetTemperatureOverride(nil)
-        print("^3[WestRP UI]^7 Todas as travas de teste removidas e sincronização com VORP, voz e clima reativada.")
+        exports['westrp_ui']:ConfigureHudSettings({
+            dynamicCores = {
+                health = true,
+                stamina = true,
+                mountHealth = true,
+                mountStamina = true,
+                hunger = false,
+                thirst = false
+            }
+        })
+        print("^3[WestRP UI]^7 Todas as travas de teste removidas e sincronização com VORP, vitals nativos, voz e clima reativada.")
     else
-        print("^3[WestRP UI]^7 Uso: /testhud [toggle | hunger <0-100> | thirst <0-100> | voice <1-3> | talk <on/off> | temp <celsius/restore> | vorp <hunger> <thirst> | cinematic <on/off> | stress | sync | restore]")
+        print("^3[WestRP UI]^7 Uso: /testhud [toggle | health <bar> [core] | stamina <bar> [core] | golden <health|stamina> <on/off> | hunger <0-100> | thirst <0-100> | core <hunger|thirst|health|stamina> <on/off> | voice <1-3> | talk <on/off> | temp <celsius/restore> | vorp <hunger> <thirst> | cinematic <on/off> | stress | sync | restore]")
     end
 end, false)
 

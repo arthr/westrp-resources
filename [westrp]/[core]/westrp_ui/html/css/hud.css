@@ -101,7 +101,66 @@
   transition: stroke-dashoffset 0.35s ease-out, stroke 0.3s ease;
 }
 
-/* Ícone Central Vetorial */
+/* ==========================================================================
+   3.1 NÚCLEO CENTRAL (RDR2 DYNAMIC CORE / ENERGIA EXTRA)
+   ========================================================================== */
+.rdr-hud-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Silhueta de fundo do núcleo (escuro / translúcido) */
+.rdr-hud-core .rdr-hud-icon-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 17px;
+  height: 17px;
+  fill: rgba(255, 255, 255, 0.22);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
+/* Preenchimento líquido do núcleo (recorte vertical de baixo para cima 0 a 100%) */
+.rdr-hud-core .rdr-hud-icon-fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 17px;
+  height: 17px;
+  fill: #f2ede4;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+  clip-path: inset(calc(100% - var(--core-pct, 100%)) 0 0 0);
+  transition: clip-path 0.35s ease-out, fill 0.3s ease;
+}
+
+/* Núcleo crítico (< 20%) pisca em vermelho */
+.rdr-hud-core.is-critical .rdr-hud-icon-fill {
+  fill: #e53935;
+}
+
+
+/* Quando parametrizado como estático (ex: fome e sede sem recorte líquido) */
+.rdr-hud-core.is-static .rdr-hud-icon-bg {
+  display: none;
+}
+
+.rdr-hud-core.is-static .rdr-hud-icon-fill {
+  clip-path: none;
+}
+
+/* Compatibilidade para ícones legados ou não recortáveis (voz, temperatura) */
 .rdr-hud-icon {
   position: absolute;
   top: 50%;
@@ -226,6 +285,36 @@
 
 .hud-alert-pulse .rdr-hud-fill {
   stroke: #e53935 !important;
+}
+
+/* ==========================================================================
+   6.1 GOLDEN CORE PULSE (NATIVO RDR2 / FORTIFICADO)
+   ========================================================================== */
+@keyframes rdrHudPulseGolden {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  }
+  50% {
+    transform: scale(1.09);
+    filter: drop-shadow(0 0 10px rgba(223, 183, 108, 0.95));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  }
+}
+
+.hud-golden-pulse {
+  animation: rdrHudPulseGolden 1.15s infinite ease-in-out !important;
+}
+
+.hud-golden-pulse .rdr-hud-fill {
+  stroke: #dfb76c !important;
+}
+
+.hud-golden-pulse .rdr-hud-icon-fill {
+  fill: #dfb76c !important;
 }
 
 /* ==========================================================================

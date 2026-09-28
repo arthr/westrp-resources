@@ -84,6 +84,9 @@ window.addEventListener('message', (event) => {
     case 'westrp_ui:setCinematicMode':
       if (window.uiPlayerHud) window.uiPlayerHud.setCinematicMode(data.data ? data.data.active : false);
       break;
+    case 'westrp_ui:configureHud':
+      if (window.uiPlayerHud) window.uiPlayerHud.configure(data.data || {});
+      break;
   }
 });
 

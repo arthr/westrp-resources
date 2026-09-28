@@ -33,6 +33,18 @@
       this.isCinematic = false;
       this.isMenuOpen = false;
 
+      // Configuração parametrizável de efeitos de núcleo
+      this.config = {
+        dynamicCores: {
+          health: true,
+          stamina: true,
+          mountHealth: true,
+          mountStamina: true,
+          hunger: false, // Fome e sede sem efeito de recorte líquido no ícone (estático/economia de recursos)
+          thirst: false
+        }
+      };
+
       // Inicializa quando o DOM estiver pronto
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => this.init());
@@ -87,13 +99,60 @@
         document.getElementById('hud-voice-dot-3')
       ];
 
-      // Inicializa com 100%
+      // Cache de elementos do núcleo dinâmico (Core RDR2)
+      this.cores = {
+        health: document.getElementById('hud-core-health'),
+        stamina: document.getElementById('hud-core-stamina'),
+        hunger: document.getElementById('hud-core-hunger'),
+        thirst: document.getElementById('hud-core-thirst'),
+        mountHealth: document.getElementById('hud-core-mount-health'),
+        mountStamina: document.getElementById('hud-core-mount-stamina')
+      };
+
+      // Aplica classes visuais (is-static) nos núcleos de acordo com a parametrização
+      this.applyCoreConfig();
+
+      // Inicializa anéis e núcleos com 100%
       this.updateRing('health', 100.0);
+      this.updateCore('health', 100.0);
       this.updateRing('stamina', 100.0);
+      this.updateCore('stamina', 100.0);
       this.updateRing('hunger', 100.0);
       this.updateRing('thirst', 100.0);
       this.updateRing('mountHealth', 100.0);
+      this.updateCore('mountHealth', 100.0);
       this.updateRing('mountStamina', 100.0);
+      this.updateCore('mountStamina', 100.0);
+    }
+
+    /**
+     * Aplica classes visuais (.is-static) nos núcleos de acordo com a parametrização
+     */
+    applyCoreConfig() {
+      if (!this.cores) return;
+      for (const [key, coreEl] of Object.entries(this.cores)) {
+        if (!coreEl) continue;
+        const isDynamic = this.config.dynamicCores && this.config.dynamicCores[key] === true;
+        if (isDynamic) {
+          coreEl.classList.remove('is-static');
+        } else {
+          coreEl.classList.add('is-static');
+          coreEl.classList.remove('is-critical');
+          coreEl.style.removeProperty('--core-pct');
+        }
+      }
+    }
+
+    /**
+     * Atualiza as configurações de comportamento e efeitos do HUD
+     * @param {Object} settings
+     */
+    configure(settings) {
+      if (!settings) return;
+      if (settings.dynamicCores && typeof settings.dynamicCores === 'object') {
+        this.config.dynamicCores = Object.assign({}, this.config.dynamicCores, settings.dynamicCores);
+      }
+      this.applyCoreConfig();
     }
 
     /**
@@ -119,14 +178,61 @@
       const offset = this.calculateOffset(numVal);
       ring.fill.style.strokeDashoffset = offset.toFixed(2);
 
-      // Controle de pulso de alerta crítico
+      // Controle de pulso de alerta crítico (apenas se não estiver em Golden Core)
       const threshold = CRITICAL_THRESHOLDS[key];
       if (threshold !== undefined && ring.item) {
-        if (numVal <= threshold) {
+        if (numVal <= threshold && !ring.item.classList.contains('hud-golden-pulse')) {
           ring.item.classList.add('hud-alert-pulse');
         } else {
           ring.item.classList.remove('hud-alert-pulse');
         }
+      }
+    }
+
+    /**
+     * Atualiza o preenchimento vertical do núcleo interior (Core) RDR2
+     * @param {string} key
+     * @param {number} value
+     */
+    updateCore(key, value) {
+      // Ignora se o núcleo para esta chave estiver parametrizado como falso (estático)
+      if (!this.config.dynamicCores || !this.config.dynamicCores[key]) return;
+
+      const coreEl = this.cores ? this.cores[key] : null;
+      if (!coreEl) return;
+
+      const numVal = Math.max(0, Math.min(100, (typeof value === 'number' && !isNaN(value)) ? value : (Number(value) || 0)));
+      coreEl.style.setProperty('--core-pct', `${numVal.toFixed(1)}%`);
+
+      // Alerta crítico de núcleo quando <= 20% (apenas se não estiver dourado/fortificado)
+      const ring = this.rings[key];
+      const isGolden = ring && ring.item && ring.item.classList.contains('hud-golden-pulse');
+      if (numVal <= 20.0 && !isGolden) {
+        coreEl.classList.add('is-critical');
+      } else {
+        coreEl.classList.remove('is-critical');
+      }
+    }
+
+    /**
+     * Define o estado de Núcleo Dourado / Fortificado (Golden Core)
+     * Aplica classe .hud-golden-pulse no elemento do anel (anel + ícone dourados e pulsantes estilo RDR2)
+     * @param {string} key
+     * @param {boolean} isGolden
+     */
+    setGoldenCore(key, isGolden) {
+      const ring = this.rings[key];
+      const itemEl = ring ? ring.item : null;
+      if (!itemEl) return;
+
+      const coreEl = this.cores ? this.cores[key] : null;
+
+      if (isGolden) {
+        itemEl.classList.remove('hud-alert-pulse');
+        itemEl.classList.add('hud-golden-pulse');
+        if (coreEl) coreEl.classList.remove('is-critical');
+      } else {
+        itemEl.classList.remove('hud-golden-pulse');
       }
     }
 
@@ -150,18 +256,51 @@
         this.setMenuOpen(data.isUIMenuOpen);
       }
 
-      // 2. Vitals do Jogador
+      // 2. Vitals do Jogador (Suporte a formato combinado { bar, core, golden } ou number direto)
       if (data.health !== undefined) {
-        this.updateRing('health', data.health);
+        if (typeof data.health === 'number') {
+          this.updateRing('health', data.health);
+          this.updateCore('health', 100.0);
+          this.setGoldenCore('health', false);
+        } else if (typeof data.health === 'object' && data.health !== null) {
+          this.updateRing('health', data.health.bar !== undefined ? data.health.bar : 0.0);
+          this.updateCore('health', data.health.core !== undefined ? data.health.core : 100.0);
+          if (data.health.golden !== undefined) {
+            this.setGoldenCore('health', data.health.golden === true);
+          }
+        }
       }
+
       if (data.stamina !== undefined) {
-        this.updateRing('stamina', data.stamina);
+        if (typeof data.stamina === 'number') {
+          this.updateRing('stamina', data.stamina);
+          this.updateCore('stamina', 100.0);
+          this.setGoldenCore('stamina', false);
+        } else if (typeof data.stamina === 'object' && data.stamina !== null) {
+          this.updateRing('stamina', data.stamina.bar !== undefined ? data.stamina.bar : 0.0);
+          this.updateCore('stamina', data.stamina.core !== undefined ? data.stamina.core : 100.0);
+          if (data.stamina.golden !== undefined) {
+            this.setGoldenCore('stamina', data.stamina.golden === true);
+          }
+        }
       }
+
       if (data.hunger !== undefined) {
-        this.updateRing('hunger', data.hunger);
+        const val = typeof data.hunger === 'object' && data.hunger !== null ? data.hunger.bar : data.hunger;
+        this.updateRing('hunger', val);
+        if (this.config.dynamicCores.hunger) {
+          const coreVal = typeof data.hunger === 'object' && data.hunger !== null ? data.hunger.core : val;
+          this.updateCore('hunger', coreVal);
+        }
       }
+
       if (data.thirst !== undefined) {
-        this.updateRing('thirst', data.thirst);
+        const val = typeof data.thirst === 'object' && data.thirst !== null ? data.thirst.bar : data.thirst;
+        this.updateRing('thirst', val);
+        if (this.config.dynamicCores.thirst) {
+          const coreVal = typeof data.thirst === 'object' && data.thirst !== null ? data.thirst.core : val;
+          this.updateCore('thirst', coreVal);
+        }
       }
 
       // 3. Sistema de Voz
@@ -238,10 +377,30 @@
         if (active) {
           this.mountCluster.classList.add('is-mounted');
           if (mountData.health !== undefined) {
-            this.updateRing('mountHealth', mountData.health);
+            if (typeof mountData.health === 'number') {
+              this.updateRing('mountHealth', mountData.health);
+              this.updateCore('mountHealth', 100.0);
+              this.setGoldenCore('mountHealth', false);
+            } else if (typeof mountData.health === 'object' && mountData.health !== null) {
+              this.updateRing('mountHealth', mountData.health.bar !== undefined ? mountData.health.bar : 0.0);
+              this.updateCore('mountHealth', mountData.health.core !== undefined ? mountData.health.core : 100.0);
+              if (mountData.health.golden !== undefined) {
+                this.setGoldenCore('mountHealth', mountData.health.golden === true);
+              }
+            }
           }
           if (mountData.stamina !== undefined) {
-            this.updateRing('mountStamina', mountData.stamina);
+            if (typeof mountData.stamina === 'number') {
+              this.updateRing('mountStamina', mountData.stamina);
+              this.updateCore('mountStamina', 100.0);
+              this.setGoldenCore('mountStamina', false);
+            } else if (typeof mountData.stamina === 'object' && mountData.stamina !== null) {
+              this.updateRing('mountStamina', mountData.stamina.bar !== undefined ? mountData.stamina.bar : 0.0);
+              this.updateCore('mountStamina', mountData.stamina.core !== undefined ? mountData.stamina.core : 100.0);
+              if (mountData.stamina.golden !== undefined) {
+                this.setGoldenCore('mountStamina', mountData.stamina.golden === true);
+              }
+            }
           }
         } else {
           this.mountCluster.classList.remove('is-mounted');

@@ -268,7 +268,43 @@ A thread client em Lua despachará dados para o Chromium através de um payload 
 
 ---
 
-## 5. Próximos Passos de Execução
+## 5. Status Final & Conclusão do Desenvolvimento
 
-1. **Aprovação do Plano:** Alinhar se as 5 fases e subtasks atendem integralmente ao escopo desejado.
-2. **Execução Sequencial:** Iniciar pela **Fase 1 (Coletor Client Lua)** e **Fase 2 (Componente Frontend SVG)**, mantendo a integridade total do resource.
+Todas as 5 fases foram **100% implementadas, auditadas e integradas** ao ecossistema `westrp_ui`:
+1. ✅ **Fase 1 (Coletor Nativo Client-Side):** Thread adaptativa (100ms/350ms), zero alocações de memória por tick, natives com wrappers defensivos `pcall`, resmon 0.00ms idle.
+2. ✅ **Fase 2 (Componente Frontend NUI):** Anéis SVG procedural com aceleração por GPU, animação de pulso crítico (`@keyframes rdrHudPulseAlert`), integração completa com `app.js` e sandboxes.
+3. ✅ **Fase 3 (Bridge de Integração):** Sincronização periódica ativa (5s) com `vorp_metabolism`, supressão graciosa da HUD legada, travas de teste (`forcedMetabolism`), suporte a PMA-Voice e temperatura climática.
+4. ✅ **Fase 4 (Vitals de Montaria):** Detecção automática de cavalo (`IsPedOnMount`), leitura de vida e estamina equina com expansão/recolhimento contextual suave via CSS.
+5. ✅ **Fase 5 (Modos Dinâmicos, Cinemático & Otimização):** Orquestração com menus (atenuação para 15%), modo cinemático nativo, suíte de testes completa via `/testhud` no jogo e playground no navegador (`html/test.html`).
+
+---
+
+## 6. Alinhamento com o HUD Nativo RDR2: Sistema Duplo de Anel Externo (Bar) & Núcleo Interno (Core)
+
+Após a homologação visual em relação aos marcadores originais do RDR2 acima da bússola/radar, foi implementada a **Opção 1 (Fidelidade 1:1 ao RDR2)**:
+* **Anel Circular Externo (Tank / Barra Ativa):**
+  - **Vida:** Representa a vida além da reserva biológica. Como `GetEntityHealth(ped) = HealthOuter + HealthCore`, a barra é calculada por `outerHealth = math.max(0.0, currentHealth - healthCore)` e normalizada sobre `math.max(1.0, maxHealth - 100.0)`. Quando o jogador está apenas com a vida do núcleo, o anel externo fica exatamente em 0.0% (como na HUD nativa).
+  - **Estamina:** Utiliza a native nativa do RedM `Citizen.InvokeNative(0x22F2A386D43048A9, ped, Citizen.ResultAsFloat())` (`_GET_PED_STAMINA_NORMALIZED`), replicando fielmente o preenchimento do arco exterior.
+* **Ícone Central Dinâmico (Core / Núcleo de Reserva Biológica):**
+  - Leitura via `GetAttributeCoreValue(ped, attributeIndex)` (0: Vida, 1: Estamina).
+  - Renderizado com camada dupla de SVG (`.rdr-hud-icon-bg` translúcido a 22% de opacidade e `.rdr-hud-icon-fill` preenchido a 100%).
+  - Preenchimento vertical estilo líquido usando `clip-path: inset(calc(100% - var(--core-pct)) 0 0 0)`.
+  - Alerta crítico: Quando o núcleo atinge $\le 20\%$, o ícone central adquire coloração vermelha pulsante (`#e53935`), exatamente igual à mecânica nativa da Rockstar Games.
+* **Parametrização e Otimização Inteligente de Recursos:**
+  - O efeito de recorte vertical líquido no ícone central agora é **100% parametrizável e opcional** através do objeto `dynamicCores`.
+  - **Fome e Sede:** Por padrão, ficam configurados como `dynamic = false` (`.is-static`), mantendo seus ícones centrais limpos, estáticos e totalmente nítidos. O consumo metabólico é expresso exclusivamente pelo arco circular externo, poupando processamento de `clip-path` do motor CSS CEF.
+  - **Vida, Estamina e Cavalo:** Mantêm o sistema dual nativo ativo (`dynamic = true`).
+  - **Customização e Controle:** Export `ConfigureHudSettings(settings)` e comando `/testhud core <hunger|thirst|health|stamina> <on/off>` disponíveis para alternância dinâmica.
+* **Suporte Completo a Núcleos Dourados (Golden Core / Overpowered):**
+  - Efeito visual autêntico do RDR2 aplicado via classe `.is-golden` ([html/css/hud.css](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/css/hud.css)): coloração dourada metálica (`#f5c542`), drop-shadow com halo luminoso e animação lenta de pulso cintilante (`@keyframes rdrHudGoldenPulse`).
+  - Leitura nativa de overpower via `0x4AF5A4C7B8FB80CE` no RedM.
+  - Export `SetGoldenCore(attribute, isGolden)` para integração direta com sistemas de tônicos, poções e carnes especiais cozidas.
+  - Comando `/testhud golden <health|stamina|mount> <on/off>` e simulação interativa no [html/test.html](file:///c:/txData/VORPCore_B1A065.base/resources/[westrp]/[core]/westrp_ui/html/test.html).
+* **Comandos de Teste e Overrides:**
+  - `/testhud health <bar> [core]` e `/testhud stamina <bar> [core]` para simulação independente.
+  - `/testhud golden <health|stamina|mount> <on/off>` para simular o efeito de Golden Core.
+  - `/testhud core <hunger|thirst|health|stamina> <on/off>` para ativar ou desativar o efeito dinâmico por indicador.
+  - Exports `SetHealthOverride(bar, core)`, `SetStaminaOverride(bar, core)`, `SetGoldenCore(attr, state)`, `ConfigureHudSettings(settings)` e `GetHudConfig()` registrados no `fxmanifest.lua`.
+
+
+

@@ -1054,10 +1054,34 @@ exports['westrp_ui']:SetVoiceLevel(2) -- 1: Sussurro, 2: Normal, 3: Grito
 exports['westrp_ui']:SetVoiceTalking(true) -- Força estado de fala
 local voice = exports['westrp_ui']:GetVoiceData()
 -- voice.level, voice.isTalking
+
+-- Overrides de Vitals para Testes/Simulações
+exports['westrp_ui']:SetHealthOverride(100.0, 100.0) -- barra (0-100), nucleo (0-100) ou "restore"
+exports['westrp_ui']:SetStaminaOverride(75.0, 100.0) -- barra (0-100), nucleo (0-100) ou "restore"
+
+-- Núcleo Dourado / Fortificado (Golden Core - Tônicos, Carnes Especiais e Poções)
+exports['westrp_ui']:SetGoldenCore('health', true) -- ativa efeito dourado/halo cintilante
+exports['westrp_ui']:SetGoldenCore('stamina', false) -- desativa
+
+-- Parametrização Dinâmica de Núcleos (Ativar/Desativar Efeito Líquido Central)
+exports['westrp_ui']:ConfigureHudSettings({
+    dynamicCores = {
+        health = true,
+        stamina = true,
+        mountHealth = true,
+        mountStamina = true,
+        hunger = false, -- Padrão: Fome com ícone limpo/estático (apenas anel drena)
+        thirst = false  -- Padrão: Sede com ícone limpo/estático (apenas anel drena)
+    }
+})
 ```
 
 ### Comandos de Teste no Servidor (/testhud)
 * `/testhud toggle` — Alterna a visibilidade do HUD.
+* `/testhud health <bar> [core]` — Simula vida (anel externo e núcleo interno RDR2). Ex: `/testhud health 0 30` ou `/testhud health restore`.
+* `/testhud stamina <bar> [core]` — Simula estamina (anel externo e núcleo interno RDR2). Ex: `/testhud stamina 50 100` ou `/testhud stamina restore`.
+* `/testhud golden <health|stamina|mount> <on/off>` — Ativa ou desativa o efeito visual autêntico de Golden Core (dourado metálico com halo pulsante).
+* `/testhud core <hunger|thirst|health|stamina> <on/off>` — Parametriza se o ícone central terá ou não efeito dinâmico de núcleo (on/off).
 * `/testhud hunger <0-100>` — Altera percentual visual de fome (com trava de teste ativa).
 * `/testhud thirst <0-100>` — Altera percentual visual de sede (com trava de teste ativa).
 * `/testhud voice <1-3>` — Altera visualmente o nível de proximidade (1: Sussurro, 2: Normal, 3: Grito).
@@ -1065,7 +1089,9 @@ local voice = exports['westrp_ui']:GetVoiceData()
 * `/testhud temp <celsius/restore>` — Simula temperatura ambiental (ex: -5 para congelamento ou 42 para calor).
 * `/testhud vorp <hunger> <thirst>` — Altera **realmente** os status do personagem no `vorp_metabolism` (salva no banco).
 * `/testhud cinematic <on/off>` — Ativa ou desativa modo cinemático.
-* `/testhud stress` — Força status crítico (Fome 12%, Sede 8%) para testar animações de pulso de alerta vermelho.
+* `/testhud stress` — Força status crítico (Vida 10%/15%, Estamina 5%/10%, Fome 12%, Sede 8%) para testar animações de pulso de alerta vermelho.
 * `/testhud sync` — Imprime no console F8 a telemetria atual consolidada do jogador.
-* `/testhud restore` — Remove todas as travas de simulação e restaura a sincronização nativa com VORP, clima e VOIP.
+* `/testhud restore` — Remove todas as travas de simulação e restaura a sincronização nativa com VORP, vitals nativos, clima e VOIP.
+
+
 

@@ -19,8 +19,12 @@ local isForcedTalking = false
 local forcedTemperature = nil
 
 local playerHudState = {
-    health = -1.0,
-    stamina = -1.0,
+    healthBar = -1.0,
+    healthCore = -1.0,
+    healthGolden = false,
+    staminaBar = -1.0,
+    staminaCore = -1.0,
+    staminaGolden = false,
     hunger = 100.0,
     thirst = 100.0,
     temperature = -999.0,
@@ -28,10 +32,30 @@ local playerHudState = {
     voiceLevel = 2,
     isTalking = false,
     mountActive = false,
-    mountHealth = -1.0,
-    mountStamina = -1.0,
+    mountHealthBar = -1.0,
+    mountHealthCore = -1.0,
+    mountHealthGolden = false,
+    mountStaminaBar = -1.0,
+    mountStaminaCore = -1.0,
+    mountStaminaGolden = false,
     isUIMenuOpen = false,
     isCinematic = false
+}
+
+-- Overrides de teste para fixar valores durante simulações e testes
+local forcedVitals = {
+    healthBar = nil,
+    healthCore = nil,
+    staminaBar = nil,
+    staminaCore = nil
+}
+
+-- Estado de Núcleo Dourado / Fortificado (Golden Core)
+local forcedGolden = {
+    health = false,
+    stamina = false,
+    mountHealth = false,
+    mountStamina = false
 }
 
 -- Metabolism buffer (updated via VORP events, sync thread, or public exports)
@@ -45,71 +69,108 @@ local forcedMetabolism = {
     hunger = nil,
     thirst = nil
 }
+-- Configurações parametrizáveis do HUD (comportamento de núcleos dinâmicos)
+local hudConfig = {
+    dynamicCores = {
+        health = true,
+        stamina = true,
+        mountHealth = true,
+        mountStamina = true,
+        hunger = false, -- Por padrão, Fome sem efeito no ícone central (ícone estático / 100% visível)
+        thirst = false  -- Por padrão, Sede sem efeito no ícone central (ícone estático / 100% visível)
+    }
+}
 
 -- ----------------------------------------------------------------------------
--- Native Extraction Helpers (Defensive with pcall guards)
--- ----------------------------------------------------------------------------
 
----Calcula o percentual de vida normalizado (0.0 a 100.0)
+---Calcula o percentual do Núcleo Interno de Vida (Core 0: 0.0 a 100.0)
 ---@param ped integer
 ---@return number
-local function getNormalizedHealth(ped)
-    if not DoesEntityExist(ped) then
-        return 0.0
+local function getNormalizedHealthCore(ped)
+    if not DoesEntityExist(ped) then return 0.0 end
+    local ok, coreVal = pcall(GetAttributeCoreValue, ped, 0)
+    if ok and type(coreVal) == "number" then
+        return math.max(0.0, math.min(100.0, coreVal + 0.0))
     end
-
-    local currentHealth = GetEntityHealth(ped)
-    local maxHealth = GetPedMaxHealth(ped)
-
-    if not maxHealth or maxHealth <= 0 then
-        return 0.0
-    end
-
-    local pct = (currentHealth / maxHealth) * 100.0
-    if pct < 0.0 then return 0.0 end
-    if pct > 100.0 then return 100.0 end
-    return pct
+    return 100.0
 end
 
----Calcula o percentual de estamina normalizado (0.0 a 100.0)
----Utiliza native float RDR2 com fallback seguro para Attribute Core 1 (Stamina)
----@param playerId integer
+---Calcula o percentual da Barra Externa de Vida (Tank/Bar: 0.0 a 100.0)
+---No RedM: GetEntityHealth = HealthOuter + HealthInner
+---Quando a barra externa está vazia, GetEntityHealth <= healthCore
+---@param ped integer
+---@param healthCore number
+---@return number
+local function getNormalizedHealthBar(ped, healthCore)
+    if not DoesEntityExist(ped) then return 0.0 end
+
+    local currentHealth = GetEntityHealth(ped)
+    local maxHealth = GetEntityMaxHealth(ped)
+    if not maxHealth or maxHealth <= 0 then
+        maxHealth = 600
+    end
+
+    -- Se a vida for <= ao núcleo, a barra externa está zerada
+    local outerHealth = math.max(0.0, currentHealth - healthCore)
+    -- Capacidade máxima da barra externa (MaxHealth menos a base do núcleo)
+    local maxOuter = math.max(1.0, maxHealth - 100.0)
+
+    local pct = (outerHealth / maxOuter) * 100.0
+    return math.max(0.0, math.min(100.0, pct))
+end
+
+---Calcula o percentual do Núcleo Interno de Estamina (Core 1: 0.0 a 100.0)
 ---@param ped integer
 ---@return number
-local function getNormalizedStamina(playerId, ped)
-    local stamina = nil
+local function getNormalizedStaminaCore(ped)
+    if not DoesEntityExist(ped) then return 0.0 end
+    local ok, coreVal = pcall(GetAttributeCoreValue, ped, 1)
+    if ok and type(coreVal) == "number" then
+        return math.max(0.0, math.min(100.0, coreVal + 0.0))
+    end
+    return 100.0
+end
 
-    -- 1. Tentativa via export/native direta GetPlayerStamina
-    if GetPlayerStamina then
-        local ok, result = pcall(GetPlayerStamina, playerId)
-        if ok and type(result) == "number" then
-            stamina = result
+---Calcula o percentual da Barra Externa de Estamina (0.0 a 100.0)
+---Utiliza a native nativa RDR2 _GET_PED_STAMINA_NORMALIZED (0x22F2A386D43048A9)
+---@param ped integer
+---@return number
+local function getNormalizedStaminaBar(ped)
+    if not DoesEntityExist(ped) then return 0.0 end
+
+    local ok, result = pcall(Citizen.InvokeNative, 0x22F2A386D43048A9, ped, Citizen.ResultAsFloat())
+    if ok and type(result) == "number" then
+        if result >= 0.0 and result <= 1.0 then
+            return result * 100.0
+        elseif result > 1.0 and result <= 100.0 then
+            return result
         end
     end
 
-    -- 2. Tentativa via hash RDR3 _GET_PLAYER_STAMINA (0x0FF421E467373FCF)
-    if not stamina then
-        local ok, result = pcall(Citizen.InvokeNative, 0x0FF421E467373FCF, playerId, Citizen.ResultAsFloat())
-        if ok and type(result) == "number" then
-            stamina = result
+    -- Fallback caso GetPedStamina e GetPedMaxStamina estejam disponíveis
+    if GetPedStamina and GetPedMaxStamina then
+        local cur = GetPedStamina(ped)
+        local max = GetPedMaxStamina(ped)
+        if max and max > 0 then
+            return math.max(0.0, math.min(100.0, (cur / max) * 100.0))
         end
-    end
-
-    if type(stamina) == "number" and stamina >= 0.0 then
-        if stamina > 100.0 then return 100.0 end
-        return stamina
-    end
-
-    -- 3. Fallback nativo: Core de Estamina do Ped (Attribute Core index 1)
-    local okCore, coreValue = pcall(GetAttributeCoreValue, ped, 1)
-    if okCore and type(coreValue) == "number" then
-        local pct = coreValue + 0.0
-        if pct < 0.0 then return 0.0 end
-        if pct > 100.0 then return 100.0 end
-        return pct
     end
 
     return 100.0
+end
+
+---Verifica se o núcleo do ped está em estado overpower / dourado (Golden Core)
+---@param ped integer
+---@param attributeIndex integer 0: Vida, 1: Estamina
+---@return boolean
+local function isCoreOverpowered(ped, attributeIndex)
+    if not DoesEntityExist(ped) then return false end
+    -- Leitura nativa de segundos restantes de overpower (0x4AF5A4C7B8FB80CE)
+    local ok, secs = pcall(Citizen.InvokeNative, 0x4AF5A4C7B8FB80CE, ped, attributeIndex, Citizen.ResultAsFloat())
+    if ok and type(secs) == "number" and secs > 0.0 then
+        return true
+    end
+    return false
 end
 
 ---Calcula temperatura e categoriza status térmico
@@ -170,31 +231,55 @@ end
 
 ---Lê dados da montaria caso o ped esteja montado
 ---@param ped integer
----@return boolean, number, number
+---@return boolean, number, number, number, number
 local function getMountData(ped)
     if not IsPedOnMount(ped) then
-        return false, 0.0, 0.0
+        return false, 0.0, 0.0, 0.0, 0.0
     end
 
     local mount = GetMount(ped)
     if not mount or mount == 0 or not DoesEntityExist(mount) then
-        return false, 0.0, 0.0
+        return false, 0.0, 0.0, 0.0, 0.0
+    end
+
+    -- Health Core & Bar para o cavalo
+    local healthCore = 100.0
+    local okHealthCore, valHCore = pcall(GetAttributeCoreValue, mount, 0)
+    if okHealthCore and type(valHCore) == "number" then
+        healthCore = math.max(0.0, math.min(100.0, valHCore + 0.0))
     end
 
     local currentHealth = GetEntityHealth(mount)
     local maxHealth = GetPedMaxHealth(mount)
-    local healthPct = 0.0
-    if maxHealth and maxHealth > 0 then
-        healthPct = math.max(0.0, math.min(100.0, (currentHealth / maxHealth) * 100.0))
+    if not maxHealth or maxHealth <= 0 then maxHealth = 600 end
+    local outerHealth = math.max(0.0, currentHealth - healthCore)
+    local maxOuter = math.max(1.0, maxHealth - 100.0)
+    local healthBar = math.max(0.0, math.min(100.0, (outerHealth / maxOuter) * 100.0))
+
+    -- Stamina Core & Bar para o cavalo
+    local staminaCore = 100.0
+    local okStamCore, valSCore = pcall(GetAttributeCoreValue, mount, 1)
+    if okStamCore and type(valSCore) == "number" then
+        staminaCore = math.max(0.0, math.min(100.0, valSCore + 0.0))
     end
 
-    local okCore, staminaCore = pcall(GetAttributeCoreValue, mount, 1)
-    local staminaPct = 100.0
-    if okCore and type(staminaCore) == "number" then
-        staminaPct = math.max(0.0, math.min(100.0, staminaCore + 0.0))
+    local staminaBar = 100.0
+    local okStamBar, valSBar = pcall(Citizen.InvokeNative, 0x22F2A386D43048A9, mount, Citizen.ResultAsFloat())
+    if okStamBar and type(valSBar) == "number" then
+        if valSBar >= 0.0 and valSBar <= 1.0 then
+            staminaBar = valSBar * 100.0
+        elseif valSBar > 1.0 and valSBar <= 100.0 then
+            staminaBar = valSBar
+        end
+    elseif GetPedStamina and GetPedMaxStamina then
+        local curS = GetPedStamina(mount)
+        local maxS = GetPedMaxStamina(mount)
+        if maxS and maxS > 0 then
+            staminaBar = math.max(0.0, math.min(100.0, (curS / maxS) * 100.0))
+        end
     end
 
-    return true, healthPct, staminaPct
+    return true, healthBar, healthCore, staminaBar, staminaCore
 end
 
 ---Verifica se algum menu principal da engine de UI está aberto
@@ -230,8 +315,12 @@ end
 
 ---Verifica se há variação significativa entre os valores atuais e o snapshot anterior
 ---Executado com parâmetros primitivos para ZERO alocação de tabelas no coletor
----@param health number
----@param stamina number
+---@param healthBar number
+---@param healthCore number
+---@param healthGolden boolean
+---@param staminaBar number
+---@param staminaCore number
+---@param staminaGolden boolean
 ---@param hunger number
 ---@param thirst number
 ---@param temp number
@@ -239,14 +328,22 @@ end
 ---@param voiceLevel integer
 ---@param isTalking boolean
 ---@param mountActive boolean
----@param mountHealth number
----@param mountStamina number
+---@param mountHealthBar number
+---@param mountHealthCore number
+---@param mountHealthGolden boolean
+---@param mountStaminaBar number
+---@param mountStaminaCore number
+---@param mountStaminaGolden boolean
 ---@param isMenuOpen boolean
 ---@param isCinematic boolean
 ---@return boolean
-local function hasDelta(health, stamina, hunger, thirst, temp, tempStatus, voiceLevel, isTalking, mountActive, mountHealth, mountStamina, isMenuOpen, isCinematic)
-    if math.abs(health - playerHudState.health) >= DELTA_THRESHOLD then return true end
-    if math.abs(stamina - playerHudState.stamina) >= DELTA_THRESHOLD then return true end
+local function hasDelta(healthBar, healthCore, healthGolden, staminaBar, staminaCore, staminaGolden, hunger, thirst, temp, tempStatus, voiceLevel, isTalking, mountActive, mountHealthBar, mountHealthCore, mountHealthGolden, mountStaminaBar, mountStaminaCore, mountStaminaGolden, isMenuOpen, isCinematic)
+    if math.abs(healthBar - playerHudState.healthBar) >= DELTA_THRESHOLD then return true end
+    if math.abs(healthCore - playerHudState.healthCore) >= DELTA_THRESHOLD then return true end
+    if healthGolden ~= playerHudState.healthGolden then return true end
+    if math.abs(staminaBar - playerHudState.staminaBar) >= DELTA_THRESHOLD then return true end
+    if math.abs(staminaCore - playerHudState.staminaCore) >= DELTA_THRESHOLD then return true end
+    if staminaGolden ~= playerHudState.staminaGolden then return true end
     if math.abs(hunger - playerHudState.hunger) >= DELTA_THRESHOLD then return true end
     if math.abs(thirst - playerHudState.thirst) >= DELTA_THRESHOLD then return true end
     if math.abs(temp - playerHudState.temperature) >= TEMP_DELTA_THRESHOLD then return true end
@@ -259,8 +356,12 @@ local function hasDelta(health, stamina, hunger, thirst, temp, tempStatus, voice
     if isCinematic ~= playerHudState.isCinematic then return true end
 
     if mountActive then
-        if math.abs(mountHealth - playerHudState.mountHealth) >= DELTA_THRESHOLD then return true end
-        if math.abs(mountStamina - playerHudState.mountStamina) >= DELTA_THRESHOLD then return true end
+        if math.abs(mountHealthBar - playerHudState.mountHealthBar) >= DELTA_THRESHOLD then return true end
+        if math.abs(mountHealthCore - playerHudState.mountHealthCore) >= DELTA_THRESHOLD then return true end
+        if mountHealthGolden ~= playerHudState.mountHealthGolden then return true end
+        if math.abs(mountStaminaBar - playerHudState.mountStaminaBar) >= DELTA_THRESHOLD then return true end
+        if math.abs(mountStaminaCore - playerHudState.mountStaminaCore) >= DELTA_THRESHOLD then return true end
+        if mountStaminaGolden ~= playerHudState.mountStaminaGolden then return true end
     end
 
     return false
@@ -272,8 +373,16 @@ local function dispatchHudUpdate()
         action = "westrp_ui:updatePlayerHud",
         data = {
             visible = isHudVisible,
-            health = playerHudState.health,
-            stamina = playerHudState.stamina,
+            health = {
+                bar = playerHudState.healthBar,
+                core = playerHudState.healthCore,
+                golden = playerHudState.healthGolden
+            },
+            stamina = {
+                bar = playerHudState.staminaBar,
+                core = playerHudState.staminaCore,
+                golden = playerHudState.staminaGolden
+            },
             hunger = playerHudState.hunger,
             thirst = playerHudState.thirst,
             temperature = playerHudState.temperature,
@@ -284,8 +393,16 @@ local function dispatchHudUpdate()
             },
             mount = {
                 active = playerHudState.mountActive,
-                health = playerHudState.mountHealth,
-                stamina = playerHudState.mountStamina
+                health = {
+                    bar = playerHudState.mountHealthBar,
+                    core = playerHudState.mountHealthCore,
+                    golden = playerHudState.mountHealthGolden
+                },
+                stamina = {
+                    bar = playerHudState.mountStaminaBar,
+                    core = playerHudState.mountStaminaCore,
+                    golden = playerHudState.mountStaminaGolden
+                }
             },
             isUIMenuOpen = playerHudState.isUIMenuOpen,
             isCinematic = playerHudState.isCinematic
@@ -397,6 +514,84 @@ local function setTemperatureOverride(temp)
     end
 end
 exports('SetTemperatureOverride', setTemperatureOverride)
+
+---Define override de teste para vida (barra e núcleo)
+---@param bar number|string|nil
+---@param core number|nil
+local function setHealthOverride(bar, core)
+    if bar == "restore" or bar == false then
+        forcedVitals.healthBar = nil
+        forcedVitals.healthCore = nil
+    elseif type(bar) == "number" then
+        forcedVitals.healthBar = math.max(0.0, math.min(100.0, bar))
+        if type(core) == "number" then
+            forcedVitals.healthCore = math.max(0.0, math.min(100.0, core))
+        end
+    end
+end
+exports('SetHealthOverride', setHealthOverride)
+
+---Define override de teste para estamina (barra e núcleo)
+---@param bar number|string|nil
+---@param core number|nil
+local function setStaminaOverride(bar, core)
+    if bar == "restore" or bar == false then
+        forcedVitals.staminaBar = nil
+        forcedVitals.staminaCore = nil
+    elseif type(bar) == "number" then
+        forcedVitals.staminaBar = math.max(0.0, math.min(100.0, bar))
+        if type(core) == "number" then
+            forcedVitals.staminaCore = math.max(0.0, math.min(100.0, core))
+        end
+    end
+end
+exports('SetStaminaOverride', setStaminaOverride)
+
+---Permite parametrizar dinamicamente os efeitos e configurações do HUD
+---@param settings table
+local function configureHudSettings(settings)
+    if type(settings) ~= "table" then return end
+
+    if settings.dynamicCores and type(settings.dynamicCores) == "table" then
+        for k, v in pairs(settings.dynamicCores) do
+            if hudConfig.dynamicCores[k] ~= nil then
+                hudConfig.dynamicCores[k] = (v == true)
+            end
+        end
+    end
+
+    SendNUIMessage({
+        action = "westrp_ui:configureHud",
+        data = hudConfig
+    })
+end
+exports('ConfigureHudSettings', configureHudSettings)
+
+---Retorna a configuração atual do HUD
+---@return table
+local function getHudConfig()
+    return hudConfig
+end
+exports('GetHudConfig', getHudConfig)
+
+---Define o estado de Núcleo Dourado / Fortificado (Golden Core)
+---@param attribute string 'health' | 'stamina' | 'mountHealth' | 'mountStamina'
+---@param isGolden boolean|string|number|nil true para ativar, false para desativar
+local function setGoldenCore(attribute, isGolden)
+    if type(attribute) ~= "string" then return end
+    local lower = string.lower(attribute)
+    local state = (isGolden == true or isGolden == "true" or isGolden == 1 or isGolden == "on")
+    if lower == "health" then
+        forcedGolden.health = state
+    elseif lower == "stamina" then
+        forcedGolden.stamina = state
+    elseif lower == "mounthealth" or lower == "mount_health" then
+        forcedGolden.mountHealth = state
+    elseif lower == "mountstamina" or lower == "mount_stamina" then
+        forcedGolden.mountStamina = state
+    end
+end
+exports('SetGoldenCore', setGoldenCore)
 
 -- ----------------------------------------------------------------------------
 -- Integration Bridge: vorp_metabolism Listeners & Sync
@@ -522,14 +717,30 @@ CreateThread(function()
         Wait(500)
     end
 
+    -- Envia parametrização inicial para a NUI
+    SendNUIMessage({
+        action = "westrp_ui:configureHud",
+        data = hudConfig
+    })
+
     while true do
         local ped = PlayerPedId()
         local playerId = PlayerId()
         local coords = GetEntityCoords(ped)
 
-        -- 1. Leitura de Vitals do Ped
-        local healthPct = getNormalizedHealth(ped)
-        local staminaPct = getNormalizedStamina(playerId, ped)
+        -- 1. Leitura de Vitals do Ped (com suporte a overrides de simulação)
+        local hCore = getNormalizedHealthCore(ped)
+        local hBar = getNormalizedHealthBar(ped, hCore)
+        if forcedVitals.healthBar ~= nil then hBar = forcedVitals.healthBar end
+        if forcedVitals.healthCore ~= nil then hCore = forcedVitals.healthCore end
+
+        local sCore = getNormalizedStaminaCore(ped)
+        local sBar = getNormalizedStaminaBar(ped)
+        if forcedVitals.staminaBar ~= nil then sBar = forcedVitals.staminaBar end
+        if forcedVitals.staminaCore ~= nil then sCore = forcedVitals.staminaCore end
+
+        local hGold = forcedGolden.health or isCoreOverpowered(ped, 0)
+        local sGold = forcedGolden.stamina or isCoreOverpowered(ped, 1)
 
         -- 2. Leitura de Fome e Sede
         local hungerPct = currentMetabolism.hunger
@@ -540,15 +751,21 @@ CreateThread(function()
         local voiceLevel, isTalking = getVoiceData(playerId)
 
         -- 4. Leitura de Montaria Contextual
-        local isMounted, mountHealth, mountStamina = getMountData(ped)
+        local isMounted, mountHealthBar, mountHealthCore, mountStaminaBar, mountStaminaCore = getMountData(ped)
+        local mHGold = forcedGolden.mountHealth
+        local mSGold = forcedGolden.mountStamina
 
         -- 5. Leitura de Estado de Menus da Engine
         local isMenuOpen = checkAnyMenuOpen()
 
         -- 6. Throttling Delta: Avalia diretamente sem criar tabelas temporárias (Zero-GC no loop)
-        if hasDelta(healthPct, staminaPct, hungerPct, thirstPct, temp, tempStatus, voiceLevel, isTalking, isMounted, mountHealth, mountStamina, isMenuOpen, isCinematicActive) then
-            playerHudState.health = healthPct
-            playerHudState.stamina = staminaPct
+        if hasDelta(hBar, hCore, hGold, sBar, sCore, sGold, hungerPct, thirstPct, temp, tempStatus, voiceLevel, isTalking, isMounted, mountHealthBar, mountHealthCore, mHGold, mountStaminaBar, mountStaminaCore, mSGold, isMenuOpen, isCinematicActive) then
+            playerHudState.healthBar = hBar
+            playerHudState.healthCore = hCore
+            playerHudState.healthGolden = hGold
+            playerHudState.staminaBar = sBar
+            playerHudState.staminaCore = sCore
+            playerHudState.staminaGolden = sGold
             playerHudState.hunger = hungerPct
             playerHudState.thirst = thirstPct
             playerHudState.temperature = temp
@@ -556,8 +773,12 @@ CreateThread(function()
             playerHudState.voiceLevel = voiceLevel
             playerHudState.isTalking = isTalking
             playerHudState.mountActive = isMounted
-            playerHudState.mountHealth = mountHealth
-            playerHudState.mountStamina = mountStamina
+            playerHudState.mountHealthBar = mountHealthBar
+            playerHudState.mountHealthCore = mountHealthCore
+            playerHudState.mountHealthGolden = mHGold
+            playerHudState.mountStaminaBar = mountStaminaBar
+            playerHudState.mountStaminaCore = mountStaminaCore
+            playerHudState.mountStaminaGolden = mSGold
             playerHudState.isUIMenuOpen = isMenuOpen
             playerHudState.isCinematic = isCinematicActive
 

@@ -156,6 +156,8 @@
     <button class="sandbox-btn" style="border-color: #e53935;" onclick="runSim('hud_stress')">HUD: Estresse (&lt;15% Alerta)</button>
     <button class="sandbox-btn" style="border-color: #8e0000;" onclick="runSim('hud_mount')">HUD: Cavalo (Alternar)</button>
     <button class="sandbox-btn" style="border-color: #4caf50;" onclick="runSim('hud_voice')">HUD: Voz (Níveis/Fala)</button>
+    <button class="sandbox-btn" style="border-color: #ff9800;" onclick="runSim('hud_toggle_cores')">HUD: Núcleos Fome/Sede (Alternar Dinâmico/Estático)</button>
+    <button class="sandbox-btn" style="border-color: #ffd700;" onclick="runSim('hud_golden')">HUD: Golden Core (Alternar Ouro)</button>
     <button class="sandbox-btn" onclick="runSim('hud_cinematic')">HUD: Cinemático</button>
     <button class="sandbox-btn btn-close" onclick="runSim('close_all')">Fechar Todos</button>
   </div>
@@ -487,10 +489,10 @@
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
           <circle class="rdr-hud-fill" id="hud-fill-mount-health" cx="23" cy="23" r="18.5" />
         </svg>
-        <span class="rdr-hud-icon">
-          <!-- Ícone Coração Equino -->
-          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        </span>
+        <div class="rdr-hud-core" id="hud-core-mount-health" style="--core-pct: 100%;">
+          <svg class="rdr-hud-icon-bg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <svg class="rdr-hud-icon-fill" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
       </div>
 
       <!-- Estamina do Cavalo -->
@@ -499,10 +501,10 @@
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
           <circle class="rdr-hud-fill" id="hud-fill-mount-stamina" cx="23" cy="23" r="18.5" />
         </svg>
-        <span class="rdr-hud-icon">
-          <!-- Ícone Raio Equino -->
-          <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-        </span>
+        <div class="rdr-hud-core" id="hud-core-mount-stamina" style="--core-pct: 100%;">
+          <svg class="rdr-hud-icon-bg" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          <svg class="rdr-hud-icon-fill" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        </div>
       </div>
     </div>
 
@@ -515,9 +517,10 @@
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
           <circle class="rdr-hud-fill" id="hud-fill-health" cx="23" cy="23" r="18.5" />
         </svg>
-        <span class="rdr-hud-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        </span>
+        <div class="rdr-hud-core" id="hud-core-health" style="--core-pct: 100%;">
+          <svg class="rdr-hud-icon-bg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <svg class="rdr-hud-icon-fill" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
       </div>
 
       <!-- Estamina (Stamina) -->
@@ -526,9 +529,10 @@
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
           <circle class="rdr-hud-fill" id="hud-fill-stamina" cx="23" cy="23" r="18.5" />
         </svg>
-        <span class="rdr-hud-icon">
-          <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-        </span>
+        <div class="rdr-hud-core" id="hud-core-stamina" style="--core-pct: 100%;">
+          <svg class="rdr-hud-icon-bg" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          <svg class="rdr-hud-icon-fill" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        </div>
       </div>
 
       <!-- Fome (Hunger) -->
@@ -537,9 +541,10 @@
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
           <circle class="rdr-hud-fill" id="hud-fill-hunger" cx="23" cy="23" r="18.5" />
         </svg>
-        <span class="rdr-hud-icon">
-          <svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
-        </span>
+        <div class="rdr-hud-core" id="hud-core-hunger" style="--core-pct: 100%;">
+          <svg class="rdr-hud-icon-bg" viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+          <svg class="rdr-hud-icon-fill" viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+        </div>
       </div>
 
       <!-- Sede (Thirst) -->
@@ -548,9 +553,10 @@
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
           <circle class="rdr-hud-fill" id="hud-fill-thirst" cx="23" cy="23" r="18.5" />
         </svg>
-        <span class="rdr-hud-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-        </span>
+        <div class="rdr-hud-core" id="hud-core-thirst" style="--core-pct: 100%;">
+          <svg class="rdr-hud-icon-bg" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <svg class="rdr-hud-icon-fill" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
       </div>
 
       <!-- Voz (Voice Proximity) -->
@@ -1166,14 +1172,14 @@
           action: 'westrp_ui:updatePlayerHud',
           data: {
             visible: true,
-            health: 100,
-            stamina: 95,
+            health: { bar: 100, core: 100 },
+            stamina: { bar: 95, core: 100 },
             hunger: 80,
             thirst: 85,
             temperature: 22,
             tempStatus: 'normal',
             voice: { level: 2, isTalking: false },
-            mount: { active: false, health: 100, stamina: 100 },
+            mount: { active: false, health: { bar: 100, core: 100 }, stamina: { bar: 100, core: 100 } },
             isUIMenuOpen: false,
             isCinematic: false
           }
@@ -1185,14 +1191,14 @@
           action: 'westrp_ui:updatePlayerHud',
           data: {
             visible: true,
-            health: 20,
-            stamina: 15,
+            health: { bar: 0, core: 25 },
+            stamina: { bar: 15, core: 18 },
             hunger: 10,
             thirst: 8,
             temperature: -4,
             tempStatus: 'freezing',
             voice: { level: 1, isTalking: false },
-            mount: { active: false, health: 100, stamina: 100 },
+            mount: { active: false, health: { bar: 0, core: 0 }, stamina: { bar: 0, core: 0 } },
             isUIMenuOpen: false,
             isCinematic: false
           }
@@ -1205,8 +1211,8 @@
           action: 'westrp_ui:updatePlayerHud',
           data: {
             visible: true,
-            health: 85,
-            stamina: 75,
+            health: { bar: 85, core: 100 },
+            stamina: { bar: 70, core: 85 },
             hunger: 65,
             thirst: 70,
             temperature: 18,
@@ -1214,8 +1220,8 @@
             voice: { level: 2, isTalking: false },
             mount: {
               active: window._sandboxMounted,
-              health: window._sandboxMounted ? 90 : 0,
-              stamina: window._sandboxMounted ? 75 : 0
+              health: window._sandboxMounted ? { bar: 80, core: 100 } : { bar: 0, core: 0 },
+              stamina: window._sandboxMounted ? { bar: 45, core: 90 } : { bar: 0, core: 0 }
             },
             isUIMenuOpen: false,
             isCinematic: false
@@ -1252,6 +1258,39 @@
         window.postMessage({
           action: 'westrp_ui:setCinematicMode',
           data: { active: window._sandboxCinematic }
+        }, '*');
+      }
+
+      else if (type === 'hud_toggle_cores') {
+        window._sandboxDynamicMetabolism = !window._sandboxDynamicMetabolism;
+        window.postMessage({
+          action: 'westrp_ui:configureHud',
+          data: {
+            dynamicCores: {
+              hunger: window._sandboxDynamicMetabolism,
+              thirst: window._sandboxDynamicMetabolism
+            }
+          }
+        }, '*');
+      }
+
+      else if (type === 'hud_golden') {
+        window._sandboxGolden = !window._sandboxGolden;
+        window.postMessage({
+          action: 'westrp_ui:updatePlayerHud',
+          data: {
+            visible: true,
+            health: { bar: 100, core: 100, golden: window._sandboxGolden },
+            stamina: { bar: 100, core: 100, golden: window._sandboxGolden },
+            hunger: 80,
+            thirst: 85,
+            temperature: 22,
+            tempStatus: 'normal',
+            voice: { level: 2, isTalking: false },
+            mount: { active: false, health: { bar: 100, core: 100 }, stamina: { bar: 100, core: 100 } },
+            isUIMenuOpen: false,
+            isCinematic: false
+          }
         }, '*');
       }
     }
