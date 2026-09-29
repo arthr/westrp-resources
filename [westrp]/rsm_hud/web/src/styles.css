@@ -1,0 +1,341 @@
+@import "tailwindcss";
+
+/* Blood & Black — the default design tokens. The backdrop image is seeded by
+   the studio; every texture and font the UI uses is pulled into web/public/
+   and wired through the asset bridge (see the STUDIO-MANAGED block). */
+@theme {
+  --font-display: "RDR Lino", "Hapna Slab", Georgia, serif;
+  --font-sans: "Hapna Slab", Georgia, serif;
+  --font-num: "RDR Catalogue", "RDR Lino", Georgia, serif;
+  --font-title: "Redemption", "RDR Lino", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --color-accent: #CB0101;
+  --color-accent-deep: #A50101;
+  --color-paper: #F5F3EE;
+  --color-panel: #0d0d0d;
+  --color-panel-2: #141414;
+  --color-ink: #E8E4DC;
+  --color-red: #CB0101;
+  --color-red-hover: #A50101;
+  --color-dim: #9A948A;
+  --color-faint: #6b665e;
+  /* Dourado do Golden Core (core fortificado). Única cor fora do vermelho e
+     neutros do tema: pedida para esse estado. */
+  --color-gold: #E0AE43;
+  --color-gold-bright: #F6D27A;
+}
+
+:root {
+  --bg: #010101;
+  --panel: #0d0d0d;
+  --panel-2: #141414;
+  --line: rgba(255, 255, 255, 0.08);
+  --red: #CB0101;
+  --red-hover: #A50101;
+  --red-soft: rgba(203, 1, 1, 0.16);
+  --text: #F5F3EE;
+  --text-dim: #9A948A;
+  --text-faint: #6b665e;
+  --gold: #E0AE43;
+  --gold-bright: #F6D27A;
+}
+
+/* The whole HUD is sized in rem, and 1rem tracks the screen height (16px at
+   1080p), so every element keeps its proportions from 720p to 4K. */
+html {
+  font-size: clamp(9px, 1.4815vh, 32px);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #000;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* The backdrop the studio seeds. In game the page stays transparent until a
+   panel opens, so this layer is only painted in the browser or while open. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--rsm-backdrop);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.rsm-ingame body::before {
+  opacity: 0;
+}
+
+.rsm-ingame.rsm-open body::before {
+  opacity: 0.55;
+}
+
+/* A HUD lives on top of the world: in game the page itself must never paint. */
+html.rsm-ingame,
+html.rsm-ingame body,
+html.rsm-ingame #root {
+  background: transparent;
+}
+
+/* Animatable meter values (ring sweep + core fill). */
+@property --deg {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --fill {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@keyframes hud-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes hud-talk {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* Golden Core: brilho sutil que respira; mais rápido quando o efeito está acabando. */
+@keyframes gold-breathe {
+
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes gold-text-breathe {
+
+  0%,
+  100% {
+    text-shadow: 0 0 0.2rem rgba(246, 210, 122, 0.25), 0 0.06rem 0.12rem rgba(0, 0, 0, 0.95);
+  }
+
+  50% {
+    text-shadow: 0 0 0.45rem rgba(246, 210, 122, 0.7), 0 0.06rem 0.12rem rgba(0, 0, 0, 0.95);
+  }
+}
+
+@keyframes hud-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer components {
+
+  /* Game art is white-on-transparent: it is tinted by masking a fill of the
+     element's currentColor with the texture set in --m. */
+  .tex {
+    background-color: currentColor;
+    -webkit-mask-image: var(--m);
+    mask-image: var(--m);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  /* Textured surfaces: the 9-sliced game plate is painted on ::before behind
+     the content, so text is never masked along with the art. The fill colour
+     here sits BEHIND a mask. */
+  .skin {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .skin::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--skin-fill, rgba(1, 1, 1, 0.6));
+    -webkit-mask-box-image: var(--skin-mask);
+    transition: background-color 160ms ease;
+  }
+
+  /* Placa recortada (help_text_1a sem as margens vazias: 13 esq, 26 dir, 6 topo,
+     9 base). As fatias continuam terminando no mesmo ponto da arte (56 px da
+     borda original) e na mesma escala (1.1rem por 56 px), então os cantos têm o
+     tamanho de antes; agora a pincelada encosta na borda da caixa.
+     Ordem: topo direita base esquerda. */
+  .skin-plate {
+    --skin-mask: var(--tex-plate) 50 30 47 43 / 0.982rem 0.589rem 0.923rem 0.845rem stretch;
+  }
+
+  .skin-plate::before {
+    -webkit-mask-box-image: none;
+    -webkit-mask-image: var(--tex-plate);
+    mask-image: var(--tex-plate);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .skin-panel {
+    --skin-mask: var(--tex-panel) 110 / 2.4rem stretch;
+  }
+
+  .skin-row {
+    --skin-mask: var(--tex-row) 18 / 0.7rem stretch;
+  }
+
+  .skin-btn {
+    --skin-mask: var(--tex-btn) 16 / 0.6rem stretch;
+  }
+
+  .skin-key {
+    --skin-mask: var(--tex-keycap) 12 / 0.45rem stretch;
+  }
+
+  .skin-key::before {
+    -webkit-mask-box-image: none;
+    -webkit-mask-image: var(--tex-keycap);
+    mask-image: var(--tex-keycap);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .skin-outline {
+    --skin-mask: var(--tex-outline) 24 / 0.75rem stretch;
+  }
+
+  /* Meter reveal: a conic sweep over the real RDR ring art, clockwise from 12. */
+  .ring-sweep {
+    -webkit-mask-image: conic-gradient(#000 var(--deg), transparent 0);
+    mask-image: conic-gradient(#000 var(--deg), transparent 0);
+    transition: --deg 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Meio anel: só a metade de cima da arte do anel, de 9 a 3 horas. */
+  .half-track {
+    -webkit-mask-image: conic-gradient(from -90deg, #000 180deg, transparent 0);
+    mask-image: conic-gradient(from -90deg, #000 180deg, transparent 0);
+  }
+
+  .half-sweep {
+    -webkit-mask-image: conic-gradient(from -90deg, #000 var(--deg), transparent 0);
+    mask-image: conic-gradient(from -90deg, #000 var(--deg), transparent 0);
+    transition: --deg 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Segmentado: a arte do anel cortada em 10 gomos, como os tanques de efeito do RDR2. */
+  .segments {
+    -webkit-mask-image: repeating-conic-gradient(from 3deg, #000 0deg 30deg, transparent 30deg 36deg);
+    mask-image: repeating-conic-gradient(from 3deg, #000 0deg 30deg, transparent 30deg 36deg);
+  }
+
+  /* Barras: a barra de atributos das armas, em 9 fatias. As pontas acompanham
+     a espessura (12 de 16 px na arte), então a barra nunca achata. */
+  .skin-bar {
+    --skin-mask: var(--tex-slider-track) 0 12 / 0 calc(var(--bar-h) * 0.75) stretch;
+  }
+
+  .skin-bar-fill {
+    --skin-mask: var(--tex-slider-fill) 0 12 / 0 calc(var(--bar-h) * 0.75) stretch;
+  }
+
+  /* Core fill: the core icon rises from the bottom as the core refills. */
+  .core-rise {
+    -webkit-mask-image: linear-gradient(to top, #000 var(--fill), transparent var(--fill));
+    mask-image: linear-gradient(to top, #000 var(--fill), transparent var(--fill));
+    transition: --fill 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .hud-text {
+    text-shadow: 0 0.06rem 0.12rem rgba(0, 0, 0, 0.95), 0 0 0.6rem rgba(0, 0, 0, 0.55);
+  }
+
+  .hud-glyph {
+    filter: drop-shadow(0 0.06rem 0.12rem rgba(0, 0, 0, 0.9));
+  }
+
+  .pulse {
+    animation: hud-pulse 1.1s ease-in-out infinite;
+  }
+
+  /* Camada de brilho: cópia desfocada da arte dourada, atrás dela. O desfoque
+     fica no invólucro para seguir a forma mascarada, não a caixa. */
+  .gold-glow {
+    filter: blur(0.16rem);
+    animation: gold-breathe 2.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .gold-glow.ending {
+    animation-duration: 0.9s;
+  }
+
+  /* Número dourado: o mesmo brilho, pulsando na sombra do texto. */
+  .gold-text {
+    animation: gold-text-breathe 2.6s ease-in-out infinite;
+  }
+
+  .gold-text.ending {
+    animation-duration: 0.9s;
+  }
+
+  .talking {
+    animation: hud-talk 0.5s ease-in-out infinite;
+  }
+
+  .enter {
+    animation: hud-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 0.3rem;
+  }
+
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
