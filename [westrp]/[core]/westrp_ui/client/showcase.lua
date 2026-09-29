@@ -1146,13 +1146,32 @@ RegisterCommand('testhud', function(source, args)
         exports['westrp_ui']:SetStaminaOverride(5.0, 10.0)
         print("^3[WestRP UI]^7 Status de estresse crítico injetado (Vida 10%/15%, Estamina 5%/10%, Fome 12%, Sede 8% — trava de teste ativada).")
     elseif sub == 'voice' then
-        local lvl = tonumber(args[2]) or 2
-        exports['westrp_ui']:SetVoiceLevel(lvl)
-        print(string.format("^3[WestRP UI]^7 Nível de proximidade de voz definido para: %d", lvl))
+        if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' or args[2] == 'auto' then
+            exports['westrp_ui']:SetVoiceLevel('restore')
+            print("^3[WestRP UI]^7 Override de nível de voz desativado (retornando ao PMA-Voice).")
+        else
+            local lvl = tonumber(args[2]) or 2
+            exports['westrp_ui']:SetVoiceLevel(lvl)
+            print(string.format("^3[WestRP UI]^7 Nível de proximidade de voz definido para: %d (1: Sussurro, 2: Normal, 3: Grito)", lvl))
+        end
     elseif sub == 'talk' or sub == 'talking' then
-        local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
-        exports['westrp_ui']:SetVoiceTalking(active)
-        print(string.format("^3[WestRP UI]^7 Estado de fala no microfone definido para: %s", tostring(active)))
+        if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' or args[2] == 'auto' then
+            exports['westrp_ui']:SetVoiceTalking('restore')
+            print("^3[WestRP UI]^7 Override de fala desativado (retornando à detecção nativa do microfone).")
+        else
+            local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
+            exports['westrp_ui']:SetVoiceTalking(active)
+            print(string.format("^3[WestRP UI]^7 Estado de fala no microfone definido para: %s", tostring(active)))
+        end
+    elseif sub == 'radio' then
+        if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' or args[2] == 'auto' then
+            exports['westrp_ui']:SetVoiceRadio('restore')
+            print("^3[WestRP UI]^7 Override de rádio desativado (retornando ao PMA-Voice).")
+        else
+            local active = (args[2] == '1' or args[2] == 'true' or args[2] == 'on')
+            exports['westrp_ui']:SetVoiceRadio(active)
+            print(string.format("^3[WestRP UI]^7 Transmissão via rádio definida para: %s", tostring(active)))
+        end
     elseif sub == 'temp' or sub == 'temperature' then
         if args[2] == 'restore' or args[2] == 'normal' or args[2] == 'nil' then
             exports['westrp_ui']:SetTemperatureOverride(nil)
@@ -1172,8 +1191,8 @@ RegisterCommand('testhud', function(source, args)
     elseif sub == 'sync' then
         local status = exports['westrp_ui']:GetMetabolismStatus()
         local voice = exports['westrp_ui']:GetVoiceData()
-        print(string.format("^3[WestRP UI]^7 Telemetria Atual — Fome: %.1f%% | Sede: %.1f%% | Voz: Nível %d (%s)",
-            status.hunger, status.thirst, voice.level, voice.isTalking and "Falando" or "Mudo"))
+        print(string.format("^3[WestRP UI]^7 Telemetria Atual — Fome: %.1f%% | Sede: %.1f%% | Voz: Nível %d (%s%s)",
+            status.hunger, status.thirst, voice.level, voice.isTalking and "Falando" or "Silêncio", voice.isRadio and " [Rádio]" or ""))
     elseif sub == 'core' then
         local target = args[2] and string.lower(args[2])
         local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on')
@@ -1212,13 +1231,58 @@ RegisterCommand('testhud', function(source, args)
                 print(string.format("^3[WestRP UI]^7 Golden Core para '%s' definido como: %s", target, tostring(enabled)))
             end
         end
+    elseif sub == 'mount' then
+        local action = args[2] and string.lower(args[2]) or 'toggle'
+        if action == 'toggle' or action == 'active' then
+            if args[3] == 'restore' or args[3] == 'auto' or args[3] == 'nil' then
+                exports['westrp_ui']:SetMountActiveOverride('restore')
+                print("^3[WestRP UI]^7 Override de montaria desativado (retornando à detecção nativa do cavalo).")
+            else
+                local enabled = (args[3] == '1' or args[3] == 'true' or args[3] == 'on' or args[3] == nil)
+                exports['westrp_ui']:SetMountActiveOverride(enabled)
+                print(string.format("^3[WestRP UI]^7 Cluster de montaria forçado para: %s", tostring(enabled)))
+            end
+        elseif action == 'health' then
+            if args[3] == 'restore' or args[3] == 'normal' or args[3] == 'nil' then
+                exports['westrp_ui']:SetMountHealthOverride('restore')
+                print("^3[WestRP UI]^7 Override de vida da montaria desativado (retornando à leitura nativa).")
+            else
+                local bar = tonumber(args[3]) or 100.0
+                local core = tonumber(args[4])
+                exports['westrp_ui']:SetMountActiveOverride(true)
+                exports['westrp_ui']:SetMountHealthOverride(bar, core)
+                print(string.format("^3[WestRP UI]^7 Vida da montaria simulada — Barra: %.1f%% | Núcleo: %s", bar, core and string.format("%.1f%%", core) or "Inalterado"))
+            end
+        elseif action == 'stamina' then
+            if args[3] == 'restore' or args[3] == 'normal' or args[3] == 'nil' then
+                exports['westrp_ui']:SetMountStaminaOverride('restore')
+                print("^3[WestRP UI]^7 Override de estamina da montaria desativado (retornando à leitura nativa).")
+            else
+                local bar = tonumber(args[3]) or 100.0
+                local core = tonumber(args[4])
+                exports['westrp_ui']:SetMountActiveOverride(true)
+                exports['westrp_ui']:SetMountStaminaOverride(bar, core)
+                print(string.format("^3[WestRP UI]^7 Estamina da montaria simulada — Barra: %.1f%% | Núcleo: %s", bar, core and string.format("%.1f%%", core) or "Inalterado"))
+            end
+        elseif action == 'restore' then
+            exports['westrp_ui']:SetMountHealthOverride('restore')
+            exports['westrp_ui']:SetMountStaminaOverride('restore')
+            exports['westrp_ui']:SetMountActiveOverride('restore')
+            print("^3[WestRP UI]^7 Overrides de montaria restaurados para a telemetria nativa do RedM.")
+        else
+            print("^3[WestRP UI]^7 Uso: /testhud mount [toggle <on/off/restore> | health <bar> [core] | stamina <bar> [core] | restore]")
+        end
     elseif sub == 'restore' then
         exports['westrp_ui']:UpdateMetabolismStatus("restore", "restore")
         exports['westrp_ui']:SetHealthOverride("restore")
         exports['westrp_ui']:SetStaminaOverride("restore")
+        exports['westrp_ui']:SetMountHealthOverride("restore")
+        exports['westrp_ui']:SetMountStaminaOverride("restore")
+        exports['westrp_ui']:SetMountActiveOverride("restore")
         exports['westrp_ui']:SetGoldenCore('all', 'restore')
-        exports['westrp_ui']:SetVoiceTalking(false)
-        exports['westrp_ui']:SetVoiceLevel(2)
+        exports['westrp_ui']:SetVoiceTalking('restore')
+        exports['westrp_ui']:SetVoiceLevel('restore')
+        exports['westrp_ui']:SetVoiceRadio('restore')
         exports['westrp_ui']:SetTemperatureOverride(nil)
         exports['westrp_ui']:ConfigureHudSettings({
             dynamicCores = {
@@ -1230,9 +1294,9 @@ RegisterCommand('testhud', function(source, args)
                 thirst = false
             }
         })
-        print("^3[WestRP UI]^7 Todas as travas de teste removidas e sincronização com VORP, vitals nativos, voz e clima reativada.")
+        print("^3[WestRP UI]^7 Todas as travas de teste removidas e sincronização com VORP, vitals nativos, PMA-Voice e clima reativada.")
     else
-        print("^3[WestRP UI]^7 Uso: /testhud [toggle | health <bar> [core] | stamina <bar> [core] | golden <health|stamina> <on/off> | hunger <0-100> | thirst <0-100> | core <hunger|thirst|health|stamina> <on/off> | voice <1-3> | talk <on/off> | temp <celsius/restore> | vorp <hunger> <thirst> | cinematic <on/off> | stress | sync | restore]")
+        print("^3[WestRP UI]^7 Uso: /testhud [toggle | health <bar> [core] | stamina <bar> [core] | mount <health|stamina|toggle|restore> | golden <health|stamina|mount> <on/off> | hunger <0-100> | thirst <0-100> | core <hunger|thirst|health|stamina> <on/off> | voice <1-3/restore> | talk <on/off/restore> | radio <on/off/restore> | temp <celsius/restore> | vorp <hunger> <thirst> | cinematic <on/off> | stress | sync | restore]")
     end
 end, false)
 

@@ -78,6 +78,9 @@ window.addEventListener('message', (event) => {
     case 'westrp_ui:updatePlayerHud':
       if (window.uiPlayerHud) window.uiPlayerHud.update(data.data || {});
       break;
+    case 'westrp_ui:updateVoice':
+      if (window.uiPlayerHud) window.uiPlayerHud.updateVoice(data.data || {});
+      break;
     case 'westrp_ui:setHudVisible':
       if (window.uiPlayerHud) window.uiPlayerHud.setVisible(data.data ? data.data.visible : true);
       break;

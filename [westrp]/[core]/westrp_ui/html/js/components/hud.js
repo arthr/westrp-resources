@@ -320,30 +320,37 @@
     }
 
     /**
-     * Atualiza o status de voz e proximidade
+     * Atualiza o status de voz, proximidade e modo de transmissão (rádio ou proximidade)
      * @param {Object} voiceData
      */
     updateVoice(voiceData) {
-      const isTalking = voiceData.isTalking === true;
-      const level = Number(voiceData.level) || 2;
-      const voiceItem = this.rings.voice ? this.rings.voice.item : null;
+      if (!voiceData) return;
 
-      if (voiceItem) {
-        if (isTalking) {
-          voiceItem.classList.add('is-talking');
-        } else {
-          voiceItem.classList.remove('is-talking');
-        }
+      const isTalking = voiceData.isTalking === true;
+      const isRadio = voiceData.isRadio === true;
+      const level = Math.max(1, Math.min(3, Number(voiceData.level) || 2));
+      const maxLevels = Number(voiceData.maxLevels) || 3;
+
+      const voiceItem = this.rings.voice ? this.rings.voice.item : null;
+      const voiceFill = this.rings.voice ? this.rings.voice.fill : null;
+
+      // 1. Atualização do arco circular de proximidade (33%, 66%, 100%)
+      if (voiceFill) {
+        const pct = (level / maxLevels) * 100;
+        const offset = this.calculateOffset(pct);
+        voiceFill.style.strokeDashoffset = offset.toFixed(2);
       }
 
-      // Níveis de proximidade (1: Sussurro, 2: Normal, 3: Grito)
+      // 2. Classes visuais de estado: fala ativa e modo de rádio
+      if (voiceItem) {
+        voiceItem.classList.toggle('is-talking', isTalking);
+        voiceItem.classList.toggle('is-radio', isRadio && isTalking);
+      }
+
+      // 3. Indicadores de proximidade (Dots: 1 = Sussurro, 2 = Normal, 3 = Grito)
       this.voiceDots.forEach((dot, index) => {
         if (!dot) return;
-        if (index < level) {
-          dot.classList.add('is-active');
-        } else {
-          dot.classList.remove('is-active');
-        }
+        dot.classList.toggle('is-active', index < level);
       });
     }
 

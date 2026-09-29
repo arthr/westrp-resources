@@ -563,7 +563,7 @@
       <div class="rdr-hud-item hud-ring--voice" id="hud-item-voice" title="Alcance da Voz">
         <svg class="rdr-hud-svg" viewBox="0 0 46 46">
           <circle class="rdr-hud-bg-track" cx="23" cy="23" r="18.5" />
-          <circle class="rdr-hud-fill" id="hud-fill-voice" cx="23" cy="23" r="18.5" style="stroke-dashoffset: 0;" />
+          <circle class="rdr-hud-fill" id="hud-fill-voice" cx="23" cy="23" r="18.5" style="stroke-dashoffset: 38.75;" />
         </svg>
         <span class="rdr-hud-icon">
           <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
@@ -1230,27 +1230,30 @@
       }
 
       else if (type === 'hud_voice') {
-        window._sandboxVoiceLevel = ((window._sandboxVoiceLevel || 2) % 3) + 1;
-        window._sandboxTalking = !window._sandboxTalking;
+        const modes = [
+          { level: 1, isTalking: false, isRadio: false, label: 'Nível 1 (Sussurro 33%) — Silêncio' },
+          { level: 1, isTalking: true,  isRadio: false, label: 'Nível 1 (Sussurro 33%) — Falando (Verde Esmeralda)' },
+          { level: 2, isTalking: false, isRadio: false, label: 'Nível 2 (Normal 66%) — Silêncio' },
+          { level: 2, isTalking: true,  isRadio: false, label: 'Nível 2 (Normal 66%) — Falando (Verde Esmeralda)' },
+          { level: 3, isTalking: false, isRadio: false, label: 'Nível 3 (Grito 100%) — Silêncio' },
+          { level: 3, isTalking: true,  isRadio: false, label: 'Nível 3 (Grito 100%) — Falando (Verde Esmeralda)' },
+          { level: 2, isTalking: true,  isRadio: true,  label: 'Nível 2 (Normal 66%) — Transmitindo no Rádio (Dourado Âmbar)' }
+        ];
+        window._sandboxVoiceIdx = ((window._sandboxVoiceIdx !== undefined ? window._sandboxVoiceIdx : -1) + 1) % modes.length;
+        const currentMode = modes[window._sandboxVoiceIdx];
+
         window.postMessage({
-          action: 'westrp_ui:updatePlayerHud',
+          action: 'westrp_ui:updateVoice',
           data: {
-            visible: true,
-            health: 90,
-            stamina: 80,
-            hunger: 85,
-            thirst: 90,
-            temperature: 21,
-            tempStatus: 'normal',
-            voice: {
-              level: window._sandboxVoiceLevel,
-              isTalking: window._sandboxTalking
-            },
-            mount: { active: false, health: 0, stamina: 0 },
-            isUIMenuOpen: false,
-            isCinematic: false
+            level: currentMode.level,
+            isTalking: currentMode.isTalking,
+            isRadio: currentMode.isRadio
           }
         }, '*');
+
+        if (window.uiToast) {
+          window.uiToast.show('VOICE HUD SIMULATION', currentMode.label, currentMode.isRadio ? 'warning' : (currentMode.isTalking ? 'success' : 'info'), 2500);
+        }
       }
 
       else if (type === 'hud_cinematic') {

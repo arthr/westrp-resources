@@ -237,11 +237,12 @@ A thread client em Lua despachará dados para o Chromium através de um payload 
 ### 📌 FASE 4: Vitals de Montaria (Cavalo) Contextuais — [CONCLUÍDA]
 **Objetivo:** Exibir os anéis de vida e estamina equina automaticamente ao montar e ocultar com fade suave ao desmontar.
 
-- [x] **Task 4.1: Detecção de Montaria no Client Lua**
-  - [x] Subtask 4.1.1: Verificar periodicamente `IsPedOnMount(ped)` na thread adaptativa.
-  - [x] Subtask 4.1.2: Quando verdadeiro, capturar `local mount = GetMount(ped)` com validação `DoesEntityExist(mount)`.
-  - [x] Subtask 4.1.3: Ler vida da montaria via `GetEntityHealth(mount)` e `GetPedMaxHealth(mount)`.
-  - [x] Subtask 4.1.4: Ler estamina do cavalo via native de attribute core equino (`GetAttributeCoreValue(mount, 1)` com fallback seguro pcall).
+- [x] **Task 4.1: Detecção e Sincronização Precisa de Montaria no Client Lua**
+  - [x] Subtask 4.1.1: Verificar periodicamente `IsPedOnMount(ped)` na thread adaptativa com suporte a override de teste (`forcedMountActive`).
+  - [x] Subtask 4.1.2: Quando verdadeiro, capturar `local mount = GetMount(ped)` com fallback nativo direto RDR2 (`0xE7E11B8DCBED1058`) e validação `DoesEntityExist(mount) and not IsEntityDead(mount)`.
+  - [x] Subtask 4.1.3: Sincronizar vida da montaria via `GetEntityHealth(mount)` e `GetEntityMaxHealth(mount)` (escala direta 0 a 100% sem dedução indevida de núcleo humano), com núcleo lido via `GetAttributeCoreValue(mount, 0)` / hash `0x36731AC041289BB1`.
+  - [x] Subtask 4.1.4: Sincronizar estamina da montaria via `_GET_PED_STAMINA` (`0x22F2A386D43048A9`) e `_GET_PED_MAX_STAMINA` (`0xCB42AFE2B613EE55`) normalizada proporcionalmente, com núcleo lido via `GetAttributeCoreValue(mount, 1)` / hash `0x36731AC041289BB1`.
+  - [x] Subtask 4.1.5: Adicionar exports `SetMountHealthOverride`, `SetMountStaminaOverride` e `SetMountActiveOverride` com comandos `/testhud mount <health|stamina|toggle|restore>`.
 
 - [x] **Task 4.2: Transições Suaves no Frontend NUI**
   - [x] Subtask 4.2.1: Criar classe CSS `.hud-cluster--mount` com `opacity: 0; max-height: 0; transform: scale(0.85) translateY(10px); transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);`.
@@ -306,5 +307,33 @@ Após a homologação visual em relação aos marcadores originais do RDR2 acima
   - `/testhud core <hunger|thirst|health|stamina> <on/off>` para ativar ou desativar o efeito dinâmico por indicador.
   - Exports `SetHealthOverride(bar, core)`, `SetStaminaOverride(bar, core)`, `SetGoldenCore(attr, state)`, `ConfigureHudSettings(settings)` e `GetHudConfig()` registrados no `fxmanifest.lua`.
 
+---
 
+## 7. Revisão Cirúrgica do Elemento de Voz (PMA-Voice, RedM Nativo & NUI Proximity Arc)
 
+Para sanar a limitação de representação visual estática e garantir fidelidade 100% precisa com o estado real de comunicação, foi realizada a revisão cirúrgica do subsistema de voz:
+
+1. **Preenchimento Proporcional do Arco Circular NUI (`#hud-fill-voice`):**
+   - O anel circular agora reflete ativamente a amplitude/alcance de voz configurado:
+     - **Nível 1 (Sussurro / Whisper):** $33.3\%$ do arco preenchido (`stroke-dashoffset: 77.49px`).
+     - **Nível 2 (Normal):** $66.6\%$ do arco preenchido (`stroke-dashoffset: 38.75px`).
+     - **Nível 3 (Grito / Shouting):** $100.0\%$ do arco preenchido (`stroke-dashoffset: 0.00px`).
+   - Transição suave via aceleração de GPU (`stroke-dashoffset 0.35s ease-out`), expandindo ou encolhendo ao ciclar o alcance (F11 / `cycleproximity`).
+   - Sincronização dos 3 pontos micro-indicadores (`.hud-voice-dot.is-active`).
+
+2. **Diferenciação Estrita de Estados de Transmissão:**
+   - **Silêncio (Idle):** Tom neutro de pergaminho/off-white rústico RDR2 (`#d8d2c4`), sem saturação de tela.
+   - **Fala Local em Proximidade (Microfone Aberto):**
+     - Classe `.is-talking:not(.is-radio)`.
+     - Anel e ícone em verde esmeralda vibrante (`#4caf50`) com brilho sutil (`drop-shadow`).
+     - Pulso orgânico suave de ondas sonoras (`@keyframes rdrVoicePulse`).
+   - **Transmissão via Rádio (Frequência Ativa):**
+     - Classe `.is-radio`.
+     - Anel e ícone em tom âmbar/dourado clássico de radiocomunicação (`#dfb76c`).
+     - Pulso rítmico de frequência de rádio (`@keyframes rdrRadioPulse`).
+
+3. **Arquitetura de Telemetria Resiliente (Client Lua):**
+   - **Detecção Híbrida Dupla:** Combina leitura nativa Mumble (`MumbleIsPlayerTalking(PlayerId()) == 1`) e native oficial RedM `NetworkIsPlayerTalking(PlayerId())` (`0xEF6F2A35FAAF2ED7`).
+   - **Zero-Latency Push-to-Talk (0.00ms Resmon):** Micro-thread especializada com polling adaptativo (50ms enquanto fala / 120ms em silêncio) disparando a action ultraleve `westrp_ui:updateVoice` apenas em transições de estado, eliminando os atrasos de 350ms do loop de vitals.
+   - **Integração sem Desvio com PMA-Voice:** Escuta ativa de State Bags (`proximity` e `radioActive` via `AddStateBagChangeHandler`) e eventos `pma-voice:setTalkingMode` e `pma-voice:radioActive`. Elimina o bug onde leituras brutas de float de `MumbleGetTalkerProximity()` sobrescreviam indevidamente o nível de voz.
+   - **Suíte de Testes e Simulação:** Suporte a `/testhud voice <1-3/restore>`, `/testhud talk <on/off/restore>`, `/testhud radio <on/off/restore>`, `/testhud restore` e ciclo iterativo de 7 cenários de teste interativos no sandbox `html/test.html`.

@@ -217,19 +217,75 @@
   stroke: #c5a059; /* Dourado Envelhecido */
 }
 
-/* Voz (Voice Range) */
+/* Voz (Voice Range & Transmissão) */
 .hud-ring--voice .rdr-hud-fill {
-  stroke: #fafafa;
+  stroke: #d8d2c4; /* Bege pergaminho rústico RDR2 */
+  transition: stroke 0.25s ease, stroke-dashoffset 0.35s ease-out, filter 0.25s ease;
 }
 
-.hud-ring--voice.is-talking .rdr-hud-fill {
-  stroke: #4caf50; /* Verde microfone ativo */
+.hud-ring--voice .rdr-hud-icon {
+  fill: #d8d2c4;
+  color: #d8d2c4;
+  transition: transform 0.25s ease, fill 0.25s ease, filter 0.25s ease;
 }
 
-.hud-ring--voice.is-talking .rdr-hud-icon {
+/* Estado de Fala: Proximidade Ativa (Microfone Aberto / Verde) */
+.hud-ring--voice.is-talking:not(.is-radio) .rdr-hud-fill {
+  stroke: #4caf50; /* Verde esmeralda vivo */
+  filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.7));
+}
+
+.hud-ring--voice.is-talking:not(.is-radio) .rdr-hud-icon {
   fill: #4caf50;
   color: #4caf50;
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.12);
+  filter: drop-shadow(0 0 6px rgba(76, 175, 80, 0.75));
+  animation: rdrVoicePulse 1.35s infinite ease-in-out;
+}
+
+.hud-ring--voice.is-talking:not(.is-radio) .hud-voice-dot.is-active {
+  background: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.85);
+}
+
+/* Estado de Fala: Transmissão via Rádio (Frequência Ativa / Dourado Âmbar) */
+.hud-ring--voice.is-radio .rdr-hud-fill {
+  stroke: #dfb76c; /* Dourado couro / frequência rádio */
+  filter: drop-shadow(0 0 5px rgba(223, 183, 108, 0.75));
+}
+
+.hud-ring--voice.is-radio .rdr-hud-icon {
+  fill: #dfb76c;
+  color: #dfb76c;
+  transform: translate(-50%, -50%) scale(1.12);
+  filter: drop-shadow(0 0 6px rgba(223, 183, 108, 0.85));
+  animation: rdrRadioPulse 1.1s infinite ease-in-out;
+}
+
+.hud-ring--voice.is-radio .hud-voice-dot.is-active {
+  background: #dfb76c;
+  box-shadow: 0 0 5px rgba(223, 183, 108, 0.85);
+}
+
+/* Micro-animações orgânicas de fala e rádio */
+@keyframes rdrVoicePulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+}
+
+@keyframes rdrRadioPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 0.88;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
 }
 
 /* ==========================================================================
@@ -249,16 +305,12 @@
   height: 3px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.25);
-  transition: background-color 0.25s ease, transform 0.25s ease;
+  transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .hud-voice-dot.is-active {
   background: #dfb76c;
   transform: scale(1.2);
-}
-
-.hud-ring--voice.is-talking .hud-voice-dot.is-active {
-  background: #4caf50;
 }
 
 /* ==========================================================================

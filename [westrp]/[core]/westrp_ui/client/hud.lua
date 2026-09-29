@@ -15,7 +15,10 @@ local TEMP_DELTA_THRESHOLD <const> = 1.0
 local isHudVisible = true
 local isCinematicActive = false
 local voiceProximityMode = 2
-local isForcedTalking = false
+local isForcedTalking = nil     -- nil: automático via natives/pma-voice, boolean: override de teste
+local isForcedVoiceLevel = nil  -- nil: automático via pma-voice/mumble, integer: override de teste
+local isForcedRadio = nil       -- nil: automático via pma-voice, boolean: override de teste
+local isRadioActive = false
 local forcedTemperature = nil
 
 local playerHudState = {
@@ -31,6 +34,7 @@ local playerHudState = {
     tempStatus = "normal",
     voiceLevel = 2,
     isTalking = false,
+    isRadio = false,
     mountActive = false,
     mountHealthBar = -1.0,
     mountHealthCore = -1.0,
@@ -44,6 +48,16 @@ local playerHudState = {
 
 -- Overrides de teste para fixar valores durante simulações e testes
 local forcedVitals = {
+    healthBar = nil,
+    healthCore = nil,
+    staminaBar = nil,
+    staminaCore = nil
+}
+
+local forcedMountActive = nil -- nil: automático via IsPedOnMount, boolean: override de teste
+
+-- Overrides de teste para fixar valores da montaria durante simulações e testes
+local forcedMountVitals = {
     healthBar = nil,
     healthCore = nil,
     staminaBar = nil,
@@ -230,87 +244,211 @@ local function getTemperatureData(coords)
     return temp, status
 end
 
----Obtém dados do sistema de voz (PMA-Voice / Mumble)
+---Verifica se o jogador local está falando no microfone de forma resiliente
+---Combina detecção nativa Mumble (pma-voice) e RedM nativo (0xEF6F2A35FAAF2ED7)
 ---@param playerId integer
----@return integer, boolean
-local function getVoiceData(playerId)
-    local isTalking = isForcedTalking
-    if not isTalking then
-        if MumbleIsPlayerTalking then
-            local ok, result = pcall(MumbleIsPlayerTalking, playerId)
-            if ok and (result == 1 or result == true) then isTalking = true end
-        elseif NetworkIsPlayerTalking then
-            local ok, result = pcall(NetworkIsPlayerTalking, playerId)
-            if ok and (result == 1 or result == true) then isTalking = true end
+---@return boolean
+local function isLocalPlayerTalking(playerId)
+    if isForcedTalking ~= nil then
+        return isForcedTalking
+    end
+
+    local radioOn = (isForcedRadio ~= nil) and isForcedRadio or isRadioActive
+    if radioOn then
+        return true
+    end
+
+    -- 1. Detecção Primária: Mumble (utilizado pelo PMA-Voice no FiveM/RedM)
+    if MumbleIsPlayerTalking then
+        local ok, result = pcall(MumbleIsPlayerTalking, playerId)
+        if ok and (result == 1 or result == true) then
+            return true
         end
     end
 
-    local level = voiceProximityMode
+    -- 2. Detecção Secundária / Nativa RedM: NetworkIsPlayerTalking (0xEF6F2A35FAAF2ED7)
+    if NetworkIsPlayerTalking then
+        local ok, result = pcall(NetworkIsPlayerTalking, playerId)
+        if ok and (result == 1 or result == true) then
+            return true
+        end
+    end
+
+    return false
+end
+
+---Obtém o nível de proximidade calibrado e verificado (1: Sussurro, 2: Normal, 3: Grito)
+---@return integer
+local function getProximityLevel()
+    if isForcedVoiceLevel ~= nil then
+        return isForcedVoiceLevel
+    end
+
+    -- 1. Se recebemos o índice do PMA-Voice (via state bag ou evento), respeita estritamente o índice
+    if voiceProximityMode and voiceProximityMode >= 1 and voiceProximityMode <= 3 then
+        return voiceProximityMode
+    end
+
+    -- 2. Fallback para MumbleGetTalkerProximity() caso PMA-Voice não tenha enviado o índice
     if MumbleGetTalkerProximity then
         local ok, proximity = pcall(MumbleGetTalkerProximity)
         if ok and type(proximity) == "number" and proximity > 0 then
-            if proximity <= 1.8 then
-                level = 1 -- Sussurro (1.5m)
-            elseif proximity <= 4.0 then
-                level = 2 -- Normal (3.0m)
+            local isNativeAudio = GetConvar('voice_useNativeAudio', 'false') == 'true'
+            if isNativeAudio then
+                if proximity <= 2.0 then
+                    return 1 -- Sussurro (1.5m)
+                elseif proximity <= 4.5 then
+                    return 2 -- Normal (3.0m)
+                else
+                    return 3 -- Grito (6.0m+)
+                end
             else
-                level = 3 -- Grito (8.0m+)
+                if proximity <= 4.0 then
+                    return 1 -- Sussurro (3.0m)
+                elseif proximity <= 9.0 then
+                    return 2 -- Normal (7.0m)
+                else
+                    return 3 -- Grito (15.0m+)
+                end
             end
         end
     end
 
-    return level, isTalking
+    return 2
 end
 
----Lê dados da montaria caso o ped esteja montado
+---Obtém dados completos do sistema de voz (PMA-Voice / Mumble / RedM Native)
+---@param playerId integer
+---@return integer, boolean, boolean
+local function getVoiceData(playerId)
+    local isTalking = isLocalPlayerTalking(playerId)
+    local isRadio = (isForcedRadio ~= nil) and isForcedRadio or isRadioActive
+    local level = getProximityLevel()
+    return level, isTalking, isRadio
+end
+
+---Lê dados da montaria caso o ped esteja montado de forma sincronizada com as natives do RedM
 ---@param ped integer
 ---@return boolean, number, number, number, number, integer
 local function getMountData(ped)
-    if not IsPedOnMount(ped) then
+    local isMounted = false
+    if forcedMountActive ~= nil then
+        isMounted = forcedMountActive
+    elseif DoesEntityExist(ped) and IsPedOnMount(ped) then
+        isMounted = true
+    end
+
+    if not isMounted then
         return false, 0.0, 0.0, 0.0, 0.0, 0
     end
 
-    local mount = GetMount(ped)
-    if not mount or mount == 0 or not DoesEntityExist(mount) then
+    local mount = 0
+    if DoesEntityExist(ped) then
+        mount = GetMount(ped)
+        if not mount or mount == 0 then
+            -- Fallback direto via native GET_MOUNT (0xE7E11B8DCBED1058)
+            local okM, mNative = pcall(Citizen.InvokeNative, 0xE7E11B8DCBED1058, ped, Citizen.ResultAsInteger())
+            if okM and mNative and mNative ~= 0 then
+                mount = mNative
+            end
+        end
+    end
+
+    -- Se não houver entidade de montaria válida (ex: em teste forçado ou transição de montagem)
+    if not mount or mount == 0 or not DoesEntityExist(mount) or IsEntityDead(mount) then
+        if forcedMountActive then
+            local hBar = forcedMountVitals.healthBar or 100.0
+            local hCore = forcedMountVitals.healthCore or 100.0
+            local sBar = forcedMountVitals.staminaBar or 100.0
+            local sCore = forcedMountVitals.staminaCore or 100.0
+            return true, hBar, hCore, sBar, sCore, 0
+        end
         return false, 0.0, 0.0, 0.0, 0.0, 0
     end
 
-    -- Health Core & Bar para o cavalo
+    -- 1. Núcleo Interno de Vida do Cavalo (Core 0: 0.0 a 100.0)
     local healthCore = 100.0
     local okHealthCore, valHCore = pcall(GetAttributeCoreValue, mount, 0)
-    if okHealthCore and type(valHCore) == "number" then
+    if not okHealthCore or type(valHCore) ~= "number" then
+        local okNative, valNative = pcall(Citizen.InvokeNative, 0x36731AC041289BB1, mount, 0, Citizen.ResultAsInteger())
+        if okNative and type(valNative) == "number" then
+            valHCore = valNative
+        end
+    end
+    if type(valHCore) == "number" then
         healthCore = math.max(0.0, math.min(100.0, valHCore + 0.0))
     end
 
+    -- 2. Barra Externa de Vida do Cavalo (0.0 a 100.0%)
+    -- No RedM, GetEntityHealth do cavalo escala de 0 até GetEntityMaxHealth(mount)
+    local healthBar = 100.0
     local currentHealth = GetEntityHealth(mount)
-    local maxHealth = GetPedMaxHealth(mount)
-    if not maxHealth or maxHealth <= 0 then maxHealth = 600 end
-    local outerHealth = math.max(0.0, currentHealth - healthCore)
-    local maxOuter = math.max(1.0, maxHealth - 100.0)
-    local healthBar = math.max(0.0, math.min(100.0, (outerHealth / maxOuter) * 100.0))
+    local maxHealth = GetEntityMaxHealth(mount)
+    if not maxHealth or maxHealth <= 0 then
+        maxHealth = math.max(100, currentHealth)
+    end
+    if maxHealth > 0 then
+        healthBar = math.max(0.0, math.min(100.0, (currentHealth / maxHealth) * 100.0))
+    end
 
-    -- Stamina Core & Bar para o cavalo
+    -- 3. Núcleo Interno de Estamina do Cavalo (Core 1: 0.0 a 100.0)
     local staminaCore = 100.0
     local okStamCore, valSCore = pcall(GetAttributeCoreValue, mount, 1)
-    if okStamCore and type(valSCore) == "number" then
+    if not okStamCore or type(valSCore) ~= "number" then
+        local okNative, valNative = pcall(Citizen.InvokeNative, 0x36731AC041289BB1, mount, 1, Citizen.ResultAsInteger())
+        if okNative and type(valNative) == "number" then
+            valSCore = valNative
+        end
+    end
+    if type(valSCore) == "number" then
         staminaCore = math.max(0.0, math.min(100.0, valSCore + 0.0))
     end
 
-    local staminaBar = 100.0
-    local okStamBar, valSBar = pcall(Citizen.InvokeNative, 0x22F2A386D43048A9, mount, Citizen.ResultAsFloat())
-    if okStamBar and type(valSBar) == "number" then
-        if valSBar >= 0.0 and valSBar <= 1.0 then
-            staminaBar = valSBar * 100.0
-        elseif valSBar > 1.0 and valSBar <= 100.0 then
-            staminaBar = valSBar
-        end
-    elseif GetPedStamina and GetPedMaxStamina then
-        local curS = GetPedStamina(mount)
-        local maxS = GetPedMaxStamina(mount)
-        if maxS and maxS > 0 then
-            staminaBar = math.max(0.0, math.min(100.0, (curS / maxS) * 100.0))
+    -- 4. Barra Externa de Estamina do Cavalo (0.0 a 100.0%)
+    -- Lê estamina atual e estamina máxima via natives RedM/RDR2
+    local staminaBar = staminaCore
+    local curStamina = -1.0
+    local maxStamina = -1.0
+
+    if GetPedStamina and GetPedMaxStamina then
+        local okCur, valCur = pcall(GetPedStamina, mount)
+        local okMax, valMax = pcall(GetPedMaxStamina, mount)
+        if okCur and type(valCur) == "number" then curStamina = valCur end
+        if okMax and type(valMax) == "number" then maxStamina = valMax end
+    end
+
+    -- 0x22F2A386D43048A9: _GET_PED_STAMINA (float)
+    if curStamina < 0.0 then
+        local okCurNat, valCurNat = pcall(Citizen.InvokeNative, 0x22F2A386D43048A9, mount, Citizen.ResultAsFloat())
+        if okCurNat and type(valCurNat) == "number" then
+            curStamina = valCurNat
         end
     end
+
+    -- 0xCB42AFE2B613EE55: _GET_PED_MAX_STAMINA (float)
+    if maxStamina <= 0.0 then
+        local okMaxNat, valMaxNat = pcall(Citizen.InvokeNative, 0xCB42AFE2B613EE55, mount, Citizen.ResultAsFloat())
+        if okMaxNat and type(valMaxNat) == "number" and valMaxNat > 0.0 then
+            maxStamina = valMaxNat
+        end
+    end
+
+    -- Normalização proporcional da estamina do cavalo
+    if maxStamina > 0.0 and curStamina >= 0.0 then
+        staminaBar = math.max(0.0, math.min(100.0, (curStamina / maxStamina) * 100.0))
+    elseif curStamina >= 0.0 then
+        if curStamina <= 1.0 then
+            staminaBar = curStamina * 100.0
+        elseif curStamina <= 100.0 then
+            staminaBar = curStamina
+        end
+    end
+
+    -- 5. Aplicação de overrides de simulação/teste
+    if forcedMountVitals.healthBar ~= nil then healthBar = forcedMountVitals.healthBar end
+    if forcedMountVitals.healthCore ~= nil then healthCore = forcedMountVitals.healthCore end
+    if forcedMountVitals.staminaBar ~= nil then staminaBar = forcedMountVitals.staminaBar end
+    if forcedMountVitals.staminaCore ~= nil then staminaCore = forcedMountVitals.staminaCore end
 
     return true, healthBar, healthCore, staminaBar, staminaCore, mount
 end
@@ -327,18 +465,20 @@ local function checkAnyMenuOpen()
     return false
 end
 
----Avalia se o jogador está em ação física intensa para ditar a taxa de tick
+---Avalia se o jogador ou a montaria está em ação física intensa para ditar a taxa de tick
 ---@param ped integer
 ---@param isMounted boolean
+---@param mountPed integer|nil
 ---@return boolean
-local function isPedInActiveMovement(ped, isMounted)
+local function isPedInActiveMovement(ped, isMounted, mountPed)
     if IsPedSprinting(ped) or IsPedRunning(ped) or IsPedSwimming(ped) or IsPedInMeleeCombat(ped) then
         return true
     end
 
     if isMounted then
-        local speed = GetEntitySpeed(ped)
-        if speed > 3.0 then
+        local checkEntity = (mountPed and mountPed ~= 0 and DoesEntityExist(mountPed)) and mountPed or ped
+        local speed = GetEntitySpeed(checkEntity)
+        if speed > 2.0 then
             return true
         end
     end
@@ -370,7 +510,7 @@ end
 ---@param isMenuOpen boolean
 ---@param isCinematic boolean
 ---@return boolean
-local function hasDelta(healthBar, healthCore, healthGolden, staminaBar, staminaCore, staminaGolden, hunger, thirst, temp, tempStatus, voiceLevel, isTalking, mountActive, mountHealthBar, mountHealthCore, mountHealthGolden, mountStaminaBar, mountStaminaCore, mountStaminaGolden, isMenuOpen, isCinematic)
+local function hasDelta(healthBar, healthCore, healthGolden, staminaBar, staminaCore, staminaGolden, hunger, thirst, temp, tempStatus, voiceLevel, isTalking, isRadio, mountActive, mountHealthBar, mountHealthCore, mountHealthGolden, mountStaminaBar, mountStaminaCore, mountStaminaGolden, isMenuOpen, isCinematic)
     if math.abs(healthBar - playerHudState.healthBar) >= DELTA_THRESHOLD then return true end
     if math.abs(healthCore - playerHudState.healthCore) >= DELTA_THRESHOLD then return true end
     if healthGolden ~= playerHudState.healthGolden then return true end
@@ -384,6 +524,7 @@ local function hasDelta(healthBar, healthCore, healthGolden, staminaBar, stamina
     if tempStatus ~= playerHudState.tempStatus then return true end
     if voiceLevel ~= playerHudState.voiceLevel then return true end
     if isTalking ~= playerHudState.isTalking then return true end
+    if isRadio ~= playerHudState.isRadio then return true end
     if mountActive ~= playerHudState.mountActive then return true end
     if isMenuOpen ~= playerHudState.isUIMenuOpen then return true end
     if isCinematic ~= playerHudState.isCinematic then return true end
@@ -422,7 +563,8 @@ local function dispatchHudUpdate()
             tempStatus = playerHudState.tempStatus,
             voice = {
                 level = playerHudState.voiceLevel,
-                isTalking = playerHudState.isTalking
+                isTalking = playerHudState.isTalking,
+                isRadio = playerHudState.isRadio
             },
             mount = {
                 active = playerHudState.mountActive,
@@ -513,28 +655,47 @@ local function getMetabolismStatus()
 end
 exports('GetMetabolismStatus', getMetabolismStatus)
 
----Define manualmente o nível de proximidade de voz (1: Sussurro, 2: Normal, 3: Grito)
----@param level integer
+---Define manualmente o nível de proximidade de voz (1: Sussurro, 2: Normal, 3: Grito, ou nil/'restore' para retornar ao automático)
+---@param level integer|string|nil
 local function setVoiceLevel(level)
-    if type(level) == "number" and level >= 1 and level <= 3 then
-        voiceProximityMode = math.floor(level)
+    if level == nil or level == "restore" or level == "auto" then
+        isForcedVoiceLevel = nil
+    elseif type(level) == "number" and level >= 1 and level <= 3 then
+        isForcedVoiceLevel = math.floor(level)
+        voiceProximityMode = isForcedVoiceLevel
     end
 end
 exports('SetVoiceLevel', setVoiceLevel)
 
----Permite forçar ou simular estado de microfone ativo/falando
----@param talking boolean
+---Permite forçar ou simular estado de microfone ativo/falando (nil/'restore' para retornar à detecção nativa)
+---@param talking boolean|string|nil
 local function setVoiceTalking(talking)
-    isForcedTalking = (talking == true)
+    if talking == nil or talking == "restore" or talking == "auto" then
+        isForcedTalking = nil
+    else
+        isForcedTalking = (talking == true)
+    end
 end
 exports('SetVoiceTalking', setVoiceTalking)
 
----Retorna o estado atual de voz (nível e se está falando)
+---Permite forçar ou simular transmissão via rádio (nil/'restore' para retornar ao PMA-Voice)
+---@param radioActive boolean|string|nil
+local function setVoiceRadio(radioActive)
+    if radioActive == nil or radioActive == "restore" or radioActive == "auto" then
+        isForcedRadio = nil
+    else
+        isForcedRadio = (radioActive == true)
+    end
+end
+exports('SetVoiceRadio', setVoiceRadio)
+
+---Retorna o estado atual de voz (nível, se está falando e se está no rádio)
 ---@return table
 local function getVoiceDataExport()
     return {
         level = playerHudState.voiceLevel,
-        isTalking = playerHudState.isTalking
+        isTalking = playerHudState.isTalking,
+        isRadio = playerHudState.isRadio
     }
 end
 exports('GetVoiceData', getVoiceDataExport)
@@ -579,6 +740,49 @@ local function setStaminaOverride(bar, core)
     end
 end
 exports('SetStaminaOverride', setStaminaOverride)
+
+---Define override de teste para vida da montaria (barra e núcleo)
+---@param bar number|string|nil
+---@param core number|nil
+local function setMountHealthOverride(bar, core)
+    if bar == "restore" or bar == false then
+        forcedMountVitals.healthBar = nil
+        forcedMountVitals.healthCore = nil
+    elseif type(bar) == "number" then
+        forcedMountVitals.healthBar = math.max(0.0, math.min(100.0, bar))
+        if type(core) == "number" then
+            forcedMountVitals.healthCore = math.max(0.0, math.min(100.0, core))
+        end
+    end
+end
+exports('SetMountHealthOverride', setMountHealthOverride)
+
+---Define override de teste para estamina da montaria (barra e núcleo)
+---@param bar number|string|nil
+---@param core number|nil
+local function setMountStaminaOverride(bar, core)
+    if bar == "restore" or bar == false then
+        forcedMountVitals.staminaBar = nil
+        forcedMountVitals.staminaCore = nil
+    elseif type(bar) == "number" then
+        forcedMountVitals.staminaBar = math.max(0.0, math.min(100.0, bar))
+        if type(core) == "number" then
+            forcedMountVitals.staminaCore = math.max(0.0, math.min(100.0, core))
+        end
+    end
+end
+exports('SetMountStaminaOverride', setMountStaminaOverride)
+
+---Permite forçar ou simular o estado montado/desmontado (nil/'restore' para retornar à detecção nativa)
+---@param active boolean|string|nil
+local function setMountActiveOverride(active)
+    if active == nil or active == "restore" or active == "auto" then
+        forcedMountActive = nil
+    else
+        forcedMountActive = (active == true)
+    end
+end
+exports('SetMountActiveOverride', setMountActiveOverride)
 
 ---Permite parametrizar dinamicamente os efeitos e configurações do HUD
 ---@param settings table
@@ -734,21 +938,102 @@ CreateThread(function()
     end
 end)
 
--- 6. Escuta redefinição de modo de voz (PMA-Voice)
+---Sincroniza o modo de proximidade e status de rádio iniciais a partir do StateBag do PMA-Voice
+local function syncVoiceProximityFromStateBag()
+    if isForcedVoiceLevel == nil then
+        if LocalPlayer and LocalPlayer.state and LocalPlayer.state.proximity then
+            local prox = LocalPlayer.state.proximity
+            if type(prox) == "table" and prox.index and type(prox.index) == "number" then
+                voiceProximityMode = math.floor(prox.index)
+            end
+        end
+    end
+    if isForcedRadio == nil then
+        if LocalPlayer and LocalPlayer.state and LocalPlayer.state.radioActive ~= nil then
+            isRadioActive = (LocalPlayer.state.radioActive == true)
+        end
+    end
+end
+
+-- 6. Escuta StateBag de proximidade e rádio do PMA-Voice (0ms de latência entre recursos)
+AddStateBagChangeHandler('proximity', nil, function(bagName, key, value)
+    if isForcedVoiceLevel ~= nil then return end
+    if bagName == ('player:%s'):format(GetPlayerServerId(PlayerId())) or bagName == 'local' then
+        if type(value) == 'table' and value.index and type(value.index) == 'number' then
+            voiceProximityMode = math.floor(value.index)
+        end
+    end
+end)
+
+AddStateBagChangeHandler('radioActive', nil, function(bagName, key, value)
+    if isForcedRadio ~= nil then return end
+    if bagName == ('player:%s'):format(GetPlayerServerId(PlayerId())) or bagName == 'local' then
+        isRadioActive = (value == true)
+    end
+end)
+
+-- 7. Escuta eventos legados de modo de voz e transmissão de rádio (PMA-Voice)
 RegisterNetEvent("pma-voice:setTalkingMode", function(mode)
+    if isForcedVoiceLevel ~= nil then return end
     if type(mode) == "number" and mode >= 1 and mode <= 3 then
         voiceProximityMode = math.floor(mode)
     end
 end)
 
 RegisterNetEvent("pma-voice:radioActive", function(radioTalking)
-    isForcedTalking = (radioTalking == true)
+    if isForcedRadio ~= nil then return end
+    isRadioActive = (radioTalking == true)
 end)
 
--- 7. Restauração graciosa da HUD do VORP se o recurso westrp_ui for reiniciado ou finalizado
+-- 8. Restauração graciosa da HUD do VORP se o recurso westrp_ui for reiniciado ou finalizado
 AddEventHandler("onResourceStop", function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
     TriggerEvent("vorpmetabolism:setHud", true)
+end)
+
+-- ----------------------------------------------------------------------------
+-- Micro-Thread de Telemetria de Voz em Tempo Real (0.00ms resmon / Zero-Latency PTT)
+-- ----------------------------------------------------------------------------
+CreateThread(function()
+    while not DoesEntityExist(PlayerPedId()) do
+        Wait(500)
+    end
+
+    syncVoiceProximityFromStateBag()
+
+    local lastTalking = nil
+    local lastRadio = nil
+    local lastLevel = nil
+
+    while true do
+        local playerId = PlayerId()
+        local level, talking, radio = getVoiceData(playerId)
+
+        if talking ~= lastTalking or radio ~= lastRadio or level ~= lastLevel then
+            lastTalking = talking
+            lastRadio = radio
+            lastLevel = level
+
+            playerHudState.voiceLevel = level
+            playerHudState.isTalking = talking
+            playerHudState.isRadio = radio
+
+            if isHudVisible and not isCinematicActive then
+                SendNUIMessage({
+                    action = "westrp_ui:updateVoice",
+                    data = {
+                        level = level,
+                        isTalking = talking,
+                        isRadio = radio
+                    }
+                })
+            end
+        end
+
+        -- Se estiver falando, taxa de amostragem mais rápida (50ms) para reação imediata ao PTT
+        -- Em repouso (silêncio), 120ms para manter Resmon em 0.00ms absoluto
+        Wait(talking and 50 or 120)
+    end
 end)
 
 -- ----------------------------------------------------------------------------
@@ -795,7 +1080,7 @@ CreateThread(function()
 
         -- 3. Leitura de Ambiente e Voz
         local temp, tempStatus = getTemperatureData(coords)
-        local voiceLevel, isTalking = getVoiceData(playerId)
+        local voiceLevel, isTalking, isRadio = getVoiceData(playerId)
 
         -- 4. Leitura de Montaria Contextual
         local isMounted, mountHealthBar, mountHealthCore, mountStaminaBar, mountStaminaCore, mountPed = getMountData(ped)
@@ -809,7 +1094,7 @@ CreateThread(function()
         local isMenuOpen = checkAnyMenuOpen()
 
         -- 6. Throttling Delta: Avalia diretamente sem criar tabelas temporárias (Zero-GC no loop)
-        if hasDelta(hBar, hCore, hGold, sBar, sCore, sGold, hungerPct, thirstPct, temp, tempStatus, voiceLevel, isTalking, isMounted, mountHealthBar, mountHealthCore, mHGold, mountStaminaBar, mountStaminaCore, mSGold, isMenuOpen, isCinematicActive) then
+        if hasDelta(hBar, hCore, hGold, sBar, sCore, sGold, hungerPct, thirstPct, temp, tempStatus, voiceLevel, isTalking, isRadio, isMounted, mountHealthBar, mountHealthCore, mHGold, mountStaminaBar, mountStaminaCore, mSGold, isMenuOpen, isCinematicActive) then
             playerHudState.healthBar = hBar
             playerHudState.healthCore = hCore
             playerHudState.healthGolden = hGold
@@ -822,6 +1107,7 @@ CreateThread(function()
             playerHudState.tempStatus = tempStatus
             playerHudState.voiceLevel = voiceLevel
             playerHudState.isTalking = isTalking
+            playerHudState.isRadio = isRadio
             playerHudState.mountActive = isMounted
             playerHudState.mountHealthBar = mountHealthBar
             playerHudState.mountHealthCore = mountHealthCore
@@ -836,7 +1122,7 @@ CreateThread(function()
         end
 
         -- 7. Tick Adaptativo
-        if isPedInActiveMovement(ped, isMounted) then
+        if isPedInActiveMovement(ped, isMounted, mountPed) then
             Wait(UPDATE_INTERVAL_ACTIVE)
         else
             Wait(UPDATE_INTERVAL_IDLE)

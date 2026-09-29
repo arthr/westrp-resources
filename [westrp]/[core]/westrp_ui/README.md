@@ -1078,8 +1078,11 @@ exports['westrp_ui']:ConfigureHudSettings({
 
 ### Comandos de Teste no Servidor (/testhud)
 * `/testhud toggle` — Alterna a visibilidade do HUD.
-* `/testhud health <bar> [core]` — Simula vida (anel externo e núcleo interno RDR2). Ex: `/testhud health 0 30` ou `/testhud health restore`.
-* `/testhud stamina <bar> [core]` — Simula estamina (anel externo e núcleo interno RDR2). Ex: `/testhud stamina 50 100` ou `/testhud stamina restore`.
+* `/testhud health <bar> [core]` — Simula vida do jogador (anel externo e núcleo interno RDR2). Ex: `/testhud health 0 30` ou `/testhud health restore`.
+* `/testhud stamina <bar> [core]` — Simula estamina do jogador (anel externo e núcleo interno RDR2). Ex: `/testhud stamina 50 100` ou `/testhud stamina restore`.
+* `/testhud mount <health|stamina> <bar> [core]` — Simula vida e estamina da montaria (anel externo e núcleo interno). Ex: `/testhud mount health 75 90` ou `/testhud mount stamina 40 50`.
+* `/testhud mount toggle <on/off/restore>` — Força exibição ou recolhimento do cluster de montaria sem precisar montar.
+* `/testhud mount restore` — Restaura a leitura direta dos atributos nativos do cavalo no RedM.
 * `/testhud golden <health|stamina|mount> <on/off>` — Ativa ou desativa o efeito visual autêntico de Golden Core (dourado metálico com halo pulsante).
 * `/testhud core <hunger|thirst|health|stamina> <on/off>` — Parametriza se o ícone central terá ou não efeito dinâmico de núcleo (on/off).
 * `/testhud hunger <0-100>` — Altera percentual visual de fome (com trava de teste ativa).
@@ -1091,7 +1094,7 @@ exports['westrp_ui']:ConfigureHudSettings({
 * `/testhud cinematic <on/off>` — Ativa ou desativa modo cinemático.
 * `/testhud stress` — Força status crítico (Vida 10%/15%, Estamina 5%/10%, Fome 12%, Sede 8%) para testar animações de pulso de alerta vermelho.
 * `/testhud sync` — Imprime no console F8 a telemetria atual consolidada do jogador.
-* `/testhud restore` — Remove todas as travas de simulação e restaura a sincronização nativa com VORP, vitals nativos, clima e VOIP.
+* `/testhud restore` — Remove todas as travas de simulação e restaura a sincronização nativa com VORP, vitals nativos, PMA-Voice, cavalo e clima.
 
 
 
