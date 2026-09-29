@@ -3,7 +3,7 @@ game 'rdr3'
 rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
 lua54 'yes'
 
-name 'westrp_karma'
+name 'karma'
 author 'WestRP Engineering Team'
 description 'Dynamic Morality, Systemic Karma & Combat Self-Defense Engine for WestRP'
 version '1.0.0'
@@ -17,7 +17,7 @@ files {
 }
 
 shared_scripts {
-    '@westrp_core/init.lua',
+    '@core/init.lua',
     'config.lua',
     'shared/types.lua',
     'shared/tiers.lua',

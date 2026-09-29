@@ -60,9 +60,8 @@ Config.Inventory = {
     cart  = { shared = false, ignoreStackLimit = true, acceptWeapons = true },
 }
 
--- Tema: com o rsm_nuikit rodando, o estábulo usa as cores publicadas no estúdio
--- dele e as notificações saem pelo Notify do kit. "" = nunca usar o kit.
-Config.NuiKit = "rsm_nuikit"
+-- Tema: com o ui rodando, o estábulo usa as cores e notificações dele. "" = nunca usar o kit.
+Config.NuiKit = "ui"
 
 -- ───────────────────────────────────────────────────────────────────────────
 -- Estábulos

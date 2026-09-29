@@ -1,13 +1,13 @@
 # Especificação da API Lua e Exports (SDD Spec 05)
 > **Padrão:** Clean Architecture & Zero-Trust Client  
 > **Linguagem:** Lua 5.4  
-> **Namespace:** `exports.westrp_ui`
+> **Namespace:** `exports.ui`
 
 ---
 
 ## 1. Visão Geral da API
 
-O `westrp_ui` atua como o **Provedor Universal de Interface**. Todos os scripts de gameplay do servidor interagem com a UI estritamente através dos exports documentados abaixo.
+O `ui` atua como o **Provedor Universal de Interface**. Todos os scripts de gameplay do servidor interagem com a UI estritamente através dos exports documentados abaixo.
 
 ---
 
@@ -17,10 +17,10 @@ O `westrp_ui` atua como o **Provedor Universal de Interface**. Todos os scripts 
 Exibe uma notificação toast na pilha de avisos da tela:
 ```lua
 -- No cliente:
-exports.westrp_ui:Notify(kind, title, message, duration)
+exports.ui:Notify(kind, title, message, duration)
 
 -- No servidor:
-exports.westrp_ui:Notify(targetSrc, kind, title, message, duration)
+exports.ui:Notify(targetSrc, kind, title, message, duration)
 ```
 - **Parâmetros:**
   - `targetSrc` (number): ID do jogador no servidor (-1 para todos).
@@ -37,7 +37,7 @@ exports.westrp_ui:Notify(targetSrc, kind, title, message, duration)
 Abre um diálogo modal com 2 escolhas, capturando foco de teclado e mouse de forma segura:
 ```lua
 -- No cliente:
-exports.westrp_ui:Confirm({
+exports.ui:Confirm({
     kicker = "Valentine Armorer",
     title = "Comprar Revólver Schofield?",
     body = "A arma será enviada diretamente para o seu alforje.",
@@ -56,7 +56,7 @@ exports.westrp_ui:Confirm({
 end)
 
 -- No servidor:
-exports.westrp_ui:Confirm(targetSrc, opts, function(accepted)
+exports.ui:Confirm(targetSrc, opts, function(accepted)
     -- Callback executado quando o jogador responde ou timeout expira
 end)
 ```
@@ -64,7 +64,7 @@ end)
 ### 3.2 `InputDialog` (Cliente)
 Solicita que o jogador preencha um formulário ou campo de texto/número:
 ```lua
-local input = exports.westrp_ui:InputDialog({
+local input = exports.ui:InputDialog({
     title = "Renomear Montaria",
     fields = {
         { type = "text", name = "horseName", label = "Novo Nome", max = 24, required = true },
@@ -84,7 +84,7 @@ end
 ### 4.1 `ProgressBar` (Cliente)
 Inicia uma barra de progresso com animação, bloqueio suave de inputs e som de finalização:
 ```lua
-local success = exports.westrp_ui:ProgressBar({
+local success = exports.ui:ProgressBar({
     duration = 5000,                -- Duração em ms
     label = "Ferrando cavalo...",  -- Texto explicativo
     useWhileDead = false,
@@ -107,9 +107,9 @@ end
 ## 5. Camada de Views & Telas Complexas
 
 ### 5.1 `OpenView` & `CloseView` (Cliente)
-Abre uma tela completa registrada no `westrp_ui` (ex: estábulos, lojas, banco):
+Abre uma tela completa registrada no `ui` (ex: estábulos, lojas, banco):
 ```lua
-exports.westrp_ui:OpenView("stables", {
+exports.ui:OpenView("stables", {
     stableId = "valentine",
     title = "Estábulos de Valentine",
     rides = myRidesList,
@@ -125,7 +125,7 @@ exports.westrp_ui:OpenView("stables", {
 end)
 
 -- Fechar a view programaticamente:
-exports.westrp_ui:CloseView("stables")
+exports.ui:CloseView("stables")
 ```
 
 ---
@@ -135,18 +135,18 @@ exports.westrp_ui:CloseView("stables")
 ### 6.1 Métodos de Controle do HUD:
 ```lua
 -- Ocultar ou exibir o HUD temporariamente (ex: cutscenes ou modo cinema):
-exports.westrp_ui:SetHudHidden(true)
+exports.ui:SetHudHidden(true)
 
 -- Atualizar vitais específicos (vida, estamina, deadeye):
-exports.westrp_ui:SetCores({
+exports.ui:SetCores({
     health = { core = 80, ring = 100 },
     stamina = { core = 90, ring = 70 }
 })
 
 -- Definir texto de ajuda contextual:
-exports.westrp_ui:ShowHelp("Segure perto do caixa para roubar.", "G")
-exports.westrp_ui:HideHelp()
+exports.ui:ShowHelp("Segure perto do caixa para roubar.", "G")
+exports.ui:HideHelp()
 
 -- Definir linha de objetivo:
-exports.westrp_ui:SetObjective("Cavalgar até Valentine e encontrar o Xerife.")
+exports.ui:SetObjective("Cavalgar até Valentine e encontrar o Xerife.")
 ```

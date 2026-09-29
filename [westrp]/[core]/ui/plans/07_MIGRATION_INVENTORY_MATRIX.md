@@ -1,13 +1,13 @@
 # Matriz de Inventário & Migração Completa (SDD Spec 07)
-> **Origens:** `rsm_nuikit`, `rsm_hud`, `rsm_stables`  
-> **Destino Unificado:** `westrp_ui` (Single CEF Interface Service)  
+> **Origens:** `rsm_nuikit`, `rsm_hud`, `stables`  
+> **Destino Unificado:** `ui` (Single CEF Interface Service)  
 > **Status:** Mapeamento 100% Concluído
 
 ---
 
-## 1. Mapeamento de Assets & Identidade Visual (`rsm_nuikit` -> `westrp_ui`)
+## 1. Mapeamento de Assets & Identidade Visual (`rsm_nuikit` -> `ui`)
 
-| Asset / Recurso Original | Caminho Origem (`rsm_nuikit`) | Caminho Destino (`westrp_ui`) | Finalidade |
+| Asset / Recurso Original | Caminho Origem (`rsm_nuikit`) | Caminho Destino (`ui`) | Finalidade |
 | :--- | :--- | :--- | :--- |
 | **Fontes Oficiais (.woff2)** | `web/public/fonts/*` | `web/public/fonts/*` | `RDR Lino`, `Hapna Slab`, `Redemption`, `RDR Catalogue` |
 | **Texturas de Chrome (32 un)** | `web/public/tex/chrome/*` | `web/public/tex/chrome/*` | Máscaras 9-slice para caixas de seleção, molduras, divisores, botões |
@@ -17,7 +17,7 @@
 
 ---
 
-## 2. Inventário de Componentes Base (`rsm_nuikit` -> `westrp_ui/src/components/kit/`)
+## 2. Inventário de Componentes Base (`rsm_nuikit` -> `ui/src/components/kit/`)
 
 | Componente | Origem | Destino | Função na Interface |
 | :--- | :--- | :--- | :--- |
@@ -56,7 +56,7 @@
 
 ---
 
-## 3. Mapeamento do Subsistema de HUD (`rsm_hud` -> `westrp_ui/src/components/hud/`)
+## 3. Mapeamento do Subsistema de HUD (`rsm_hud` -> `ui/src/components/hud/`)
 
 | Módulo / Widget | Origem | Destino | Dados / Integração |
 | :--- | :--- | :--- | :--- |
@@ -75,7 +75,7 @@
 
 ---
 
-## 4. Mapeamento do Módulo de Estábulos (`rsm_stables` -> `westrp_ui/src/views/stables/`)
+## 4. Mapeamento do Módulo de Estábulos (`rsm_stables` -> `ui/src/views/stables/`)
 
 | Tela / Módulo | Origem | Destino | Função |
 | :--- | :--- | :--- | :--- |
@@ -92,15 +92,15 @@
 
 | Export Original | Origem | Novo Export Unificado | Escopo |
 | :--- | :--- | :--- | :--- |
-| `Notify` | `rsm_nuikit` | `exports.westrp_ui:Notify(kind, title, body, duration)` | Client & Server |
-| `Confirm` | `rsm_nuikit` | `exports.westrp_ui:Confirm(opts, cb)` | Client & Server |
-| `SetCores` | `rsm_nuikit` | `exports.westrp_ui:SetCores(cores)` | Client |
-| `SetMoney` | `rsm_nuikit` | `exports.westrp_ui:SetMoney(cash, gold)` | Client |
-| `ShowHelp` / `HideHelp` | `rsm_nuikit` | `exports.westrp_ui:ShowHelp(text, key)` | Client |
-| `SetHudHidden` | `rsm_nuikit` | `exports.westrp_ui:SetHudHidden(hidden)` | Client |
-| `setNeed` / `addNeed` | `rsm_hud` | `exports.westrp_ui:SetNeed(src, need, value)` | Server |
-| `setBounty` / `clearBounty` | `rsm_hud` | `exports.westrp_ui:SetBounty(src, amount, region)` | Server |
-| `setEffect` | `rsm_hud` | `exports.westrp_ui:SetEffect(src, effect, active)` | Server |
-| *Novo:* `OpenView` | Novo | `exports.westrp_ui:OpenView(viewName, data, cb)` | Client |
-| *Novo:* `InputDialog` | Novo | `exports.westrp_ui:InputDialog(schema, cb)` | Client |
-| *Novo:* `ProgressBar` | Novo | `exports.westrp_ui:ProgressBar(opts, cb)` | Client |
+| `Notify` | `rsm_nuikit` | `exports.ui:Notify(kind, title, body, duration)` | Client & Server |
+| `Confirm` | `rsm_nuikit` | `exports.ui:Confirm(opts, cb)` | Client & Server |
+| `SetCores` | `rsm_nuikit` | `exports.ui:SetCores(cores)` | Client |
+| `SetMoney` | `rsm_nuikit` | `exports.ui:SetMoney(cash, gold)` | Client |
+| `ShowHelp` / `HideHelp` | `rsm_nuikit` | `exports.ui:ShowHelp(text, key)` | Client |
+| `SetHudHidden` | `rsm_nuikit` | `exports.ui:SetHudHidden(hidden)` | Client |
+| `setNeed` / `addNeed` | `rsm_hud` | `exports.ui:SetNeed(src, need, value)` | Server |
+| `setBounty` / `clearBounty` | `rsm_hud` | `exports.ui:SetBounty(src, amount, region)` | Server |
+| `setEffect` | `rsm_hud` | `exports.ui:SetEffect(src, effect, active)` | Server |
+| *Novo:* `OpenView` | Novo | `exports.ui:OpenView(viewName, data, cb)` | Client |
+| *Novo:* `InputDialog` | Novo | `exports.ui:InputDialog(schema, cb)` | Client |
+| *Novo:* `ProgressBar` | Novo | `exports.ui:ProgressBar(opts, cb)` | Client |

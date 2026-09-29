@@ -3,7 +3,7 @@
     
     Uso no fxmanifest.lua de qualquer resource:
         shared_scripts {
-            '@westrp_core/init.lua',
+            '@core/init.lua',
             -- seus scripts aqui...
         }
 
@@ -11,12 +11,12 @@
     1. Utilitários locais (TickManager, PromptManager, Logger) rodando no runtime do próprio script.
     2. Zero erros de "script host failed / invalid function reference" ao reiniciar scripts (ensure).
     3. Destruição garantida de threads e prompts nativos do RDR3 no onResourceStop.
-    4. Conexão reativa e não-bloqueante com os serviços mestres do westrp_core (Bridge, DB, RPC).
+    4. Conexão reativa e não-bloqueante com os serviços mestres do core (Bridge, DB, RPC).
 ]]
 
 local isServer = IsDuplicityVersion()
 local currentResource = GetCurrentResourceName()
-local isCore = (currentResource == 'westrp_core')
+local isCore = (currentResource == 'core')
 
 WestRP = WestRP or {}
 WestRP.Shared = WestRP.Shared or {}
@@ -387,9 +387,9 @@ if not isCore then
 
     local function GetCore()
         if cachedCore then return cachedCore end
-        if GetResourceState('westrp_core') == 'started' then
+        if GetResourceState('core') == 'started' then
             local ok, core = pcall(function()
-                return exports['westrp_core']:GetCoreObject()
+                return exports['core']:GetCoreObject()
             end)
             if ok and core then
                 cachedCore = core
@@ -424,9 +424,9 @@ if not isCore then
     -- Sincroniza imediatamente na primeira tentativa
     SyncCoreReferences()
 
-    -- Re-sincroniza caso o westrp_core seja iniciado/reiniciado posteriormente
+    -- Re-sincroniza caso o core seja iniciado/reiniciado posteriormente
     AddEventHandler('onResourceStart', function(resName)
-        if resName == 'westrp_core' then
+        if resName == 'core' then
             cachedCore = nil
             Wait(50)
             SyncCoreReferences()

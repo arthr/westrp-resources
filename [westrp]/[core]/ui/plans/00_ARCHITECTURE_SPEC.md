@@ -1,4 +1,4 @@
-# Arquitetura e Engenharia do Novo `westrp_ui` (SDD Spec 00)
+# Arquitetura e Engenharia do Novo `ui` (SDD Spec 00)
 > **Padrão:** Spec-Driven Development (SDD) & Clean Architecture  
 > **Status:** Aprovado para Planejamento  
 > **Target:** RedM (CitizenFX RDR3 - Game Build 1491+)  
@@ -9,7 +9,7 @@
 
 ## 1. Visão Geral e Filosofia do Sistema
 
-O **`westrp_ui`** é concebido como o **Single Chromium NUI Engine & Interface Service** definitivo do ecossistema `[westrp]`. Ele substitui integralmente a tentativa anterior de Vanilla JS e resolve em definitivo a fragmentação observada no `rsm_nuikit`, `rsm_hud` e `rsm_stables`.
+O **`ui`** é concebido como o **Single Chromium NUI Engine & Interface Service** definitivo do ecossistema `[westrp]`. Ele substitui integralmente a tentativa anterior de Vanilla JS e resolve em definitivo a fragmentação observada no `rsm_nuikit`, `rsm_hud` e `rsm_stables`.
 
 ### 1.1 O Princípio Fundamental: "Single CEF NUI Engine"
 Em RedM, cada resource que declara `ui_page` no `fxmanifest.lua` aloca:
@@ -22,9 +22,9 @@ Ter 3 ou mais resources com `ui_page` (`rsm_nuikit`, `rsm_hud`, `rsm_stables`, e
 - **Vazamento e consumo excessivo de RAM/VRAM**.
 - **Guerra de Foco de Cursor (`SetNuiFocus`)**, gerando travamento permanente do mouse do jogador.
 
-**A Solução `westrp_ui`:**
-- **Apenas o `westrp_ui` possui `ui_page` e pasta `web/`**.
-- Todos os outros resources do servidor (`westrp_hud`, `westrp_stables`, `westrp_inventory`, `westrp_stores`, etc.) são **100% puramente Lua**, consumindo o `westrp_ui` através de Exports padronizados e RPC Callbacks.
+**A Solução `ui`:**
+- **Apenas o `ui` possui `ui_page` e pasta `web/`**.
+- Todos os outros resources do servidor (`hud`, `stables`, `inventory`, `stores`, etc.) são **100% puramente Lua**, consumindo o `ui` através de Exports padronizados e RPC Callbacks.
 
 ---
 
@@ -33,13 +33,13 @@ Ter 3 ou mais resources com `ui_page` (`rsm_nuikit`, `rsm_hud`, `rsm_stables`, e
 ```mermaid
 graph TD
     subgraph Game_Resources ["Scripts de Gameplay (Puramente Lua)"]
-        Stables["westrp_stables<br/>(Sem web/ sem ui_page)"]
-        HudController["westrp_hud controller<br/>(Sem web/ sem ui_page)"]
-        Stores["westrp_stores / banking<br/>(Sem web/ sem ui_page)"]
+        Stables["stables<br/>(Sem web/ sem ui_page)"]
+        HudController["hud controller<br/>(Sem web/ sem ui_page)"]
+        Stores["stores / banking<br/>(Sem web/ sem ui_page)"]
         Generic["Qualquer outro script<br/>(Core, Admin, Jobs)"]
     end
 
-    subgraph Lua_Bridge ["Camada 1: Lua Service Engine (westrp_ui)"]
+    subgraph Lua_Bridge ["Camada 1: Lua Service Engine (ui)"]
         ExportsAPI["Exports & RPC Dispatcher<br/>(OpenApp, Notify, Confirm, SetHud)"]
         FocusMgr["Central Focus Manager<br/>(Pilha de foco, KeepInput, Cursor Safe)"]
         StateBridge["State Bags & Event Sync<br/>(LocalPlayer.state)"]
@@ -83,7 +83,7 @@ graph TD
 
 ## 3. Diretrizes de Engenharia e Compatibilidade com Chromium CEF 103
 
-O CEF embarcado no RedM/FiveM é baseado no **Chromium 103**. Por isso, todo o código web do `westrp_ui` deve aderir às seguintes restrições:
+O CEF embarcado no RedM/FiveM é baseado no **Chromium 103**. Por isso, todo o código web do `ui` deve aderir às seguintes restrições:
 
 1. **Tailwind CSS v3 (e NÃO v4):**
    - Usar `tailwindcss@^3.4.17` com `postcss` e `autoprefixer`.
@@ -91,7 +91,7 @@ O CEF embarcado no RedM/FiveM é baseado no **Chromium 103**. Por isso, todo o c
    - Evitar espaços de cor `oklch()` nativos sem fallback para `rgb`/`rgba`/`hex`.
    - Evitar pseudo-classes inexistentes no Chromium 103 (ex: `:has()`).
 2. **Caminhos de Assets Relativos e Base Bridge:**
-   - O `vite.config.js` deve utilizar `base: "./"` em modo build para evitar URLs absolutas raiz que geram erro 404 no protocolo `https://cfx-nui-westrp_ui/`.
+   - O `vite.config.js` deve utilizar `base: "./"` em modo build para evitar URLs absolutas raiz que geram erro 404 no protocolo `https://cfx-nui-ui/`.
    - Fontes e texturas 9-slice devem ser mapeadas via CSS Custom Properties no `:root`.
 3. **Isolamento de Transparência e Scrim:**
    - `html` e `body` são sempre `background: transparent !important`.
@@ -104,7 +104,7 @@ O CEF embarcado no RedM/FiveM é baseado no **Chromium 103**. Por isso, todo o c
 Para erradicar definitivamente os conflitos de foco e cursor travado:
 
 ```lua
--- Regra de Ouro: Nenhum resource além do westrp_ui chama SetNuiFocus.
+-- Regra de Ouro: Nenhum resource além do ui chama SetNuiFocus.
 local focusStack = {}
 
 function PushFocus(sourceId, hasCursor, keepInput)
@@ -143,10 +143,10 @@ end
 
 ## 5. Padrão de Comunicação por Esquema (Dynamic View Engine)
 
-Em vez de criar uma NUI para cada sistema de gameplay, o `westrp_ui` disponibiliza um **Host de Views Dinâmicas**:
-- O `westrp_stables` simplesmente envia um schema de catálogo para o `westrp_ui`:
+Em vez de criar uma NUI para cada sistema de gameplay, o `ui` disponibiliza um **Host de Views Dinâmicas**:
+- O `stables` simplesmente envia um schema de catálogo para o `ui`:
   ```lua
-  exports.westrp_ui:OpenApp("stables", {
+  exports.ui:OpenApp("stables", {
       title = "Estábulos de Valentine",
       rides = myRides,
       shop = availableBreeds,
@@ -155,4 +155,4 @@ Em vez de criar uma NUI para cada sistema de gameplay, o `westrp_ui` disponibili
       -- Callbacks de ação do jogador (ex: comprar, equipar, transferir)
   end)
   ```
-- O frontend Vue do `westrp_ui` monta a view registrada correspondente (`src/views/stables/StableView.vue`), aproveitando todos os 36 componentes compartilhados e o tema global, mantendo 1 única instância CEF ativa no jogo.
+- O frontend Vue do `ui` monta a view registrada correspondente (`src/views/stables/StableView.vue`), aproveitando todos os 36 componentes compartilhados e o tema global, mantendo 1 única instância CEF ativa no jogo.

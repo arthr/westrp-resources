@@ -1,13 +1,13 @@
 # Design System & Tokens Visuais (SDD Spec 01)
 > **Tema Base:** Blood & Black (Autêntico RDR2 Western Industrial)  
 > **Framework:** Tailwind CSS v3.4 + CSS Custom Properties  
-> **Origem dos Assets:** Extraídos do `rsm_nuikit` e integrados em `westrp_ui/web/public/`
+> **Origem dos Assets:** Extraídos do `rsm_nuikit` e integrados em `ui/web/public/`
 
 ---
 
 ## 1. Tipografia Oficial do RDR2
 
-O `westrp_ui` padroniza as fontes oficiais da Rockstar Games no formato `.woff2`, garantindo renderização rápida e nítida no CEF 103:
+O `ui` padroniza as fontes oficiais da Rockstar Games no formato `.woff2`, garantindo renderização rápida e nítida no CEF 103:
 
 | Família de Fonte | Nome CSS | Arquivo Fonte | Uso Principal |
 | :--- | :--- | :--- | :--- |

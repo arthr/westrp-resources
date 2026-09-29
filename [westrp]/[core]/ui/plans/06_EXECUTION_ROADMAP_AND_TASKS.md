@@ -21,18 +21,18 @@ graph TD
 ## 2. Detalhamento de Fases, Tarefas e Subtarefas
 
 ### 📌 FASE 1: Fundação, Purgação e Scaffolding Web
-**Objetivo:** Remover os resíduos antigos do `westrp_ui` (Vanilla JS/CSS) e montar o ambiente moderno Vue 3 + Vite + Tailwind v3 compatível com CEF 103.
+**Objetivo:** Remover os resíduos antigos do `ui` (Vanilla JS/CSS) e montar o ambiente moderno Vue 3 + Vite + Tailwind v3 compatível com CEF 103.
 
 - [ ] **Tarefa 1.1: Purgação dos Arquivos Obsoletos**
-  - Subtarefa 1.1.1: Deletar pasta legada `westrp_ui/html/`.
-  - Subtarefa 1.1.2: Limpar scripts legados em `westrp_ui/client/` (`hud.lua`, `main.lua`, `native_hud.lua`, `showcase.lua`).
+  - Subtarefa 1.1.1: Deletar pasta legada `ui/html/`.
+  - Subtarefa 1.1.2: Limpar scripts legados em `ui/client/` (`hud.lua`, `main.lua`, `native_hud.lua`, `showcase.lua`).
   - Subtarefa 1.1.3: Atualizar `fxmanifest.lua` para apontar `ui_page 'web/dist/index.html'`.
 - [ ] **Tarefa 1.2: Inicialização do Scaffolding Vite + Vue 3**
-  - Subtarefa 1.2.1: Criar `westrp_ui/web/package.json` com `vue@^3.5.13`, `vite@^6.0.0`, `tailwindcss@^3.4.17`, `postcss`, `autoprefixer`.
+  - Subtarefa 1.2.1: Criar `ui/web/package.json` com `vue@^3.5.13`, `vite@^6.0.0`, `tailwindcss@^3.4.17`, `postcss`, `autoprefixer`.
   - Subtarefa 1.2.2: Criar `vite.config.js` configurado com `base: "./"` para garantir links relativos válidos no CEF.
   - Subtarefa 1.2.3: Criar `tailwind.config.js` com tokens RDR2 e `postcss.config.js`.
-  - Subtarefa 1.2.4: Copiar fontes oficiais (`fonts/`) e texturas RDR2 (`tex/`) de `rsm_nuikit/web/public/` para `westrp_ui/web/public/`.
-- **Critério de Aceite (DoD):** `npm run build` executa em `westrp_ui/web/` sem erros gerando `web/dist/index.html`.
+  - Subtarefa 1.2.4: Copiar fontes oficiais (`fonts/`) e texturas RDR2 (`tex/`) de `rsm_nuikit/web/public/` para `ui/web/public/`.
+- **Critério de Aceite (DoD):** `npm run build` executa em `ui/web/` sem erros gerando `web/dist/index.html`.
 
 ---
 
@@ -61,14 +61,14 @@ graph TD
   - Subtarefa 3.1.2: Adicionar listener de segurança no `onResourceStop` para liberar o cursor caso o script reinicie.
 - [ ] **Tarefa 3.2: Camada de Notificações (Toast Service)**
   - Subtarefa 3.2.1: Criar `src/components/hud/ToastStack.vue` e `ToastItem.vue`.
-  - Subtarefa 3.2.2: Criar exports `exports.westrp_ui:Notify` (Client e Server).
+  - Subtarefa 3.2.2: Criar exports `exports.ui:Notify` (Client e Server).
 - [ ] **Tarefa 3.3: Diálogos Modais (Confirm & InputDialog)**
   - Subtarefa 3.3.1: Criar `src/components/modals/ConfirmDialog.vue` com navegação por teclado (Enter/ESC).
   - Subtarefa 3.3.2: Criar `src/components/modals/InputDialog.vue` dinâmico para múltiplos campos.
-  - Subtarefa 3.3.3: Expor `exports.westrp_ui:Confirm` e `exports.westrp_ui:InputDialog`.
+  - Subtarefa 3.3.3: Expor `exports.ui:Confirm` e `exports.ui:InputDialog`.
 - [ ] **Tarefa 3.4: Action Progress Bar**
   - Subtarefa 3.4.1: Criar `src/components/hud/ActionProgressBar.vue` com suporte a animação e cancelamento.
-  - Subtarefa 3.4.2: Expor `exports.westrp_ui:ProgressBar`.
+  - Subtarefa 3.4.2: Expor `exports.ui:ProgressBar`.
 - **Critério de Aceite (DoD):** Testar acionamento de toasts, confirms e inputs simultâneos sem perda de cursor nem sobreposição incorreta de z-index.
 
 ---
@@ -91,23 +91,23 @@ graph TD
 
 ---
 
-### 📌 FASE 5: View Engine & Unificação do `westrp_stables`
-**Objetivo:** Implementar o host de views complexas e migrar a interface dos estábulos para o `westrp_ui`.
+### 📌 FASE 5: View Engine & Unificação do `stables`
+**Objetivo:** Implementar o host de views complexas e migrar a interface dos estábulos para o `ui`.
 
 - [ ] **Tarefa 5.1: View Router no Vue**
   - Subtarefa 5.1.1: Criar `src/views/ViewRouter.vue` com animação suave de transição de tela cheia.
-  - Subtarefa 5.1.2: Criar exports `exports.westrp_ui:OpenView` e `CloseView`.
+  - Subtarefa 5.1.2: Criar exports `exports.ui:OpenView` e `CloseView`.
 - [ ] **Tarefa 5.2: Migração da View de Estábulos**
   - Subtarefa 5.2.1: Criar `src/views/stables/StableView.vue` contendo:
     - `ShopTab.vue` (compra de cavalos e carroças com preview 3D).
     - `MyRidesTab.vue` (gerenciamento e chamada).
     - `TackTab.vue` (personalização de arreios).
     - `TransferTab.vue` (transferência para jogadores).
-- [ ] **Tarefa 5.3: Refatoração do `westrp_stables` (Lua Only)**
-  - Subtarefa 5.3.1: Deletar pasta `web/` do `rsm_stables`.
-  - Subtarefa 5.3.2: Remover `ui_page` e `files` do `fxmanifest.lua` do `rsm_stables`.
-  - Subtarefa 5.3.3: Adaptar o `client.lua` do estábulo para chamar `exports.westrp_ui:OpenView("stables", data)`.
-- **Critério de Aceite (DoD):** O estábulo abre, permite comprar cavalos, testar arreios e mudar de aba consumindo a interface através do `westrp_ui`.
+- [ ] **Tarefa 5.3: Refatoração do `stables` (Lua Only)**
+  - Subtarefa 5.3.1: Deletar pasta `web/` do `stables`.
+  - Subtarefa 5.3.2: Remover `ui_page` e `files` do `fxmanifest.lua` do `stables`.
+  - Subtarefa 5.3.3: Adaptar o `client.lua` do estábulo para chamar `exports.ui:OpenView("stables", data)`.
+- **Critério de Aceite (DoD):** O estábulo abre, permite comprar cavalos, testar arreios e mudar de aba consumindo a interface através do `ui`.
 
 ---
 
@@ -116,12 +116,12 @@ graph TD
 
 - [ ] **Tarefa 6.1: Limpeza do Workspace**
   - Subtarefa 6.1.1: Deletar ou arquivar `rsm_nuikit` e `rsm_hud`.
-  - Subtarefa 6.1.2: Renomear `rsm_stables` para `westrp_stables` seguindo o padrão arquitetural do projeto.
 - [ ] **Tarefa 6.2: Sanitização do `server.cfg`**
   - Subtarefa 6.2.1: Substituir referências antigas por:
     ```cfg
-    ensure westrp_ui
-    ensure westrp_stables
+    ensure core
+    ensure ui
+    ensure stables
     ```
 - [ ] **Tarefa 6.3: Validação de Performance (Resmon & CEF)**
   - Subtarefa 6.3.1: Verificar no console F8 (`resmon 1` e `nui_devTools`) se existe estritamente **1 única página CEF ativa** e resmon em 0.00ms.
