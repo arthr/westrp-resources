@@ -16,6 +16,15 @@
   --color-panel-2: #141414;
   --font-title: "Redemption", "RDR Lino", Georgia, serif;
   --font-cat: "RDR Catalogue", "RDR Lino", Georgia, serif;
+
+  /* Entradas do estúdio: animate-kit-rise (painel), animate-kit-slide (troca
+     de seção) e animate-kit-dialog (Confirm). */
+  --animate-kit-rise: kit-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-kit-slide: kit-slide 0.2s ease-out both;
+  --animate-kit-dialog: kit-dialog 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes kit-rise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+  @keyframes kit-slide { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
+  @keyframes kit-dialog { from { opacity: 0; transform: translateY(14px) scale(0.98) } to { opacity: 1; transform: none } }
 }
 
 /* Kit colours resolve to the live Color Manager tokens below. */

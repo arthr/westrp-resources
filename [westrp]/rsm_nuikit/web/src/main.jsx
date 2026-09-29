@@ -1,6 +1,5 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App.jsx";
+import { createApp } from "vue";
+import App from "./App.vue";
 import "./styles.css";
 
 // ── STUDIO-MANAGED: asset base-path bridge, do NOT remove ──────────────────
@@ -103,8 +102,4 @@ window.rsmNui = {
 };
 // ── end STUDIO-MANAGED ──────────────────────────────────────────────────────
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+createApp(App).mount("#root");

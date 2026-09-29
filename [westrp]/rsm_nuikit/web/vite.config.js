@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 
 // Studio-managed, do NOT edit base / server.port / server.host / server.hmr.
@@ -28,7 +28,7 @@ export default defineConfig(({ command }) => ({
   // serve = the studio preview, behind its per-session proxy.
   // build  = a resource that has to run from nui://, so relative.
   base: command === "serve" ? previewBase : "./",
-  plugins: [react(), tailwindcss()],
+  plugins: [vue(), tailwindcss()],
   server: {
     host: true,
     port,
