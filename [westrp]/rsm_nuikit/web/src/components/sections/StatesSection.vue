@@ -31,7 +31,7 @@ const toggle = (m) => {
 <template>
   <SectionFrame
     title="Active / Inactive"
-    hint="Switch whole components on or off for the server, then Publish. Required modules stay locked on; everything else follows your call, including the HUD layout."
+    hint="Switch whole components on or off for the server, then Publish. Required modules stay locked on; while rsm_hud runs it draws the cores and money itself."
   >
     <template #actions>
       <Button @click="kit.dispatch({ type: 'module/all', active: false })">Deactivate All</Button>
@@ -44,7 +44,7 @@ const toggle = (m) => {
         <div class="flex flex-col">
           <div v-for="(m, i) in shown" :key="m.id">
             <RowLine v-if="i > 0" />
-            <ModuleRow :m="m" @toggle="toggle(m)" />
+            <ModuleRow :m="m" :host="kit.hostOwns(m.id) ? kit.state.host.name : null" @toggle="toggle(m)" />
           </div>
           <p v-if="shown.length === 0" class="py-10 text-center text-[14px] text-faint">Nothing {{ filter }} right now.</p>
         </div>

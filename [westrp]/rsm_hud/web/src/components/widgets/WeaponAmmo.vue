@@ -22,7 +22,7 @@ const artHeight = computed(() => `min(3.2rem, calc(4.2rem / ${artAspect.value}))
 </script>
 
 <template>
-  <div class="skin skin-plate flex items-center gap-4 px-[1.125rem] py-2" style="--skin-fill: rgba(1, 1, 1, 0.62)">
+  <div class="skin skin-plate flex items-center gap-4 px-[1.125rem] py-2" style="--skin-fill: rgb(var(--hud-surface-rgb) / calc(0.62 * var(--hud-surface-k)))">
     <img
       v-if="hud.weapon.icon && !artFailed"
       :src="itemArt(hud.weapon.icon)"

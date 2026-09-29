@@ -13,7 +13,7 @@ const gold = computed(() => (Number(hud.money.gold) || 0).toFixed(2));
 </script>
 
 <template>
-  <div class="skin skin-plate flex flex-col gap-1.5 px-[1.125rem] py-[0.65rem]" style="--skin-fill: rgba(1, 1, 1, 0.62)">
+  <div class="skin skin-plate flex flex-col gap-1.5 px-[1.125rem] py-[0.65rem]" style="--skin-fill: rgb(var(--hud-surface-rgb) / calc(0.62 * var(--hud-surface-k)))">
     <div class="flex items-center justify-end gap-2.5">
       <Glyph name="g-cash" size="1.45rem" class="text-paper" />
       <span class="hud-text flex items-start font-num text-paper">

@@ -43,7 +43,7 @@ const labelFor = (api) => {
 <template>
   <SectionFrame
     title="Service API"
-    hint="Any resource on the server can call these exports. The kit draws the result with the published layout, theme and modules. Test buttons send the exact message the client sends."
+    hint="Any resource on the server can call these exports. The kit draws the result with the published theme and modules, where each player placed it. Test buttons send the exact message the client sends."
   >
     <template #actions>
       <Button variant="primary" @click="previewHud">Preview the HUD</Button>
@@ -59,7 +59,7 @@ const labelFor = (api) => {
           </p>
           <p>
             <span class="kit-heading mb-1.5 block text-[11px] text-ink">2 · The kit draws it</span>
-            Same anchors, style and colours for every resource. The HUD never takes the mouse; only Confirm and this studio do.
+            Same placement, style and colours for every resource. The HUD never takes the mouse; only Confirm and this studio do.
           </p>
           <p>
             <span class="kit-heading mb-1.5 block text-[11px] text-ink">3 · Answers come back</span>

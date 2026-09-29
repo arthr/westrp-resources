@@ -17,7 +17,7 @@ const flip = () => emit("update:modelValue", !props.modelValue);
     class="relative h-[1.35rem] w-[1.35rem] shrink-0 cursor-pointer"
     @click.stop="flip"
   >
-    <span class="tex absolute inset-0 text-[rgba(245,243,238,0.55)]" style="--m: var(--tex-tick-box)" />
+    <span class="tex absolute inset-0 text-[rgb(var(--hud-text-rgb)/0.55)]" style="--m: var(--tex-tick-box)" />
     <span v-if="modelValue" class="tex absolute -inset-0.5 text-red" style="--m: var(--tex-tick)" />
   </button>
 </template>

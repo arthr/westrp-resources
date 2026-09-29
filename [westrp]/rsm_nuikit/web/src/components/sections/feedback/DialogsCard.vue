@@ -17,13 +17,13 @@ const PURCHASE = {
   result: { type: "success", title: "Purchase Complete", body: "Schofield Revolver added to your weapons." },
 };
 const DESTRUCTIVE = {
-  kicker: "Layout Manager",
-  title: "Delete Streamer Layout?",
-  body: "Every player using this layout will fall back to Classic. This cannot be undone.",
-  confirm: "Delete Layout",
+  kicker: "Stable",
+  title: "Release Your Horse?",
+  body: "Your Tennessee Walker and everything in its saddlebags will be gone for good. This cannot be undone.",
+  confirm: "Release Horse",
   cancel: "Keep It",
   danger: true,
-  result: { type: "error", title: "Layout Deleted", body: "Players on Streamer have been moved to Classic." },
+  result: { type: "error", title: "Horse Released", body: "Your Tennessee Walker has been set free." },
 };
 
 const kit = useKit();

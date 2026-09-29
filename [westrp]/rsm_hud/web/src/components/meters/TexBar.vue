@@ -20,7 +20,7 @@ const fill = computed(() => (props.gold ? "var(--gold)" : props.alert ? "var(--r
 
 <template>
   <span class="hud-glyph relative block shrink-0" :style="{ width: length, height: thickness, '--bar-h': thickness }">
-    <span class="skin skin-bar absolute inset-0" style="--skin-fill: rgba(245, 243, 238, 0.18)" />
+    <span class="skin skin-bar absolute inset-0" style="--skin-fill: rgb(var(--hud-text-rgb) / 0.18)" />
     <span v-if="gold" class="gold-glow absolute inset-0" :class="{ ending: goldEnding }">
       <span
         class="skin skin-bar-fill absolute inset-0"

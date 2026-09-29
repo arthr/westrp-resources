@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { useKit } from "../../state/kit.js";
+import { hostCan, useKit } from "../../state/kit.js";
 import { ROLES, THEME_PRESETS } from "../../state/mock.js";
 import { contrast, onAccent } from "../../lib/theme.js";
 import SectionFrame from "../shell/SectionFrame.vue";
@@ -9,6 +9,7 @@ import RoleRow from "./colors/RoleRow.vue";
 import Mixer from "./colors/Mixer.vue";
 import ContrastRow from "./colors/ContrastRow.vue";
 import LivePreview from "./colors/LivePreview.vue";
+import HudStage from "../hud/HudStage.vue";
 import { Button, Card, Divider, SliderField } from "../kit";
 
 const kit = useKit();
@@ -18,6 +19,10 @@ const presetName = computed(() => THEME_PRESETS.find((p) => p.id === t.value.pre
 
 const setColor = (hex) => kit.dispatch({ type: "theme/set", patch: { [t.value.role]: hex } });
 const setAlpha = (v) => kit.dispatch({ type: "theme/set", patch: { surfaceAlpha: v }, keepPreset: true });
+
+// o rsm_hud segue este tema: o palco mostra o HUD de verdade com as cores daqui
+const host = computed(() => kit.state.host);
+const hudThemed = computed(() => hostCan(kit.state, "theme"));
 </script>
 
 <template>
@@ -69,6 +74,23 @@ const setAlpha = (v) => kit.dispatch({ type: "theme/set", patch: { surfaceAlpha:
 
       <Card title="Live Preview" kicker="Updates as you mix" solid class="col-span-2 min-[1600px]:col-span-1" body-class="flex flex-col">
         <LivePreview />
+      </Card>
+
+      <Card
+        v-if="hudThemed"
+        :title="host.name"
+        kicker="The player HUD in this theme"
+        class="col-span-2 min-[1600px]:col-span-3"
+        body-class="grid gap-8 min-[1500px]:grid-cols-[minmax(0,1fr)_minmax(0,19rem)]"
+      >
+        <HudStage />
+        <div class="flex min-w-0 flex-col gap-3 text-[13px] leading-snug text-dim">
+          <p>
+            {{ host.name }} follows this Color Manager: the accent, text and surface roles and the panel opacity recolour its plates,
+            meters, labels and /hudlayout editor. The Golden Core gold stays gold.
+          </p>
+          <p class="text-faint">Publish sends the theme to every player's HUD. Blood &amp; Black keeps {{ host.name }} in its own colours.</p>
+        </div>
       </Card>
     </div>
   </SectionFrame>

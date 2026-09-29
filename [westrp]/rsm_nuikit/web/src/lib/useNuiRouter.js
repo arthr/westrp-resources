@@ -1,8 +1,48 @@
 import { onBeforeUnmount, onMounted } from "vue";
+import { HOST_PIECES, WIDGET_DIMS } from "../components/hud/dims.js";
+import { PREVIEW_PLACEMENT } from "../state/mock.js";
 
 const KINDS = ["info", "success", "warning", "error"];
+const PIECES = Object.keys(PREVIEW_PLACEMENT);
 const str = (v, max) => (v == null ? "" : String(v).slice(0, max));
 const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+const within = (v, lo, hi, fallback) => (num(v) == null ? fallback : Math.min(hi, Math.max(lo, v)));
+
+// Recursos extras que o rsm_hud pode anunciar: tema, prévia com exemplos, espelho
+const HOST_FEATURES = ["theme", "preview", "mirror"];
+
+// Catálogo do rsm_hud (elementos, predefinições, estilos dos medidores). Vem
+// de outro resource: ids conferidos e textos limitados.
+export function toCatalog(c) {
+  if (!c || typeof c !== "object") return null;
+  const list = (arr, max) =>
+    (Array.isArray(arr) ? arr : [])
+      .filter((x) => x && typeof x === "object" && typeof x.id === "string" && /^[\w-]{1,32}$/.test(x.id))
+      .slice(0, max)
+      .map((x) => ({ id: x.id, label: str(x.label || x.id, 40), hint: x.hint ? str(x.hint, 80) : "" }));
+  const widgets = list(c.widgets, 32);
+  const features = Array.isArray(c.features) ? HOST_FEATURES.filter((f) => c.features.includes(f)) : [];
+  return widgets.length ? { widgets, presets: list(c.presets, 8), meterStyles: list(c.meterStyles, 8), features } : null;
+}
+
+// Posições que chegam de fora (config.lua ou rsm_hud), presas às mesmas
+// faixas do /hudlayout. Só os ids pedidos passam.
+function toPlaces(obj, ids) {
+  const out = {};
+  if (!obj || typeof obj !== "object") return out;
+  for (const id of ids) {
+    const p = obj[id];
+    if (!p || typeof p !== "object") continue;
+    out[id] = {
+      x: within(p.x, 0, 1, 0.5),
+      y: within(p.y, 0, 1, 0.5),
+      scale: within(p.scale, 0.5, 1.6, 1),
+      opacity: within(p.opacity, 0.3, 1, 1),
+      visible: p.visible !== false,
+    };
+  }
+  return out;
+}
 
 // Converte o `opts` de um Confirm vindo de outro resource no diálogo da tela.
 // Tudo vira texto com tamanho limitado: o conteúdo vem de fora do kit.
@@ -80,6 +120,31 @@ export function useNuiRouter(kit) {
       case "hud:hidden":
         dispatch({ type: "hud/set", patch: { hidden: d.hidden === true } });
         break;
+      // posição padrão de cada peça (Config.Layout)
+      case "placement":
+        dispatch({ type: "placement/defaults", defaults: toPlaces(d.defaults, PIECES) });
+        break;
+      // rsm_hud subiu ou parou
+      case "host":
+        dispatch({
+          type: "host/present",
+          present: d.present === true,
+          name: d.name ? str(d.name, 48) : null,
+          // página do rsm_hud (https://cfx-nui-<resource>/...), aberta no modo espelho
+          page: typeof d.page === "string" && /^https:\/\/cfx-nui-[\w.-]+\/[\w./-]+\.html$/.test(d.page) ? d.page : null,
+        });
+        break;
+      // layout do jogador; editing = /hudlayout aberto (mostra exemplos no lugar)
+      case "host:layout":
+        if (d.editing) showHud();
+        dispatch({ type: "host/layout", widgets: toPlaces(d.widgets, HOST_PIECES), editing: d.editing === true });
+        break;
+      case "host:visible":
+        dispatch({ type: "host/visible", visible: d.visible !== false });
+        break;
+      case "host:catalog":
+        dispatch({ type: "host/catalog", catalog: toCatalog(d.catalog) });
+        break;
       default:
         break;
     }
@@ -87,8 +152,11 @@ export function useNuiRouter(kit) {
 
   onMounted(() => {
     window.addEventListener("message", onMessage);
-    // avisa o cliente que já dá para mandar mensagens (as anteriores ficaram na fila dele)
-    if (window.rsmNui.isGame) window.rsmNui.post("ready");
+    // avisa o cliente que já dá para mandar mensagens (as anteriores ficaram na
+    // fila dele) e informa a área de cada peça, que ele repassa ao rsm_hud
+    if (window.rsmNui.isGame) {
+      window.rsmNui.post("ready", { footprints: Object.fromEntries(HOST_PIECES.map((id) => [id, WIDGET_DIMS[id]])) });
+    }
   });
   onBeforeUnmount(() => window.removeEventListener("message", onMessage));
 }

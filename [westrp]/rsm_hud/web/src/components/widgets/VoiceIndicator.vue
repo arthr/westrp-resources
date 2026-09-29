@@ -18,11 +18,21 @@ const range = computed(() => Math.min(3, Math.max(1, Number(hud.voice.range) || 
           v-for="n in 3"
           :key="n"
           class="tex h-[0.45rem] w-[0.45rem]"
-          :class="n <= range ? (hud.voice.talking ? 'text-red' : 'text-paper') : 'text-[rgba(245,243,238,0.22)]'"
+          :class="n <= range ? (hud.voice.talking ? 'text-red' : 'text-paper') : 'text-[rgb(var(--hud-text-rgb)/0.22)]'"
           style="--m: var(--tex-dot)"
         />
       </span>
-      <span class="hud-text font-display text-[0.62rem] uppercase tracking-[0.18em] text-dim">{{ t(`voice.${range}`) }}</span>
+      <!-- os três nomes ocupam a mesma célula: a coluna fica com a largura do
+           maior, então o elemento não muda de tamanho ao trocar o alcance -->
+      <span class="grid">
+        <span
+          v-for="n in 3"
+          :key="n"
+          class="hud-text col-start-1 row-start-1 font-display text-[0.62rem] uppercase tracking-[0.18em] text-dim"
+          :class="{ invisible: n !== range }"
+          :aria-hidden="n !== range"
+        >{{ t(`voice.${n}`) }}</span>
+      </span>
     </div>
   </div>
 </template>

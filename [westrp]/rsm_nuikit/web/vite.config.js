@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
+import hudMirror from "./tools/hud-mirror.js";
 
 // Studio-managed, do NOT edit base / server.port / server.host / server.hmr.
 // The studio injects VITE_BASE / VITE_PORT / VITE_HMR_* per session so the
@@ -28,7 +29,8 @@ export default defineConfig(({ command }) => ({
   // serve = the studio preview, behind its per-session proxy.
   // build  = a resource that has to run from nui://, so relative.
   base: command === "serve" ? previewBase : "./",
-  plugins: [vue(), tailwindcss()],
+  // hudMirror: só no dev, serve o rsm_hud compilado para a prévia do HUD real
+  plugins: [vue(), tailwindcss(), hudMirror()],
   server: {
     host: true,
     port,

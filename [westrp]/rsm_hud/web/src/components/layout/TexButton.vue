@@ -10,11 +10,11 @@ defineProps({
 <template>
   <button
     type="button"
-    class="skin skin-btn flex min-h-[2.3rem] cursor-pointer items-center justify-center gap-2 px-3 py-2 font-display text-[0.66rem] uppercase tracking-[0.16em] text-paper"
+    class="skin skin-btn flex min-h-[2.3rem] cursor-pointer items-center justify-center gap-2 px-3 py-2 font-display text-[0.66rem] uppercase tracking-[0.16em]"
     :class="
       primary || active
-        ? '[--skin-fill:var(--red)] hover:[--skin-fill:var(--red-hover)]'
-        : '[--skin-fill:rgba(245,243,238,0.1)] hover:[--skin-fill:rgba(245,243,238,0.18)]'
+        ? 'text-on-accent [--skin-fill:var(--red)] hover:[--skin-fill:var(--red-hover)]'
+        : 'text-paper [--skin-fill:rgb(var(--hud-text-rgb)/0.1)] hover:[--skin-fill:rgb(var(--hud-text-rgb)/0.18)]'
     "
   >
     <slot />

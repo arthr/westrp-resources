@@ -27,7 +27,7 @@ const list = computed(() => {
   <div class="flex items-start gap-3">
     <div v-for="k in list" :key="k" class="flex w-[3.4rem] flex-col items-center gap-1">
       <div class="relative h-[2.6rem] w-[2.6rem]">
-        <span class="tex absolute inset-0 text-[rgba(1,1,1,0.72)]" style="--m: var(--tex-core-bg)" />
+        <span class="tex absolute inset-0 text-[rgb(var(--hud-surface-rgb)/calc(0.72*var(--hud-surface-k)))]" style="--m: var(--tex-core-bg)" />
         <span class="hud-glyph absolute inset-0">
           <span
             class="tex absolute inset-0"

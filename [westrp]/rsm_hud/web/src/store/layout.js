@@ -1,4 +1,6 @@
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
+import { t } from "../locale.js";
+import { MIRROR } from "../mirror.js";
 
 // Positions are anchor fractions: x = 0 sits flush left, x = 1 flush right,
 // and any value in between keeps the element fully on screen at every
@@ -75,7 +77,36 @@ export const PRESETS = {
 const STORAGE_KEY = "rsm_hud_layout_v1";
 const clone = (v) => JSON.parse(JSON.stringify(v));
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-const defaults = () => clone(PRESETS.frontier.widgets);
+
+// Peças de outros resources (ex.: rsm_nuikit), registradas pelo client. O HUD
+// não as desenha: no editor mostra a moldura com o tamanho real, e a posição
+// vai para o layout do personagem e volta ao dono a cada mudança.
+// id = "<resource>:<peça>", então nunca colide com os elementos do HUD.
+export const external = reactive([]);
+const EXTERNAL_ID = /^[\w.-]{1,48}:[\w-]{1,32}$/;
+const MAX_EXTERNAL = 24; // posições guardadas de peças cujo dono não está rodando
+
+// Valores fora da faixa (ou que nem são números) caem no padrão da peça.
+const num = (v, fallback) => (typeof v === "number" && Number.isFinite(v) ? v : fallback);
+function position(s, fb) {
+  return {
+    x: clamp(num(s.x, fb.x), 0, 1),
+    y: clamp(num(s.y, fb.y), 0, 1),
+    scale: clamp(num(s.scale, fb.scale), 0.5, 1.6),
+    opacity: clamp(num(s.opacity, fb.opacity), 0.3, 1),
+    visible: s.visible !== false,
+  };
+}
+
+const externalDefaults = () => Object.fromEntries(external.map((s) => [s.id, { ...s.default }]));
+// Padrões do servidor, publicados no estúdio do rsm_nuikit (quando ele roda).
+// Valem para quem ainda não salvou layout e para o "Restaurar"; elementos
+// desativados somem para todos, inclusive do editor. O resto é do jogador.
+export const policy = reactive({ preset: "frontier", meterStyle: "ring", values: false, disabled: [] });
+export const isDisabled = (id) => policy.disabled.includes(id);
+const basePresetId = () => (PRESETS[policy.preset] ? policy.preset : "frontier");
+
+const defaults = () => ({ ...clone(PRESETS[basePresetId()].widgets), ...externalDefaults() });
 
 // localStorage throws in a sandboxed (null-origin) frame, so every access is
 // guarded; the layout simply stays in memory there.
@@ -88,6 +119,7 @@ function readSaved() {
   }
 }
 function writeSaved(data) {
+  if (MIRROR) return; // o espelho divide o armazenamento com o HUD de verdade
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {
@@ -97,19 +129,20 @@ function writeSaved(data) {
 
 // Saved data is merged over the defaults so a widget added later still gets a
 // position, and anything malformed falls back instead of breaking the HUD.
+// Peças externas ficam mesmo se o dono ainda não registrou: o layout do
+// personagem chega antes dele em muitos casos, e a posição não pode se perder.
 function sanitize(widgets) {
   const base = defaults();
   if (!widgets || typeof widgets !== "object") return base;
-  for (const id of Object.keys(base)) {
+  let extra = 0;
+  for (const id of Object.keys(widgets)) {
     const s = widgets[id];
     if (!s || typeof s !== "object") continue;
-    base[id] = {
-      x: clamp(Number(s.x) || 0, 0, 1),
-      y: clamp(Number(s.y) || 0, 0, 1),
-      scale: clamp(Number(s.scale) || 1, 0.5, 1.6),
-      opacity: clamp(Number(s.opacity) || 1, 0.3, 1),
-      visible: s.visible !== false,
-    };
+    if (!(id in base)) {
+      if (!EXTERNAL_ID.test(id) || extra >= MAX_EXTERNAL) continue;
+      extra += 1;
+    }
+    base[id] = position(s, base[id] ?? { x: 0.5, y: 0.5, scale: 1, opacity: 1 });
   }
   return base;
 }
@@ -130,6 +163,8 @@ export const layout = reactive({
   },
   preset: saved?.preset ?? "frontier",
   dirty: false,
+  // true enquanto o personagem não tem layout salvo (segue os padrões do servidor)
+  fresh: false,
 });
 
 let snapshot = null;
@@ -141,7 +176,7 @@ export function openLayout() {
   snapshot = clone({ widgets: layout.widgets, prefs: layout.prefs, preset: layout.preset });
   layout.editing = true;
   layout.dirty = false;
-  layout.selected = layout.selected || WIDGETS[0].id;
+  if (!layout.selected || isDisabled(layout.selected)) layout.selected = allWidgetIds()[0] ?? null;
 }
 
 function closeLayout() {
@@ -155,7 +190,8 @@ function closeLayout() {
 export function cancelLayout() {
   if (!layout.editing) return;
   if (snapshot) {
-    layout.widgets = snapshot.widgets;
+    // uma peça registrada com o editor aberto não está no snapshot: volta ao padrão dela
+    layout.widgets = { ...externalDefaults(), ...snapshot.widgets };
     layout.prefs = snapshot.prefs;
     layout.preset = snapshot.preset;
   }
@@ -167,6 +203,7 @@ export function saveLayout() {
   const data = { widgets: clone(layout.widgets), prefs: clone(layout.prefs), preset: layout.preset };
   writeSaved(data);
   post("layoutSave", data);
+  layout.fresh = false;
   closeLayout();
 }
 
@@ -178,14 +215,29 @@ function touch() {
 export function applyPreset(name) {
   const p = PRESETS[name];
   if (!p) return;
-  layout.widgets = clone(p.widgets);
+  // peças externas registradas voltam ao padrão delas; as de donos parados ficam como estão
+  layout.widgets = { ...layout.widgets, ...clone(p.widgets), ...externalDefaults() };
   layout.preset = name;
   layout.dirty = true;
 }
 
-// Layout salvo por personagem, enviado pelo client quando o personagem carrega.
+// Personagem sem layout salvo: tudo nos padrões do servidor.
+function useServerDefaults() {
+  layout.widgets = defaults();
+  layout.prefs = { ...layout.prefs, meterStyle: meterStyleOf(policy.meterStyle), values: policy.values };
+  layout.preset = basePresetId();
+  layout.fresh = true;
+}
+
+// Layout salvo por personagem, enviado pelo client quando o personagem carrega
+// (false = esse personagem ainda não salvou nenhum).
 export function loadLayout(data) {
-  if (!data || typeof data !== "object" || layout.editing) return;
+  if (layout.editing) return;
+  if (!data || typeof data !== "object") {
+    useServerDefaults();
+    return;
+  }
+  layout.fresh = false;
   layout.widgets = sanitize(data.widgets);
   if (data.prefs && typeof data.prefs === "object") {
     layout.prefs = {
@@ -211,12 +263,42 @@ export function cycleMeterStyle(step = 1) {
 }
 
 export function resetAll() {
-  applyPreset("frontier");
+  applyPreset(basePresetId());
+}
+
+// Padrões do servidor recebidos pelo client. Ids desconhecidos são ignorados.
+export function applyPolicy(p) {
+  if (!p || typeof p !== "object") return;
+  const known = new Set(WIDGETS.map((w) => w.id));
+  policy.preset = PRESETS[p.preset] ? p.preset : "frontier";
+  policy.meterStyle = meterStyleOf(p.meterStyle);
+  policy.values = p.values === true;
+  policy.disabled = Array.isArray(p.disabled) ? p.disabled.filter((id) => known.has(id)) : [];
+  if (layout.fresh && !layout.editing) useServerDefaults();
+  if (layout.selected && isDisabled(layout.selected)) layout.selected = allWidgetIds()[0] ?? null;
+}
+
+// O que este HUD tem, com os nomes já traduzidos. Vai para o client ao
+// carregar, e de lá para quem quiser apresentar ou configurar o HUD.
+export function catalog() {
+  return {
+    widgets: WIDGETS.map((w) => ({ id: w.id, label: t(`w.${w.id}`), hint: t(`w.${w.id}.hint`) })),
+    presets: Object.keys(PRESETS).map((id) => ({ id, label: t(`preset.${id}`) })),
+    meterStyles: METER_STYLES.map((id) => ({ id, label: t(`style.${id}`) })),
+    // o que este HUD aceita de fora: tema (hud:theme), prévia com exemplos
+    // (hud:preview) e o espelho (?mirror=1) para mostrar o HUD de verdade
+    features: ["theme", "preview", "mirror"],
+  };
 }
 
 export function resetWidget(id) {
-  const base = PRESETS[layout.preset]?.widgets || PRESETS.frontier.widgets;
-  layout.widgets[id] = clone(base[id]);
+  const ext = external.find((s) => s.id === id);
+  if (ext) {
+    layout.widgets[id] = { ...ext.default };
+  } else {
+    const base = PRESETS[layout.preset]?.widgets || PRESETS[basePresetId()].widgets;
+    layout.widgets[id] = clone(base[id]);
+  }
   touch();
 }
 
@@ -231,10 +313,23 @@ export function setWidget(id, patch) {
   touch();
 }
 
+// Elementos do HUD primeiro, depois as peças de outros resources.
+export const allWidgetIds = () => [
+  ...WIDGETS.map((w) => w.id).filter((id) => !isDisabled(id)),
+  ...external.map((s) => s.id),
+];
+export const externalSpec = (id) => external.find((s) => s.id === id) ?? null;
+export const widgetLabel = (id) => externalSpec(id)?.label ?? t(`w.${id}`);
+export const widgetHint = (id) => {
+  const s = externalSpec(id);
+  return s ? s.hint || s.owner : t(`w.${id}.hint`);
+};
+
 export function selectRelative(step) {
-  const i = WIDGETS.findIndex((x) => x.id === layout.selected);
-  const n = WIDGETS.length;
-  layout.selected = WIDGETS[(((i < 0 ? 0 : i) + step) % n + n) % n].id;
+  const ids = allWidgetIds();
+  const i = ids.indexOf(layout.selected);
+  const n = ids.length;
+  layout.selected = ids[(((i < 0 ? 0 : i) + step) % n + n) % n];
 }
 
 const GRID = 8;
@@ -291,3 +386,60 @@ export function centerWidget(id, axis) {
   if (axis === "x") setWidget(id, { x: 0.5 });
   else setWidget(id, { y: 0.5 });
 }
+
+// ── peças de outros resources ───────────────────────────────────────────────
+
+function cleanSpec(s) {
+  if (!s || typeof s !== "object" || typeof s.id !== "string" || !EXTERNAL_ID.test(s.id)) return null;
+  const width = num(s.width, 0);
+  const height = num(s.height, 0);
+  if (width < 8 || width > 1920 || height < 8 || height > 1080) return null;
+  const d = s.default && typeof s.default === "object" ? s.default : {};
+  return {
+    id: s.id,
+    owner: String(s.owner || s.id.split(":")[0]).slice(0, 48),
+    label: String(s.label || s.id).slice(0, 40),
+    hint: s.hint ? String(s.hint).slice(0, 80) : "",
+    width,
+    height,
+    default: position(d, { x: 0.5, y: 0.5, scale: 1, opacity: 1 }),
+  };
+}
+
+// Lista completa enviada pelo client (substitui a anterior). Peça nova sem
+// posição salva começa no padrão que o dono mandou.
+export function registerExternal(list) {
+  const seen = new Set();
+  const specs = (Array.isArray(list) ? list : [])
+    .map(cleanSpec)
+    .filter((s) => s && !seen.has(s.id) && seen.add(s.id))
+    .slice(0, MAX_EXTERNAL);
+  external.splice(0, external.length, ...specs);
+  for (const s of specs) {
+    if (!layout.widgets[s.id]) layout.widgets[s.id] = { ...s.default };
+  }
+  if (layout.selected && !allWidgetIds().includes(layout.selected)) layout.selected = WIDGETS[0].id;
+}
+
+// Posição das peças externas → client do HUD → resource dono. Um arraste gera
+// dezenas de mudanças por segundo; elas saem agrupadas a cada ~30 ms.
+function externalPayload() {
+  const widgets = {};
+  for (const s of external) {
+    const w = layout.widgets[s.id];
+    if (w) widgets[s.id] = { x: w.x, y: w.y, scale: w.scale, opacity: w.opacity, visible: w.visible };
+  }
+  return { widgets, editing: layout.editing };
+}
+
+let sendTimer = 0;
+let pendingPayload = null;
+watch(externalPayload, (payload) => {
+  if (!external.length) return;
+  pendingPayload = payload;
+  if (sendTimer) return;
+  sendTimer = setTimeout(() => {
+    sendTimer = 0;
+    post("layoutExternal", pendingPayload);
+  }, 30);
+});

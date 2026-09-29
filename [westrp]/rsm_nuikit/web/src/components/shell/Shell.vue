@@ -4,7 +4,6 @@ import { useKit } from "../../state/kit.js";
 import { Divider, VDivider } from "../kit";
 import Sidebar from "./Sidebar.vue";
 import KeyHints from "./KeyHints.vue";
-import LayoutManager from "../sections/LayoutManager.vue";
 import ColorManager from "../sections/ColorManager.vue";
 import StatesSection from "../sections/StatesSection.vue";
 import ControlsSection from "../sections/ControlsSection.vue";
@@ -13,7 +12,6 @@ import HudSection from "../sections/HudSection.vue";
 import ServiceSection from "../sections/ServiceSection.vue";
 
 const VIEWS = {
-  layout: LayoutManager,
   colors: ColorManager,
   states: StatesSection,
   controls: ControlsSection,

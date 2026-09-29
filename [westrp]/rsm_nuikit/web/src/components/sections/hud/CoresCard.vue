@@ -34,7 +34,10 @@ const pct = (v) => `${v}%`;
     <div class="flex min-w-0 flex-col gap-3">
       <p class="kit-heading text-[10px] text-faint">Core Style</p>
       <CoreStylePicker :model-value="variant" @update:model-value="(style) => kit.dispatch({ type: 'hud/coreStyle', style })" />
-      <p class="text-[12.5px] leading-snug text-faint">The chosen style is what players see on the HUD, and what the Layout Manager places.</p>
+      <p class="text-[12.5px] leading-snug text-faint">
+        <template v-if="kit.hostOwns('cores')">{{ kit.state.host.name }} draws the cores while it runs; this style applies without it.</template>
+        <template v-else>The chosen style is what players see on the HUD.</template>
+      </p>
     </div>
     <div class="grid min-w-0 grid-cols-3 gap-6">
       <div v-for="c in CORES" :key="c.id" class="flex min-w-0 flex-col items-center gap-4">

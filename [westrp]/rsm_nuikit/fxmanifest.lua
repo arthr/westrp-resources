@@ -5,8 +5,8 @@ rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aw
 lua54 'yes'
 
 name 'rsm_nuikit'
-description 'NUI Components as a service: notifications, confirms, HUD pieces, plus a studio for layout, colours and modules'
-version '0.2.0'
+description 'NUI Components as a service: notifications, confirms and HUD pieces placed through rsm_hud /hudlayout, plus a studio for colours and modules'
+version '0.3.0'
 
 ui_page 'web/dist/index.html'
 

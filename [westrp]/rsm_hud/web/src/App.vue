@@ -2,8 +2,10 @@
 import { computed, onMounted, onUnmounted, watch } from "vue";
 import "./assets.js";
 import { IS_GAME } from "./nui.js";
-import { hud, applyHudUpdate, startPreviewSimulation } from "./store/hud.js";
-import { layout, openLayout, loadLayout } from "./store/layout.js";
+import { MIRROR } from "./mirror.js";
+import { applyTheme } from "./theme.js";
+import { hud, applyHudUpdate, showSamples, startPreviewSimulation } from "./store/hud.js";
+import { layout, external, openLayout, loadLayout, registerExternal, applyPolicy, catalog } from "./store/layout.js";
 import HudWidget from "./components/HudWidget.vue";
 import PlayerCores from "./components/widgets/PlayerCores.vue";
 import HorseCores from "./components/widgets/HorseCores.vue";
@@ -24,8 +26,29 @@ import PreviewDock from "./components/PreviewDock.vue";
 // would paint the menu backdrop over the world). It reveals the page itself,
 // with no NUI focus, and only the Layout Manager asks the client for focus.
 const setPageVisible = (on) => {
-  if (IS_GAME) document.documentElement.style.visibility = on ? "visible" : "hidden";
+  if (IS_GAME && !MIRROR) document.documentElement.style.visibility = on ? "visible" : "hidden";
 };
+
+// Tema e padrões publicados. A prévia do rsm_nuikit troca os dois por alguns
+// segundos (o que ainda está sendo editado no estúdio) e depois volta a estes.
+const published = { theme: false, policy: {} };
+let previewing = false;
+
+function setPreview(msg) {
+  if (msg.on === true) {
+    previewing = true;
+    showSamples(true);
+    applyTheme(msg.theme === undefined ? published.theme : msg.theme);
+    if (msg.policy) applyPolicy(msg.policy);
+    setPageVisible(true);
+  } else if (previewing) {
+    previewing = false;
+    showSamples(false);
+    applyTheme(published.theme);
+    applyPolicy(published.policy);
+    if (!hud.visible && !layout.editing) setPageVisible(false);
+  }
+}
 
 function onMessage(e) {
   const msg = (e && e.data) || {};
@@ -48,6 +71,21 @@ function onMessage(e) {
     case "hud:setLayout":
       loadLayout(msg.layout);
       break;
+    case "hud:external":
+      registerExternal(msg.widgets);
+      break;
+    case "hud:policy":
+      if (msg.policy && typeof msg.policy === "object") published.policy = msg.policy;
+      if (!previewing) applyPolicy(msg.policy);
+      break;
+    // cores do tema (Color Manager do rsm_nuikit); false = cores próprias do HUD
+    case "hud:theme":
+      published.theme = msg.theme || false;
+      if (!previewing) applyTheme(published.theme);
+      break;
+    case "hud:preview":
+      setPreview(msg);
+      break;
   }
 }
 
@@ -65,7 +103,13 @@ const anyNeed = computed(() => Object.values(hud.needs).some((v) => typeof v ===
 let stopSim = null;
 onMounted(() => {
   window.addEventListener("message", onMessage);
-  if (!IS_GAME) stopSim = startPreviewSimulation();
+  if (!IS_GAME || MIRROR) stopSim = startPreviewSimulation();
+  // conta ao client o que este HUD tem (quem apresenta/configura o HUD usa isso)
+  else window.rsmNui.post("catalog", catalog());
+  // espelho: avisa a página que o contém que já pode mandar tema, padrões e layout
+  if (MIRROR && window.parent !== window) {
+    window.parent.postMessage({ source: "rsm_hud", action: "mirror:ready", catalog: catalog() }, "*");
+  }
 });
 onUnmounted(() => {
   window.removeEventListener("message", onMessage);
@@ -91,10 +135,18 @@ onUnmounted(() => {
     <HudWidget id="weapon" :active="hud.weapon.drawn"><WeaponAmmo /></HudWidget>
     <HudWidget id="voice"><VoiceIndicator /></HudWidget>
 
+    <!-- Peças de outros resources: só a área que ocupam (px em 1080p → rem), para
+         arrastar no editor. O conteúdo de verdade é o próprio dono que desenha. -->
+    <template v-for="s in external" :key="s.id">
+      <HudWidget v-if="layout.widgets[s.id]" :id="s.id" ghost>
+        <div :style="{ width: `${s.width / 16}rem`, height: `${s.height / 16}rem` }" />
+      </HudWidget>
+    </template>
+
     <template v-if="layout.editing">
       <CenterGuides />
       <LayoutManager />
     </template>
-    <PreviewDock v-else-if="!IS_GAME" />
+    <PreviewDock v-else-if="!IS_GAME && !MIRROR" />
   </div>
 </template>

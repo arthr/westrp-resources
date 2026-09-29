@@ -3,7 +3,10 @@
 
 local RES = GetCurrentResourceName()
 
--- O que foi publicado no estúdio (layout, tema, módulos, estilo dos cores).
+-- O que foi publicado no estúdio (tema, módulos, estilo dos cores e padrões do
+-- rsm_hud). A posição
+-- das peças do HUD não passa por aqui: vem do config.lua ou, com o rsm_hud
+-- rodando, do /hudlayout de cada jogador.
 -- nil = nada publicado ainda; a interface usa os padrões dela.
 local Studio = nil
 
@@ -11,9 +14,9 @@ local Studio = nil
 -- A interface já limita os valores, mas o servidor não confia no cliente:
 -- tudo é conferido de novo aqui antes de salvar ou repassar.
 
-local WIDGETS = { "cores", "prompts", "toasts", "help", "money", "objective", "menus" }
-local ANCHORS = { tl = true, tc = true, tr = true, ml = true, mc = true, mr = true, bl = true, bc = true, br = true }
 local CORE_STYLES = { ring = true, half = true, segmented = true, barsH = true, barsV = true, numeric = true }
+-- estilos dos medidores do rsm_hud (mesmos seis, com os nomes dele)
+local HOST_STYLES = { ring = true, half = true, segmented = true, ["bars-h"] = true, ["bars-v"] = true, numeric = true }
 
 local MODULE_BY_ID = {}
 for _, m in ipairs(Config.Modules) do
@@ -35,33 +38,25 @@ local function label(v)
     return v:sub(1, 32)
 end
 
+-- id de elemento/predefinição do rsm_hud; qual existe de fato quem confere é o HUD
+local function hostId(v)
+    if type(v) ~= "string" or #v > 32 or not v:match("^[%w_%-]+$") then return nil end
+    return v
+end
+
 -- Devolve a configuração limpa, ou nil + motivo se algo estiver errado.
 local function sanitize(data)
     if type(data) ~= "table" then return nil, "Settings were not sent." end
-    local layout = type(data.layout) == "table" and data.layout or nil
+    -- um studio.json antigo ainda traz "layout": é ignorado, o resto continua valendo
     local theme = type(data.theme) == "table" and data.theme or nil
-    if not layout or not theme then return nil, "Layout or theme is missing." end
+    if not theme then return nil, "Theme is missing." end
 
     local out = {
-        layout = { preset = label(layout.preset) or "custom", safeZone = num(layout.safeZone, 0, 10), widgets = {} },
         theme = {},
         modules = {},
         hud = { coreStyle = "ring" },
+        hostHud = { preset = "frontier", meterStyle = "ring", values = false, disabled = {} },
     }
-    if not out.layout.safeZone then return nil, "Safe zone is not a number." end
-
-    local widgets = type(layout.widgets) == "table" and layout.widgets or {}
-    for _, id in ipairs(WIDGETS) do
-        local w = widgets[id]
-        if type(w) ~= "table" or not ANCHORS[w.anchor] then
-            return nil, ("Widget %s has no valid anchor."):format(id)
-        end
-        local x, y, scale = num(w.x, -40, 40), num(w.y, -40, 40), num(w.scale, 60, 140)
-        if not x or not y or not scale then
-            return nil, ("Widget %s has an invalid offset or scale."):format(id)
-        end
-        out.layout.widgets[id] = { anchor = w.anchor, x = x, y = y, scale = scale }
-    end
 
     out.theme.preset = label(theme.preset) or "custom"
     out.theme.accent = hex(theme.accent)
@@ -84,6 +79,17 @@ local function sanitize(data)
     local hud = type(data.hud) == "table" and data.hud or {}
     if CORE_STYLES[hud.coreStyle] then out.hud.coreStyle = hud.coreStyle end
 
+    -- padrões do rsm_hud (um studio.json antigo não tem: fica tudo no padrão)
+    local hh = type(data.hostHud) == "table" and data.hostHud or {}
+    out.hostHud.preset = hostId(hh.preset) or "frontier"
+    if HOST_STYLES[hh.meterStyle] then out.hostHud.meterStyle = hh.meterStyle end
+    out.hostHud.values = hh.values == true
+    for _, id in ipairs(type(hh.disabled) == "table" and hh.disabled or {}) do
+        if hostId(id) and #out.hostHud.disabled < 32 then
+            out.hostHud.disabled[#out.hostHud.disabled + 1] = id
+        end
+    end
+
     return out
 end
 
@@ -103,9 +109,9 @@ local function payload()
     return {
         modules = modules,
         notifyDuration = Config.NotifyDuration,
-        layout = Studio and Studio.layout or nil,
         theme = Studio and Studio.theme or nil,
         hud = Studio and Studio.hud or nil,
+        hostHud = Studio and Studio.hostHud or nil,
     }
 end
 
@@ -169,7 +175,7 @@ RegisterNetEvent("rsm_nuikit:publish", function(data)
         print(("[%s] could not write %s; the change is live but will be lost on restart."):format(RES, Config.SaveFile))
         notify(src, "warning", "Published, Not Saved", ("Live for everyone now, but %s could not be written."):format(Config.SaveFile))
     else
-        notify(src, "success", "Published", "Layout, theme and modules are now live for every player.")
+        notify(src, "success", "Published", "Theme, modules and HUD defaults are now live for every player.")
     end
     print(("[%s] studio settings published by %s"):format(RES, GetPlayerName(src) or src))
     TriggerClientEvent("rsm_nuikit:config", -1, payload())
@@ -233,8 +239,18 @@ exports("Confirm", function(target, opts, cb)
     return id
 end)
 
+-- Cores e dinheiro: com o rsm_hud rodando, quem desenha é ele.
+local HOST_OWNED = { cores = true, money = true }
+
+local function hostRunning()
+    local host = Config.HostHud and Config.HostHud.resource or ""
+    return host ~= "" and GetResourceState(host) == "started"
+end
+
 -- exports.rsm_nuikit:IsModuleActive(id) -> boolean
+--   "cores" e "money" dão false enquanto o rsm_hud estiver rodando
 exports("IsModuleActive", function(id)
+    if HOST_OWNED[id] and hostRunning() then return false end
     for _, m in ipairs(payload().modules) do
         if m.id == id then return m.active end
     end

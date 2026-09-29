@@ -70,7 +70,7 @@ function onKey(e) {
       @pointercancel="onEnd"
       @keydown="onKey"
     >
-      <span class="skin absolute inset-x-0 top-0 h-[1rem]" style="--skin-mask: var(--tex-slider-track) 0 12 / 0 0.75rem stretch; --skin-fill: rgba(245, 243, 238, 0.14)" />
+      <span class="skin absolute inset-x-0 top-0 h-[1rem]" style="--skin-mask: var(--tex-slider-track) 0 12 / 0 0.75rem stretch; --skin-fill: rgb(var(--hud-text-rgb) / 0.14)" />
       <span
         class="skin absolute inset-x-0 top-0 h-[1rem]"
         :style="{ '--skin-mask': 'var(--tex-slider-fill) 0 12 / 0 0.75rem stretch', '--skin-fill': 'var(--red)', clipPath: `inset(0 ${100 - pct}% 0 0)` }"

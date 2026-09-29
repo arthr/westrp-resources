@@ -78,7 +78,7 @@ const tone = computed(() => (props.goldRing ? "text-gold" : ringAlert.value ? "t
         <CoreIcon :icon="icon" :core="core" :icon-scale="iconScale" :alert="alert" :gold="goldCore" :gold-ending="goldCoreEnding" />
       </span>
       <span v-if="!goldCore" class="absolute inset-0" :class="{ segments: style === 'segmented' }">
-        <span class="tex absolute inset-0 rotate-180 text-[rgba(245,243,238,0.18)]" style="--m: var(--tex-ring-track)" />
+        <span class="tex absolute inset-0 rotate-180 text-[rgb(var(--hud-text-rgb)/0.18)]" style="--m: var(--tex-ring-track)" />
       </span>
       <span v-if="goldRing" class="ring-sweep absolute inset-0" :style="{ '--deg': style === 'segmented' ? segDeg : ringDeg }">
         <span class="gold-glow absolute inset-0" :class="{ ending: goldRingEnding }">
@@ -111,7 +111,7 @@ const tone = computed(() => (props.goldRing ? "text-gold" : ringAlert.value ? "t
           <CoreIcon :icon="icon" :core="core" :icon-scale="iconScale" :alert="alert" :gold="goldCore" :gold-ending="goldCoreEnding" />
         </span>
         <span class="half-track absolute inset-0">
-          <span class="tex absolute inset-0 rotate-180 text-[rgba(245,243,238,0.18)]" style="--m: var(--tex-ring-track)" />
+          <span class="tex absolute inset-0 rotate-180 text-[rgb(var(--hud-text-rgb)/0.18)]" style="--m: var(--tex-ring-track)" />
         </span>
         <span v-if="goldRing" class="half-sweep absolute inset-0" :style="{ '--deg': halfDeg }">
           <span class="gold-glow absolute inset-0" :class="{ ending: goldRingEnding }">
@@ -171,7 +171,7 @@ const tone = computed(() => (props.goldRing ? "text-gold" : ringAlert.value ? "t
           height: sz(0.46),
           padding: `0 ${sz(0.1)}`,
           fontSize: sz(0.28),
-          '--skin-fill': 'rgba(1, 1, 1, 0.68)',
+          '--skin-fill': 'rgb(var(--hud-surface-rgb) / calc(0.68 * var(--hud-surface-k)))',
         }"
       >{{ value }}</span>
     </template>

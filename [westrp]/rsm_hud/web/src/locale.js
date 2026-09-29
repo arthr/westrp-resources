@@ -64,6 +64,7 @@ const STRINGS = {
   "lm.dockRight": "Mover painel para a direita",
   "lm.presets": "Predefinições",
   "lm.elements": "Elementos",
+  "lm.external": "De outros resources",
   "lm.selected": "Selecionado",
   "lm.show": "Mostrar",
   "lm.hidden": "oculto",

@@ -23,7 +23,7 @@ const tone = computed(() => (props.gold ? "text-gold" : props.alert ? "text-red"
 
 <template>
   <span class="relative block h-full w-full">
-    <span class="tex absolute inset-0 text-[rgba(1,1,1,0.72)]" style="--m: var(--tex-core-bg)" />
+    <span class="tex absolute inset-0 text-[rgb(var(--hud-surface-rgb)/calc(0.72*var(--hud-surface-k)))]" style="--m: var(--tex-core-bg)" />
 
     <!-- aro dourado: o trilho fino do medidor, que já contorna a borda do disco -->
     <span v-if="gold" class="hud-glyph absolute inset-0">
@@ -34,7 +34,7 @@ const tone = computed(() => (props.gold ? "text-gold" : props.alert ? "text-red"
       <span v-if="gold" class="gold-glow absolute inset-0" :class="{ ending: goldEnding }">
         <span class="tex absolute inset-0 text-gold-bright" :style="mask" />
       </span>
-      <span v-if="core !== null" class="tex absolute inset-0 text-[rgba(245,243,238,0.22)]" :style="mask" />
+      <span v-if="core !== null" class="tex absolute inset-0 text-[rgb(var(--hud-text-rgb)/0.22)]" :style="mask" />
       <span class="core-rise absolute inset-0" :style="{ '--fill': `${fill}%` }">
         <span class="tex absolute inset-0 transition-colors duration-300" :class="tone" :style="mask" />
       </span>

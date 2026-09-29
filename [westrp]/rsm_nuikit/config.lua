@@ -19,9 +19,39 @@ Config.NotifyDuration = 5200
 -- do jogador. Passou disso, a resposta conta como "não".
 Config.ConfirmTimeout = 60
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Integração com o HUD
+--   Com o rsm_hud rodando, Notificações, Texto de Ajuda e Objetivo entram no
+--   /hudlayout dele: cada jogador arrasta essas peças junto com o resto do HUD
+--   e a posição fica salva no personagem. Cores e dinheiro passam a ser só do
+--   rsm_hud (o kit não desenha os dele, para nada aparecer duplicado).
+--   Sem o rsm_hud, o kit funciona sozinho com as posições de Config.Layout.
+-- ─────────────────────────────────────────────────────────────────────────────
+Config.HostHud = {
+    resource = "rsm_hud", -- nome da pasta do HUD no servidor; "" desliga a integração
+}
+
+-- Posição de cada peça do HUD do kit.
+--   x / y  0 = encostada à esquerda / no topo, 1 = à direita / embaixo. A peça
+--          nunca sai da tela, em qualquer resolução (mesma conta do rsm_hud).
+--   scale  0.5 a 1.6
+--   label / hint  como a peça aparece na lista do /hudlayout
+-- Com o rsm_hud, estes valores são só o ponto de partida (e o que o "Redefinir"
+-- do editor devolve); os padrões abaixo ficam livres dos elementos do rsm_hud
+-- nas três predefinições dele (Fronteira, Compacto e Mínimo).
+Config.Layout = {
+    toasts    = { x = 0.99, y = 0.58,  scale = 1, label = "Notificações",   hint = "Avisos dos resources" },
+    help      = { x = 0.01, y = 0.25,  scale = 1, label = "Texto de Ajuda", hint = "Dicas com tecla" },
+    objective = { x = 0.50, y = 0.12,  scale = 1, label = "Objetivo",       hint = "Missão ou trabalho atual" },
+    -- só usadas SEM o rsm_hud (com ele, cores e dinheiro são do próprio HUD)
+    cores     = { x = 0.20, y = 0.975, scale = 1 },
+    money     = { x = 0.99, y = 0.025, scale = 1 },
+}
+
 -- Registro de módulos. Cada id precisa bater com um componente do kit.
 --   active = estado antes da primeira publicação no estúdio
 --   locked = o módulo não pode ser desligado (outros resources dependem dele)
+--   cores e money ficam desligados enquanto o rsm_hud estiver rodando
 Config.Modules = {
     { id = "menus",     active = true,  locked = true },
     { id = "prompts",   active = true,  locked = true },

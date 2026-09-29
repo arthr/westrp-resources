@@ -3,39 +3,63 @@
 /* Blood & Black — the default design tokens. The backdrop image is seeded by
    the studio; every texture and font the UI uses is pulled into web/public/
    and wired through the asset bridge (see the STUDIO-MANAGED block). */
+/* As cores do tema passam pelas variáveis --hud-* (logo abaixo). Sozinho, o HUD
+   usa os valores daqui; com o rsm_nuikit rodando, o tema publicado no Color
+   Manager troca só essas variáveis (src/theme.js), e tudo acompanha. */
+@theme inline {
+  --color-accent: var(--hud-accent);
+  --color-accent-deep: var(--hud-accent-deep);
+  --color-on-accent: var(--hud-on-accent);
+  --color-paper: var(--hud-text);
+  --color-panel: var(--hud-panel);
+  --color-panel-2: var(--hud-panel-2);
+  --color-ink: var(--hud-ink);
+  --color-red: var(--hud-accent);
+  --color-red-hover: var(--hud-accent-deep);
+  --color-dim: var(--hud-dim);
+  --color-faint: var(--hud-faint);
+}
+
 @theme {
   --font-display: "RDR Lino", "Hapna Slab", Georgia, serif;
   --font-sans: "Hapna Slab", Georgia, serif;
   --font-num: "RDR Catalogue", "RDR Lino", Georgia, serif;
   --font-title: "Redemption", "RDR Lino", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
-  --color-accent: #CB0101;
-  --color-accent-deep: #A50101;
-  --color-paper: #F5F3EE;
-  --color-panel: #0d0d0d;
-  --color-panel-2: #141414;
-  --color-ink: #E8E4DC;
-  --color-red: #CB0101;
-  --color-red-hover: #A50101;
-  --color-dim: #9A948A;
-  --color-faint: #6b665e;
   /* Dourado do Golden Core (core fortificado). Única cor fora do vermelho e
-     neutros do tema: pedida para esse estado. */
+     neutros do tema: pedida para esse estado, e não muda com o tema. */
   --color-gold: #E0AE43;
   --color-gold-bright: #F6D27A;
 }
 
 :root {
+  /* papéis do tema: destaque, texto e superfície (placas e painéis) */
+  --hud-accent: #CB0101;
+  --hud-accent-rgb: 203 1 1;
+  --hud-accent-deep: #A50101;
+  --hud-on-accent: #F5F3EE;
+  --hud-text: #F5F3EE;
+  --hud-text-rgb: 245 243 238;
+  --hud-ink: #E8E4DC;
+  --hud-dim: #9A948A;
+  --hud-faint: #6b665e;
+  --hud-surface-rgb: 1 1 1;
+  --hud-panel: #0d0d0d;
+  --hud-panel-rgb: 13 13 13;
+  --hud-panel-2: #141414;
+  /* multiplica a opacidade das placas (a "Surface opacity" do Color Manager) */
+  --hud-surface-k: 1;
+
   --bg: #010101;
-  --panel: #0d0d0d;
-  --panel-2: #141414;
+  --panel: var(--hud-panel);
+  --panel-2: var(--hud-panel-2);
   --line: rgba(255, 255, 255, 0.08);
-  --red: #CB0101;
-  --red-hover: #A50101;
-  --red-soft: rgba(203, 1, 1, 0.16);
-  --text: #F5F3EE;
-  --text-dim: #9A948A;
-  --text-faint: #6b665e;
+  --red: var(--hud-accent);
+  --red-hover: var(--hud-accent-deep);
+  --red-soft: rgb(var(--hud-accent-rgb) / 0.16);
+  --text: var(--hud-text);
+  --text-dim: var(--hud-dim);
+  --text-faint: var(--hud-faint);
   --gold: #E0AE43;
   --gold-bright: #F6D27A;
 }
@@ -55,7 +79,7 @@ body,
 
 body {
   background: #000;
-  color: var(--color-ink);
+  color: var(--hud-ink);
   font-family: var(--font-sans);
   overflow: hidden;
   user-select: none;
@@ -83,6 +107,15 @@ html.rsm-ingame body,
 html.rsm-ingame #root {
   background: transparent;
 }
+
+/* Espelho (?mirror=1): o HUD desenhado dentro da prévia do rsm_nuikit. A página
+   fica transparente e sem o fundo de cena: quem mostra o cenário é a prévia. */
+html.rsm-mirror,
+html.rsm-mirror body,
+html.rsm-mirror #root {
+  background: transparent;
+}
+html.rsm-mirror body::before { display: none; }
 
 /* Animatable meter values (ring sweep + core fill). */
 @property --deg {
@@ -145,7 +178,7 @@ html.rsm-ingame #root {
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-color: var(--skin-fill, rgba(1, 1, 1, 0.6));
+    background-color: var(--skin-fill, rgb(var(--hud-surface-rgb) / calc(0.6 * var(--hud-surface-k))));
     -webkit-mask-box-image: var(--skin-mask);
     transition: background-color 160ms ease;
   }

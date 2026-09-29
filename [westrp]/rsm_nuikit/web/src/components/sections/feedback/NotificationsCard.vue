@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useKit } from "../../../state/kit.js";
-import { ANCHOR_NAMES, TOAST_SAMPLES } from "../../../state/mock.js";
+import { TOAST_SAMPLES } from "../../../state/mock.js";
 import Toast from "../../hud/Toast.vue";
 import { Button, Card, Divider, Tag } from "../../kit";
 
@@ -14,7 +14,6 @@ const TOAST_BUTTONS = [
 
 const kit = useKit();
 const on = computed(() => kit.isActive("toasts"));
-const w = computed(() => kit.state.layout.widgets.toasts);
 const fire = (type) => kit.notify(type, TOAST_SAMPLES[type].title, TOAST_SAMPLES[type].body);
 </script>
 
@@ -35,7 +34,8 @@ const fire = (type) => kit.notify(type, TOAST_SAMPLES[type].title, TOAST_SAMPLES
     </div>
     <p class="text-[13px] leading-snug text-faint">
       <template v-if="on">
-        Toasts appear at {{ ANCHOR_NAMES[w.anchor] }} ({{ w.scale }}%), wherever the Layout Manager puts them. Click one to dismiss it.
+        Toasts appear where each player placed Notifications
+        {{ kit.state.host.present ? "in /hudlayout" : "(Config.Layout, config.lua)" }}, three at most. Click one to dismiss it.
       </template>
       <template v-else>The Notifications module is inactive. Switch it on under Active / Inactive to fire toasts.</template>
     </p>

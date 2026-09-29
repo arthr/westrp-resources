@@ -14,12 +14,12 @@ const tempGlyph = computed(() => {
 </script>
 
 <template>
-  <div class="skin skin-plate flex items-center gap-4 px-[1.125rem] py-2" style="--skin-fill: rgba(1, 1, 1, 0.62)">
+  <div class="skin skin-plate flex items-center gap-4 px-[1.125rem] py-2" style="--skin-fill: rgb(var(--hud-surface-rgb) / calc(0.62 * var(--hud-surface-k)))">
     <div class="flex flex-col items-end gap-1">
       <span class="hud-text font-num text-[1.9rem] leading-none tracking-wider text-paper">{{ hud.world.time }}</span>
       <span class="hud-text font-display text-[0.62rem] uppercase tracking-[0.2em] text-dim">{{ hud.world.day }}</span>
     </div>
-    <span class="tex h-[2.6rem] w-[0.2rem] shrink-0 text-[rgba(245,243,238,0.25)] [mask-size:100%_100%] [-webkit-mask-size:100%_100%]" style="--m: var(--tex-vdivider)" />
+    <span class="tex h-[2.6rem] w-[0.2rem] shrink-0 text-[rgb(var(--hud-text-rgb)/0.25)] [mask-size:100%_100%] [-webkit-mask-size:100%_100%]" style="--m: var(--tex-vdivider)" />
     <div class="flex flex-col gap-1">
       <span class="hud-text font-display text-[0.7rem] uppercase tracking-[0.14em] text-paper">{{ hud.world.weather }}</span>
       <span class="flex items-center gap-1.5">

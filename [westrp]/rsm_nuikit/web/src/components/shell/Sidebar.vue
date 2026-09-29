@@ -1,13 +1,14 @@
 <script setup>
 import { computed } from "vue";
 import { useKit } from "../../state/kit.js";
-import { LAYOUT_PRESETS, SECTIONS, THEME_PRESETS } from "../../state/mock.js";
+import { SECTIONS, THEME_PRESETS } from "../../state/mock.js";
 import { Button, Counter, Divider, Swatch, Tag } from "../kit";
 
 const kit = useKit();
 const activeCount = computed(() => kit.state.modules.filter((m) => m.active).length);
 const themeName = computed(() => THEME_PRESETS.find((p) => p.id === kit.state.theme.preset)?.name ?? "Custom");
-const layoutName = computed(() => LAYOUT_PRESETS[kit.state.layout.preset]?.label ?? "Custom");
+// quem decide onde ficam as peças do HUD: o /hudlayout do rsm_hud ou o config.lua
+const placedBy = computed(() => (kit.state.host.present ? kit.state.host.name : "config.lua"));
 </script>
 
 <template>
@@ -50,8 +51,8 @@ const layoutName = computed(() => LAYOUT_PRESETS[kit.state.layout.preset]?.label
         </span>
       </div>
       <div class="flex items-center justify-between gap-3">
-        <span class="text-dim">Layout</span>
-        <span class="kit-heading text-[10px] text-ink">{{ layoutName }}</span>
+        <span class="text-dim">Placement</span>
+        <span class="kit-heading text-[10px] text-ink">{{ placedBy }}</span>
       </div>
       <div class="flex items-center justify-between gap-3">
         <span class="text-dim">Modules active</span>

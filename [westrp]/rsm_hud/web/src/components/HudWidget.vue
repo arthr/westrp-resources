@@ -1,23 +1,29 @@
 <script setup>
 import { computed } from "vue";
 import { hud } from "../store/hud.js";
-import { layout, placeWidget } from "../store/layout.js";
+import { isDisabled, layout, placeWidget, widgetLabel } from "../store/layout.js";
 import { t } from "../locale.js";
 
 // One movable HUD element. Placement: the element's left edge sits at
 // x * (screen - own width), so x = 0 is flush left, 1 flush right, and it can
 // never leave the screen at any resolution or scale. In Layout Manager mode it
 // becomes draggable (pointer capture keeps the drag on this element only).
+// Largura: w-max prende a caixa na largura do próprio conteúdo. Sem isso, um
+// elemento `fixed` com `left: x%` só recebe o espaço entre o left e a borda
+// direita, e encolhe (quebrando linha) quanto mais perto ela estiver.
 const props = defineProps({
   id: { type: String, required: true },
   // false while the element has nothing to show (not mounted, not wanted…)
   active: { type: Boolean, default: true },
+  // peça de outro resource: quem desenha é o dono, aqui só existe no editor
+  ghost: { type: Boolean, default: false },
 });
 
 const cfg = computed(() => layout.widgets[props.id]);
 const selected = computed(() => layout.editing && layout.selected === props.id);
 const live = computed(() => cfg.value.visible && props.active);
-const shown = computed(() => layout.editing || (hud.visible && live.value));
+// desativado pelo servidor: some para todos, inclusive no editor
+const shown = computed(() => !isDisabled(props.id) && (layout.editing || (!props.ghost && hud.visible && live.value)));
 const tagBelow = computed(() => cfg.value.y < 0.14);
 
 const style = computed(() => {
@@ -70,7 +76,7 @@ function onEnd(e) {
   <div
     v-show="shown"
     :data-widget="id"
-    class="fixed"
+    class="fixed w-max"
     :class="layout.editing ? (layout.dragging === id ? 'cursor-grabbing' : 'cursor-grab') : 'pointer-events-none'"
     :style="style"
     @pointerdown="onDown"
@@ -86,7 +92,7 @@ function onEnd(e) {
     <template v-if="layout.editing">
       <span
         class="skin skin-outline pointer-events-none absolute -inset-2"
-        :style="{ '--skin-fill': selected ? 'rgba(203,1,1,0.85)' : 'rgba(245,243,238,0.28)' }"
+        :style="{ '--skin-fill': selected ? 'rgb(var(--hud-accent-rgb) / 0.85)' : 'rgb(var(--hud-text-rgb) / 0.28)' }"
       />
       <template v-if="selected">
         <span
@@ -98,11 +104,11 @@ function onEnd(e) {
       </template>
       <span
         class="skin skin-key pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 font-display text-[0.6rem] uppercase tracking-[0.18em]"
-        :class="[tagBelow ? 'top-[calc(100%+0.9rem)]' : 'bottom-[calc(100%+0.9rem)]', selected ? 'text-paper' : 'text-dim']"
-        :style="{ '--skin-fill': selected ? 'rgba(203,1,1,0.9)' : 'rgba(1,1,1,0.78)' }"
+        :class="[tagBelow ? 'top-[calc(100%+0.9rem)]' : 'bottom-[calc(100%+0.9rem)]', selected ? 'text-on-accent' : 'text-dim']"
+        :style="{ '--skin-fill': selected ? 'rgb(var(--hud-accent-rgb) / 0.9)' : 'rgb(var(--hud-surface-rgb) / calc(0.78 * var(--hud-surface-k)))' }"
       >
-        {{ t(`w.${id}`) }}
-        <span v-if="!live" class="text-[rgba(245,243,238,0.6)]">· {{ t("lm.hidden") }}</span>
+        {{ widgetLabel(id) }}
+        <span v-if="!live" class="text-[rgb(var(--hud-text-rgb)/0.6)]">· {{ t("lm.hidden") }}</span>
       </span>
     </template>
   </div>

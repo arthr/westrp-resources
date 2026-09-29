@@ -3,72 +3,60 @@
 // nomes e descrições abaixo continuam sendo os que aparecem na tela.
 
 export const SECTIONS = [
-  { id: "layout", label: "Layout Manager", hint: "Anchor, offset and scale every HUD piece" },
   { id: "colors", label: "Color Manager", hint: "Theme roles, presets and a custom mixer" },
   { id: "states", label: "Active / Inactive", hint: "Switch modules on or off, see every state" },
   { id: "controls", label: "Controls", hint: "Buttons, selectors, sliders, inputs, slots" },
   { id: "feedback", label: "Feedback", hint: "Notifications, dialogs, help text, progress" },
-  { id: "hud", label: "HUD Pieces", hint: "Core meters and hold-key prompts" },
+  { id: "hud", label: "HUD Pieces", hint: "rsm_hud defaults, placement, prompts" },
   { id: "service", label: "Service API", hint: "Exports other resources call" },
 ];
 
-// 9-point anchors, row-major (top → bottom, left → right)
-export const ANCHORS = ["tl", "tc", "tr", "ml", "mc", "mr", "bl", "bc", "br"];
-export const ANCHOR_NAMES = {
-  tl: "Top Left", tc: "Top Centre", tr: "Top Right",
-  ml: "Middle Left", mc: "Centre", mr: "Middle Right",
-  bl: "Bottom Left", bc: "Bottom Centre", br: "Bottom Right",
+// Só para o preview: no jogo, a posição padrão de cada peça vem do
+// Config.Layout (config.lua) e, com o rsm_hud rodando, do /hudlayout do jogador.
+export const PREVIEW_PLACEMENT = {
+  toasts: { x: 0.99, y: 0.58, scale: 1 },
+  help: { x: 0.01, y: 0.25, scale: 1 },
+  objective: { x: 0.5, y: 0.12, scale: 1 },
+  cores: { x: 0.2, y: 0.975, scale: 1 },
+  money: { x: 0.99, y: 0.025, scale: 1 },
 };
 
-// HUD widgets share their id with the module registry, so switching a module
-// inactive also removes it from the layout preview.
-const w = (anchor, x = 0, y = 0, scale = 100) => ({ anchor, x, y, scale });
-
-export const LAYOUT_PRESETS = {
-  classic: {
-    label: "Classic",
-    safeZone: 4,
-    widgets: {
-      cores: w("bl"), prompts: w("br"), toasts: w("tl", 0, 12), help: w("tl"),
-      money: w("tr"), objective: w("bc", 0, -2), menus: w("ml"),
-    },
-  },
-  streamer: {
-    label: "Streamer",
-    safeZone: 6,
-    widgets: {
-      cores: w("tl", 0, 0, 90), prompts: w("bc"), toasts: w("ml"), help: w("bl"),
-      money: w("tr", 0, 0, 90), objective: w("tc", 0, 2), menus: w("mr"),
-    },
-  },
-  compact: {
-    label: "Compact",
-    safeZone: 2,
-    widgets: {
-      cores: w("bl", 0, 0, 80), prompts: w("br", 0, 0, 85), toasts: w("tr", 0, 12, 85),
-      help: w("tl", 0, 0, 85), money: w("tr", 0, 0, 80), objective: w("bc", 0, 0, 85),
-      menus: w("ml", 0, 0, 90),
-    },
-  },
-  cinematic: {
-    label: "Cinematic",
-    safeZone: 8,
-    widgets: {
-      cores: w("bl", 0, 0, 90), prompts: w("br", 0, 0, 90), toasts: w("tc"),
-      help: w("tl", 0, 0, 90), money: w("tr", 0, 0, 90), objective: w("bc", 0, -4, 90),
-      menus: w("mc"),
-    },
-  },
+// Só para o preview: amostra do catálogo que o rsm_hud informa no jogo (os
+// nomes vêm em português porque são os mesmos do /hudlayout dele).
+export const PREVIEW_HOST_CATALOG = {
+  widgets: [
+    { id: "cores", label: "Cores do Jogador", hint: "Vida · Vigor · Olho Morto" },
+    { id: "horse", label: "Cores do Cavalo", hint: "Aparece quando montado" },
+    { id: "needs", label: "Necessidades", hint: "Fome · Sede · Estresse · Higiene · Bebida" },
+    { id: "effects", label: "Efeitos de Status", hint: "Frio, ferimentos, doenças" },
+    { id: "money", label: "Dinheiro", hint: "Dólares e ouro" },
+    { id: "clock", label: "Relógio e Clima", hint: "Hora, dia e temperatura" },
+    { id: "location", label: "Localização", hint: "Cidade e região" },
+    { id: "identity", label: "Identidade", hint: "ID, nome e emprego" },
+    { id: "wanted", label: "Recompensa", hint: "Aparece quando procurado" },
+    { id: "weapon", label: "Arma e Munição", hint: "Aparece com arma em mãos" },
+    { id: "voice", label: "Voz", hint: "Alcance e fala" },
+  ],
+  presets: [
+    { id: "frontier", label: "Fronteira" },
+    { id: "compact", label: "Compacto" },
+    { id: "minimal", label: "Mínimo" },
+  ],
+  meterStyles: ["ring", "half", "segmented", "bars-h", "bars-v", "numeric"].map((id) => ({ id, label: id })),
+  features: ["theme", "preview", "mirror"],
 };
 
-export const WIDGET_META = {
-  cores: { label: "Core Meters", size: "Health · Stamina · Dead Eye" },
-  prompts: { label: "Prompt Stack", size: "Hold-key prompts" },
-  toasts: { label: "Notifications", size: "Feed toasts" },
-  help: { label: "Help Text", size: "Context tips" },
-  money: { label: "Money & Clock", size: "Wallet, gold, time" },
-  objective: { label: "Objective Line", size: "Mission text" },
-  menus: { label: "Menu Panel", size: "Interactive menus" },
+// No preview do navegador, a interface compilada do rsm_hud servida pelo vite
+// (web/tools/hud-mirror.js). No jogo é a página do próprio rsm_hud.
+export const PREVIEW_HOST_PAGE = `${import.meta.env.BASE_URL}hud-mirror/index.html`;
+
+// Nome de cada peça do HUD no estúdio
+export const PIECE_NAMES = {
+  toasts: "Notifications",
+  help: "Help Text",
+  objective: "Objective Line",
+  cores: "Core Meters",
+  money: "Money & Clock",
 };
 
 export const MODULES = [
@@ -76,10 +64,10 @@ export const MODULES = [
   { id: "prompts", name: "Prompt Stack", group: "HUD", desc: "Hold-key prompts for doors, shops and world interaction.", active: true, locked: true },
   { id: "cores", name: "Core Meters", group: "HUD", desc: "Health, stamina and Dead Eye rings with inner cores.", active: true },
   { id: "toasts", name: "Notifications", group: "Feedback", desc: "Feed toasts with icon, title and timer bar.", active: true },
-  { id: "help", name: "Help Text", group: "Feedback", desc: "Contextual tips pinned to the top-left.", active: true },
+  { id: "help", name: "Help Text", group: "Feedback", desc: "Contextual tips with an optional keycap.", active: true },
   { id: "dialogs", name: "Confirm Dialogs", group: "Feedback", desc: "Two-choice dialogs other resources open with Confirm.", active: true, locked: true },
   { id: "money", name: "Money & Clock", group: "HUD", desc: "Wallet, gold bars and the in-world time.", active: false },
-  { id: "objective", name: "Objective Line", group: "HUD", desc: "Bottom-centre mission and job objective text.", active: false },
+  { id: "objective", name: "Objective Line", group: "HUD", desc: "The current mission or job objective line.", active: false },
   { id: "slots", name: "Item Slots", group: "Menus", desc: "Drag-and-drop item slots: move, stack, split and auto-sort.", active: true },
   { id: "selectors", name: "Arrow Selectors", group: "Controls", desc: "Left/right option pickers, the classic RDR menu row.", active: true },
   { id: "sliders", name: "Sliders", group: "Controls", desc: "Bar sliders for volume, amounts and offsets.", active: true },

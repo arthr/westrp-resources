@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import { IS_GAME } from "../nui.js";
+import { MIRROR } from "../mirror.js";
 
 // Everything the HUD displays. The client pushes partial updates with
 // SendNUIMessage({ action = "hud:update", data = { ... } }) and they are merged
@@ -71,13 +72,38 @@ function merge(target, patch) {
   }
 }
 
+const clone = (v) => JSON.parse(JSON.stringify(v));
+// Os valores de exemplo acima, guardados antes de o jogo limpar tudo. Servem à
+// prévia do rsm_nuikit (showSamples) e ao espelho. `visible` fica de fora: quem
+// manda nele é o client (hud:show / hud:hide).
+const SAMPLE = clone(hud);
+delete SAMPLE.visible;
+
+// Durante a prévia o que o client mandar vai para esta cópia dos dados reais.
+let live = null;
+
 export function applyHudUpdate(patch) {
-  if (isObj(patch)) merge(hud, patch);
+  if (isObj(patch)) merge(live ?? hud, patch);
+}
+
+// Prévia do rsm_nuikit ("Preview Placement"): por alguns segundos todos os
+// elementos mostram os exemplos (cavalo, arma, recompensa…), para ver cada um no
+// lugar. No fim os dados reais voltam, inclusive o que mudou nesse meio-tempo.
+export function showSamples(on) {
+  if (on && !live) {
+    live = clone(hud);
+    delete live.visible;
+    merge(hud, clone(SAMPLE));
+  } else if (!on && live) {
+    const real = live;
+    live = null;
+    merge(hud, real);
+  }
 }
 
 // Dentro do jogo nenhum dado de exemplo pode aparecer: tudo começa vazio e é
-// preenchido pelo primeiro "hud:update" do client.
-if (IS_GAME) {
+// preenchido pelo primeiro "hud:update" do client. O espelho é só exemplo.
+if (IS_GAME && !MIRROR) {
   applyHudUpdate({
     player: { id: "", name: "", job: "", employer: "" },
     cores: {

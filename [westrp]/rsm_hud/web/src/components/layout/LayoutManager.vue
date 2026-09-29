@@ -9,6 +9,11 @@ import { t } from "../../locale.js";
 import {
   layout,
   WIDGETS,
+  external,
+  allWidgetIds,
+  widgetLabel,
+  widgetHint,
+  isDisabled,
   PRESETS,
   METER_STYLES,
   setMeterStyle,
@@ -28,7 +33,12 @@ import {
 const tab = ref("elements");
 
 const sel = computed(() => (layout.selected ? layout.widgets[layout.selected] : null));
-const visibleCount = computed(() => WIDGETS.filter((w) => layout.widgets[w.id].visible).length);
+// Elementos do HUD e, em seguida, as peças que outros resources registraram
+const rows = computed(() => [
+  ...WIDGETS.filter((w) => !isDisabled(w.id)).map((w) => ({ id: w.id, first: false })),
+  ...external.map((s, i) => ({ id: s.id, first: i === 0 })),
+]);
+const visibleCount = computed(() => allWidgetIds().filter((id) => layout.widgets[id]?.visible).length);
 
 const scale = computed({
   get: () => Math.round((sel.value?.scale ?? 1) * 100),
@@ -88,7 +98,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
   <aside
     class="skin skin-panel fixed top-[5vh] bottom-[5vh] z-30 flex w-[24rem] flex-col gap-4 pb-7 pl-[2.05rem] pr-[1.95rem] pt-6"
     :class="layout.prefs.dock === 'right' ? 'right-[2vw]' : 'left-[2vw]'"
-    style="--skin-fill: rgba(13, 13, 13, 0.95)"
+    style="--skin-fill: rgb(var(--hud-panel-rgb) / calc(0.95 * var(--hud-surface-k)))"
     @pointerdown.stop
   >
     <!-- cabeçalho -->
@@ -113,7 +123,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
       <p class="m-0 text-[0.78rem] leading-snug text-dim">
         {{ t("lm.intro") }}
       </p>
-      <span class="tex mt-1 h-[0.18rem] w-full text-[rgba(245,243,238,0.22)] [mask-size:100%_100%] [-webkit-mask-size:100%_100%]" style="--m: var(--tex-divider)" />
+      <span class="tex mt-1 h-[0.18rem] w-full text-[rgb(var(--hud-text-rgb)/0.22)] [mask-size:100%_100%] [-webkit-mask-size:100%_100%]" style="--m: var(--tex-divider)" />
     </header>
 
     <!-- abas -->
@@ -137,30 +147,34 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
       <section class="flex min-h-0 flex-1 flex-col gap-2">
         <h3 class="m-0 flex items-baseline justify-between font-display text-[0.64rem] font-normal uppercase tracking-[0.22em] text-dim">
           {{ t("lm.elements") }}
-          <span class="font-num text-[0.8rem] tracking-normal text-paper">{{ visibleCount }} / {{ WIDGETS.length }}</span>
+          <span class="font-num text-[0.8rem] tracking-normal text-paper">{{ visibleCount }} / {{ rows.length }}</span>
         </h3>
         <ul class="scroll-thin m-0 flex min-h-0 flex-1 list-none flex-col gap-1.5 overflow-y-auto p-0 pr-1.5">
-          <li v-for="w in WIDGETS" :key="w.id">
+          <li v-for="w in rows" :key="w.id">
+            <p
+              v-if="w.first"
+              class="m-0 pb-1 pt-2.5 font-display text-[0.6rem] uppercase tracking-[0.22em] text-dim"
+            >{{ t("lm.external") }}</p>
             <div
               class="skin skin-row flex cursor-pointer items-center gap-3 px-4 py-2.5"
               :class="
                 layout.selected === w.id
-                  ? '[--skin-fill:rgba(203,1,1,0.3)]'
-                  : '[--skin-fill:rgba(245,243,238,0.05)] hover:[--skin-fill:rgba(245,243,238,0.1)]'
+                  ? '[--skin-fill:rgb(var(--hud-accent-rgb)/0.3)]'
+                  : '[--skin-fill:rgb(var(--hud-text-rgb)/0.05)] hover:[--skin-fill:rgb(var(--hud-text-rgb)/0.1)]'
               "
               @click="layout.selected = w.id"
             >
               <TexToggle
                 :model-value="layout.widgets[w.id].visible"
-                :label="`${t('lm.show')} ${t(`w.${w.id}`)}`"
+                :label="`${t('lm.show')} ${widgetLabel(w.id)}`"
                 @update:model-value="(v) => setWidget(w.id, { visible: v })"
               />
               <div class="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
                   class="font-display text-[0.74rem] uppercase tracking-[0.12em]"
                   :class="layout.widgets[w.id].visible ? 'text-paper' : 'text-faint'"
-                >{{ t(`w.${w.id}`) }}</span>
-                <span class="truncate text-[0.66rem] text-dim">{{ t(`w.${w.id}.hint`) }}</span>
+                >{{ widgetLabel(w.id) }}</span>
+                <span class="truncate text-[0.66rem] text-dim">{{ widgetHint(w.id) }}</span>
               </div>
               <span
                 v-if="layout.selected === w.id"
@@ -176,7 +190,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
       <section v-if="sel" class="flex shrink-0 flex-col gap-3">
         <h3 class="m-0 flex items-baseline justify-between font-display text-[0.64rem] font-normal uppercase tracking-[0.22em] text-dim">
           {{ t("lm.selected") }}
-          <span class="text-[0.72rem] tracking-[0.14em] text-paper">{{ t(`w.${layout.selected}`) }}</span>
+          <span class="text-[0.72rem] tracking-[0.14em] text-paper">{{ widgetLabel(layout.selected) }}</span>
         </h3>
         <TexSlider v-model="scale" :label="t('lm.scale')" unit="%" :min="50" :max="160" :step="5" />
         <TexSlider v-model="opacity" :label="t('lm.opacity')" unit="%" :min="30" :max="100" :step="5" />
@@ -207,8 +221,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
           class="skin skin-row flex h-[6.4rem] cursor-pointer flex-col items-center justify-between px-1.5 pb-2.5 pt-2"
           :class="
             layout.prefs.meterStyle === s
-              ? '[--skin-fill:rgba(203,1,1,0.24)]'
-              : '[--skin-fill:rgba(245,243,238,0.05)] hover:[--skin-fill:rgba(245,243,238,0.1)]'
+              ? '[--skin-fill:rgb(var(--hud-accent-rgb)/0.24)]'
+              : '[--skin-fill:rgb(var(--hud-text-rgb)/0.05)] hover:[--skin-fill:rgb(var(--hud-text-rgb)/0.1)]'
           "
           :title="t(`style.${s}`)"
           @click="setMeterStyle(s)"
@@ -223,7 +237,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
           <span
             v-if="layout.prefs.meterStyle === s"
             class="skin skin-outline pointer-events-none absolute -inset-1"
-            style="--skin-fill: rgba(203, 1, 1, 0.85)"
+            style="--skin-fill: rgb(var(--hud-accent-rgb) / 0.85)"
           />
         </button>
       </div>
@@ -236,7 +250,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
 
     <!-- rodapé -->
     <footer class="flex shrink-0 flex-col gap-3">
-      <span class="tex h-[0.18rem] w-full text-[rgba(245,243,238,0.22)] [mask-size:100%_100%] [-webkit-mask-size:100%_100%]" style="--m: var(--tex-divider)" />
+      <span class="tex h-[0.18rem] w-full text-[rgb(var(--hud-text-rgb)/0.22)] [mask-size:100%_100%] [-webkit-mask-size:100%_100%]" style="--m: var(--tex-divider)" />
       <div class="grid grid-cols-[1fr_1fr_1.35fr] gap-2">
         <TexButton @click="resetAll">{{ t("lm.resetAll") }}</TexButton>
         <TexButton @click="cancelLayout">{{ t("lm.cancel") }}</TexButton>

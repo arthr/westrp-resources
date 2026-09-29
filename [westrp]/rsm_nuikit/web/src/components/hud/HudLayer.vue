@@ -1,40 +1,36 @@
 <script setup>
 import { computed } from "vue";
-import { useKit } from "../../state/kit.js";
-import { anchorBox } from "./anchor.js";
+import { placementOf, useKit } from "../../state/kit.js";
 import { widgetDims } from "./dims.js";
 import { WIDGETS } from "./widgets.js";
+import Placed from "./Placed.vue";
 
 // O HUD que os jogadores veem: só as peças que algum resource alimentou, cada
-// uma onde o Layout Manager mandou. Não pega o mouse e some com o estúdio aberto
-// (como o HUD do jogo some nos menus) ou quando um resource pede SetHudHidden.
+// uma onde o jogador a pôs no /hudlayout (ou onde o config.lua manda, sem o
+// rsm_hud). Não pega o mouse e some com o estúdio aberto, com SetHudHidden ou
+// quando o rsm_hud se esconde (/hud, pausa, carregamento). Com o /hudlayout
+// aberto, cada peça aparece com um exemplo no lugar exato, mesmo sem dados.
 const kit = useKit();
 
 const pieces = computed(() => {
-  const { hud, layout, studio } = kit.state;
-  if (studio.open || hud.hidden) return [];
+  const s = kit.state;
+  if (s.studio.open || s.hud.hidden) return [];
+  const samples = s.host.editing || s.hud.samples;
+  if (!samples && s.host.present && !s.host.visible) return [];
   const list = [];
-  if (hud.cores && kit.isActive("cores")) list.push(["cores", { cores: hud.cores }]);
-  if (hud.help && kit.isActive("help")) list.push(["help", { text: hud.help.text, k: hud.help.key }]);
-  if (hud.money && kit.isActive("money")) list.push(["money", { money: hud.money, clock: hud.clock }]);
-  if (hud.objective && kit.isActive("objective")) list.push(["objective", { text: hud.objective }]);
-  return list.map(([id, data]) => {
-    const w = layout.widgets[id];
-    const b = anchorBox(w.anchor, w.x, w.y, layout.safeZone);
-    const [dw, dh] = widgetDims(id, hud.coreStyle);
-    return {
-      id,
-      data,
-      widget: WIDGETS[id],
-      pos: { left: `${b.left}%`, top: `${b.top}%` },
-      box: {
-        width: `${dw}px`,
-        height: `${dh}px`,
-        transform: `translate(${b.tx}%, ${b.ty}%) scale(${w.scale / 100})`,
-        transformOrigin: b.origin,
-      },
-    };
-  });
+  const add = (id, has, data) => {
+    if (!kit.isActive(id) || !(has || samples)) return;
+    const place = placementOf(s, id);
+    // oculta pelo jogador: some do HUD; no editor aparece apagada, como a moldura
+    if (!place.visible && !samples) return;
+    const [width, height] = widgetDims(id, s.hud.coreStyle);
+    list.push({ id, width, height, place: place.visible ? place : { ...place, opacity: 0.35 }, data: has ? data : {} });
+  };
+  add("cores", s.hud.cores, { cores: s.hud.cores });
+  add("money", s.hud.money, { money: s.hud.money, clock: s.hud.clock });
+  add("help", s.hud.help, s.hud.help && { text: s.hud.help.text, k: s.hud.help.key });
+  add("objective", s.hud.objective, { text: s.hud.objective });
+  return list;
 });
 </script>
 
@@ -45,11 +41,8 @@ const pieces = computed(() => {
     leave-active-class="transition-opacity duration-250"
     leave-to-class="opacity-0"
   >
-    <div v-for="p in pieces" :key="p.id" class="pointer-events-none fixed z-30" :style="p.pos">
-      <!-- o transform fica num filho: o de fora só anima a opacidade -->
-      <div :style="p.box">
-        <component :is="p.widget" v-bind="p.data" />
-      </div>
-    </div>
+    <Placed v-for="p in pieces" :key="p.id" :place="p.place" :width="p.width" :height="p.height">
+      <component :is="WIDGETS[p.id]" v-bind="p.data" />
+    </Placed>
   </TransitionGroup>
 </template>

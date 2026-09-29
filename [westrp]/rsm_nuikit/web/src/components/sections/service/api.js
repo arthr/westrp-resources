@@ -28,7 +28,7 @@ export const API = [
   {
     name: "Notify",
     side: "Client · Server",
-    desc: "Feed notification at the Notifications anchor. kind is info, success, warning or error; duration in ms is optional.",
+    desc: "Feed notification where the player placed Notifications. kind is info, success, warning or error; duration in ms is optional.",
     code: `-- client
 exports.rsm_nuikit:Notify("success", "Purchase Complete", "Bought 2 Coffee for $1.50.")
 
@@ -55,7 +55,7 @@ end)
   {
     name: "SetCores",
     side: "Client",
-    desc: "Health, stamina and Dead Eye in the published core style. Values 0–100; only the cores you send change. nil hides them.",
+    desc: "Health, stamina and Dead Eye in the published core style. Values 0–100; only the cores you send change. nil hides them. Ignored while rsm_hud runs.",
     code: `exports.rsm_nuikit:SetCores({
   health  = { ring = 82, core = 70 },
   stamina = { ring = 64, core = 92 },
@@ -68,7 +68,7 @@ exports.rsm_nuikit:SetCores(nil) -- hide`,
   {
     name: "SetMoney",
     side: "Client",
-    desc: "Wallet and gold. The in-game clock is added automatically while it is shown. nil hides it.",
+    desc: "Wallet and gold. The in-game clock is added automatically while it is shown. nil hides it. Ignored while rsm_hud runs.",
     code: `exports.rsm_nuikit:SetMoney(142.60, 2.5)
 exports.rsm_nuikit:SetMoney(nil) -- hide`,
     hud: true,
@@ -104,7 +104,7 @@ exports.rsm_nuikit:SetHudHidden(false)`,
   {
     name: "IsModuleActive",
     side: "Client · Server",
-    desc: "Whether a module is switched on in the published settings, so your resource can fall back to its own UI.",
+    desc: "Whether a module is switched on in the published settings, so your resource can fall back to its own UI. cores and money are false while rsm_hud runs.",
     code: `if exports.rsm_nuikit:IsModuleActive("money") then
   exports.rsm_nuikit:SetMoney(cash, gold)
 end`,

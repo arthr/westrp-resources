@@ -15,7 +15,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
 <template>
   <button
     type="button"
-    class="skin skin-plate fixed left-1/2 top-[44%] z-20 flex -translate-x-1/2 cursor-pointer items-center gap-3 px-[1.125rem] py-2 [--skin-fill:rgba(1,1,1,0.66)] hover:[--skin-fill:rgba(1,1,1,0.8)]"
+    class="skin skin-plate fixed left-1/2 top-[44%] z-20 flex -translate-x-1/2 cursor-pointer items-center gap-3 px-[1.125rem] py-2 [--skin-fill:rgb(var(--hud-surface-rgb)/calc(0.66*var(--hud-surface-k)))] hover:[--skin-fill:rgb(var(--hud-surface-rgb)/calc(0.8*var(--hud-surface-k)))]"
     @click="openLayout"
   >
     <KeyCap k="L" />

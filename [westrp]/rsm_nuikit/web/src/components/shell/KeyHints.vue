@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useKit } from "../../state/kit.js";
 import { Button, KeyCap } from "../kit";
 
@@ -10,6 +11,9 @@ const HINTS = [
   { keys: ["R", "G"], label: "Prompts (HUD Pieces)" },
   { keys: ["Esc"], label: "Close" },
 ];
+const placementHint = computed(() =>
+  kit.state.host.present ? "Players place HUD pieces with /hudlayout" : "HUD positions come from Config.Layout in config.lua",
+);
 </script>
 
 <template>
@@ -19,7 +23,7 @@ const HINTS = [
         <KeyCap v-for="k in h.keys" :key="k" :k="k" :size="k.length > 1 ? 34 : 26" />
         {{ h.label }}
       </span>
-      <span class="text-[13px] text-faint">Drag widgets on the mini screen to place them</span>
+      <span class="text-[13px] text-faint">{{ placementHint }}</span>
     </div>
     <Button variant="ghost" size="sm" icon="cross" @click="kit.closePanel()">Close</Button>
   </footer>
