@@ -1,0 +1,294 @@
+@import "tailwindcss";
+
+/* Blood & Black, the default RedM design system tokens. The backdrop image
+   is seeded by the studio; every texture/font the UI uses must be pulled from
+   the RDR2 catalogs into web/public/ and wired through the BASE_URL bridge in
+   main.jsx (see the STUDIO-MANAGED block). The font families below apply once
+   you copy the faces in and add their @font-face lines there. */
+@theme {
+  --font-display: "RDR Lino", "Hapna Slab", Georgia, serif;
+  --font-sans: "Hapna Slab", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --color-blood: #CB0101;
+  --color-blood-deep: #A50101;
+  --color-paper: #F5F3EE;
+  --color-panel: #0d0d0d;
+  --color-panel-2: #141414;
+  --font-title: "Redemption", "RDR Lino", Georgia, serif;
+  --font-cat: "RDR Catalogue", "RDR Lino", Georgia, serif;
+}
+
+/* Kit colours resolve to the live Color Manager tokens below. */
+@theme inline {
+  --color-accent: var(--kit-accent);
+  --color-accent-hover: var(--kit-accent-hover);
+  --color-on-accent: var(--kit-on-accent);
+  --color-ink: var(--kit-text);
+  --color-dim: var(--kit-dim);
+  --color-faint: var(--kit-faint);
+}
+
+:root {
+  --bg: #010101;
+  --panel: #0d0d0d;
+  --panel-2: #141414;
+  --red: #CB0101;
+  --red-hover: #A50101;
+  --red-soft: rgba(203, 1, 1, 0.16);
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #F5F3EE;
+  --text-dim: #9A948A;
+  --text-faint: #6b665e;
+
+  /* Color Manager tokens: the defaults are the Blood & Black theme, the
+     Color Manager overwrites them on <html> at runtime (see lib/theme.js). */
+  --kit-accent: #CB0101;
+  --kit-accent-rgb: 203 1 1;
+  --kit-accent-hover: #A50101;
+  --kit-on-accent: #FFFFFF;
+  --kit-surface-rgb: 13 13 13;
+  --kit-surface-a: 0.93;
+  --kit-text: #F5F3EE;
+  --kit-text-rgb: 245 243 238;
+  --kit-dim: #9A948A;
+  --kit-faint: #6b665e;
+}
+
+html, body, #root { height: 100%; }
+* { box-sizing: border-box; }
+
+body {
+  overflow: hidden;
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── STUDIO-MANAGED: guaranteed cinematic backdrop, do NOT remove ─────────
+   A fixed, full-viewport Red Dead scene sits BEHIND the whole app, with a
+   dark vignette on top for text contrast. The studio guarantees the image
+   (web/public/img/backdrop.jpg) exists for every build, reused free from a
+   shared per-concept cache, or a tiled leather fallback. Build your UI on
+   top of this; to change the scene, replace img/backdrop.jpg (or ask the
+   image generator to). Never delete this layer, the screen behind the
+   panel is part of an authentic RDR2 UI. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  /* Scene on top; a warm leather-tone gradient underneath is the fallback for
+     the brief window before the studio drops the concept scene (or a cold
+     concept), reads as aged leather, never a flat black void. */
+  background:
+    var(--rsm-backdrop, none) center / cover no-repeat,
+    radial-gradient(135% 105% at 50% 0%, #1c1611 0%, #0b0806 55%, #030302 100%);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(125% 95% at 50% 12%, rgba(10,6,4,.35) 0%, rgba(0,0,0,.82) 78%);
+}
+/* ── end STUDIO-MANAGED ───────────────────────────────────────────────────*/
+
+/* ── STUDIO-MANAGED: in-game transparency guard, do NOT remove ────────────
+   In RedM the NUI (CEF) layer MUST be transparent so the game shows through.
+   The backdrop scene above is a PREVIEW-ONLY device: in the studio there is
+   nothing behind the page, so a cinematic scene makes the UI presentable. In
+   game there IS something behind the page — the world — and covering it is
+   never right.
+
+   So in game the scene NEVER paints, not on start and not while a panel is
+   open. Opening a menu used to bring both full-viewport layers back, and both
+   are opaque (the scene sits on a solid gradient, the vignette ends at 82%
+   black), which blacked out the game behind every panel. A menu is allowed to
+   dim what is behind it, not replace it, so open state gets a light uniform
+   scrim instead — enough for text contrast, still clearly the game underneath.
+
+   Panels paint their own backgrounds. Never put one on html/body. */
+html.rsm-ingame, html.rsm-ingame body { background: transparent !important; }
+html.rsm-ingame body::before { display: none !important; }
+html.rsm-ingame body::after { display: none !important; }
+html.rsm-ingame.rsm-open body::after {
+  display: block !important;
+  background: rgba(0, 0, 0, 0.38) !important;
+}
+/* ── end STUDIO-MANAGED ───────────────────────────────────────────────────*/
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,.25); }
+::-webkit-scrollbar-thumb { background: var(--text-faint); }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--text-faint) rgba(0,0,0,.25); }
+
+/* ── NUI kit: RDR2 art as masks ─────────────────────────────────────────────
+   Every surface is a game texture used as a 9-slice mask (source slice /
+   on-screen corner size, uniform so corners never distort). The art lives on
+   the element's ::before layer, so it never masks the text inside it. The
+   background on each ::before rule is the fill that shows THROUGH the art. */
+@layer components {
+  .tx-shell, .tx-card, .tx-card-solid, .tx-dialog, .tx-plate, .tx-chip, .tx-help,
+  .tx-toast, .tx-prompt, .tx-frame, .tx-header, .tx-key, .tx-counter {
+    position: relative;
+    isolation: isolate;
+  }
+  .tx-shell::before, .tx-card::before, .tx-card-solid::before, .tx-dialog::before,
+  .tx-plate::before, .tx-chip::before, .tx-help::before, .tx-toast::before,
+  .tx-prompt::before, .tx-frame::before, .tx-header::before, .tx-key::before,
+  .tx-counter::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    transition: background-color .15s ease;
+  }
+
+  .tx-shell::before {
+    background: rgb(var(--kit-surface-rgb) / var(--kit-surface-a));
+    -webkit-mask-box-image: var(--tex-translate-bg-1a) 110 / 70px stretch;
+  }
+  .tx-card::before {
+    background: var(--card, rgb(var(--kit-text-rgb) / 0.045));
+    -webkit-mask-box-image: var(--tex-hud-menu-4a) 64 / 30px stretch;
+  }
+  .tx-card-solid::before {
+    background: rgb(var(--kit-surface-rgb) / 0.97);
+    -webkit-mask-box-image: var(--tex-hud-menu-4a) 64 / 30px stretch;
+  }
+  .tx-dialog::before {
+    background: rgb(var(--kit-surface-rgb) / 0.98);
+    -webkit-mask-box-image: var(--tex-hud-menu-5a) 40 / 22px stretch;
+  }
+  .tx-plate::before {
+    background: var(--plate, rgb(var(--kit-text-rgb) / 0.08));
+    -webkit-mask-box-image: var(--tex-selection-box-bg-1a) 30 / 14px stretch;
+  }
+  .tx-chip::before {
+    background: var(--plate, rgb(var(--kit-text-rgb) / 0.08));
+    -webkit-mask-box-image: var(--tex-selection-box-bg-1d) 16 / 9px stretch;
+  }
+  .tx-help::before {
+    background: var(--plate, rgb(var(--kit-text-rgb) / 0.07));
+    -webkit-mask-box-image: var(--tex-help-text-1c) 24 / 12px stretch;
+  }
+  .tx-toast::before {
+    background: rgb(var(--kit-surface-rgb) / 0.95);
+    -webkit-mask-box-image: var(--tex-toast-notification-1a) 24 / 12px stretch;
+  }
+  .tx-prompt::before {
+    background: rgb(var(--kit-surface-rgb) / 0.82);
+    -webkit-mask-box-image: var(--tex-prompt-bar) 24 / 12px stretch;
+  }
+  /* outline frames: the fill IS the line colour */
+  .tx-frame::before {
+    background: var(--frame, rgb(var(--kit-text-rgb) / 0.22));
+    -webkit-mask-box-image: var(--tex-crafting-outline) 20 / 12px stretch;
+  }
+  .tx-header::before {
+    background: var(--frame, rgb(var(--kit-text-rgb) / 0.35));
+    -webkit-mask-box-image: var(--tex-menu-header-1a) 34 / 22px stretch;
+  }
+  .tx-key::before {
+    background: var(--frame, var(--kit-text));
+    -webkit-mask-box-image: var(--tex-selection-box-square) 10 / 7px stretch;
+  }
+  .tx-counter::before {
+    background: var(--plate, var(--kit-accent));
+    -webkit-mask-box-image: var(--tex-counter-bg-1a) 12 / 8px stretch;
+  }
+
+  /* single-piece art at a fixed square, tinted through the mask */
+  .ico {
+    flex: none;
+    background: var(--ico-fill, currentColor);
+    -webkit-mask: var(--ico) center / contain no-repeat;
+    mask: var(--ico) center / contain no-repeat;
+  }
+
+  /* lines: length stretches, thickness stays at the art's own 4px */
+  .ln-h {
+    height: 4px;
+    background: var(--line-fill, rgb(var(--kit-text-rgb) / 0.22));
+    -webkit-mask: var(--tex-divider-line) center / 100% 100% no-repeat;
+    mask: var(--tex-divider-line) center / 100% 100% no-repeat;
+  }
+  .ln-wide {
+    height: 4px;
+    background: var(--line-fill, rgb(var(--kit-text-rgb) / 0.12));
+    -webkit-mask: var(--tex-list-item-h-line-wide) center / 100% 100% no-repeat;
+    mask: var(--tex-list-item-h-line-wide) center / 100% 100% no-repeat;
+  }
+  .ln-v {
+    width: 4px;
+    background: var(--line-fill, rgb(var(--kit-text-rgb) / 0.16));
+    -webkit-mask: var(--tex-vertical-divider-line) center / 100% 100% no-repeat;
+    mask: var(--tex-vertical-divider-line) center / 100% 100% no-repeat;
+  }
+  /* menu_bar 432x12: slider / progress track, 12px tall like the art */
+  .tx-bar {
+    height: 12px;
+    -webkit-mask: var(--tex-menu-bar) center / 100% 100% no-repeat;
+    mask: var(--tex-menu-bar) center / 100% 100% no-repeat;
+  }
+  /* weapon_stats_bar 208x16: segmented stat bar at its own 13:1 ratio */
+  .tx-stat {
+    aspect-ratio: 13 / 1;
+    -webkit-mask: var(--tex-weapon-stats-bar) center / contain no-repeat;
+    mask: var(--tex-weapon-stats-bar) center / contain no-repeat;
+  }
+
+  /* ── interaction states: each one only swaps the fill behind the art ── */
+  .btn { --plate: rgb(var(--kit-text-rgb) / 0.08); color: var(--kit-text); outline: none; }
+  .btn:hover:not(:disabled), .btn:focus-visible, .btn.is-hover { --plate: rgb(var(--kit-accent-rgb) / 0.24); }
+  .btn.is-active { --plate: rgb(var(--kit-accent-rgb) / 0.4); }
+  .btn-primary { --plate: var(--kit-accent); color: var(--kit-on-accent); }
+  .btn-primary:hover:not(:disabled), .btn-primary:focus-visible, .btn-primary.is-hover { --plate: var(--kit-accent-hover); }
+  .btn-ghost { --plate: transparent; color: var(--kit-dim); }
+  .btn-ghost:hover:not(:disabled), .btn-ghost:focus-visible, .btn-ghost.is-hover { --plate: rgb(var(--kit-text-rgb) / 0.07); color: var(--kit-text); }
+  .btn:disabled, .btn.is-disabled { --plate: rgb(var(--kit-text-rgb) / 0.04); color: var(--kit-faint); cursor: not-allowed; }
+
+  .row { --plate: transparent; outline: none; }
+  .row:hover, .row:focus-visible { --plate: rgb(var(--kit-text-rgb) / 0.06); }
+  .row.is-selected { --plate: rgb(var(--kit-accent-rgb) / 0.2); }
+  .row.is-current { --plate: var(--kit-accent); color: var(--kit-on-accent); }
+  .row.is-inactive { color: var(--kit-faint); }
+
+  .field { --plate: rgb(0 0 0 / 0.38); }
+  .field:focus-within { --plate: rgb(var(--kit-accent-rgb) / 0.16); }
+
+  .arrow-btn { color: var(--kit-dim); outline: none; }
+  .arrow-btn:hover:not(:disabled), .arrow-btn:focus-visible { color: var(--kit-accent); }
+  .arrow-btn:disabled { color: var(--kit-faint); cursor: not-allowed; }
+
+  /* Core: o ícone é a máscara e o gradiente é o "líquido". --core-fill é o
+     nível (registrado com @property abaixo para a subida/descida ser suave). */
+  .core-icon {
+    background: linear-gradient(to top, var(--core-on) var(--core-fill), var(--core-off) var(--core-fill));
+    -webkit-mask: var(--ico) center / contain no-repeat;
+    mask: var(--ico) center / contain no-repeat;
+    --core-off: rgb(var(--kit-text-rgb) / 0.18);
+    transition: --core-fill 0.35s ease-out;
+  }
+
+  .kit-heading {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+}
+
+@property --core-fill {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@keyframes kit-pulse { 0%, 100% { opacity: .55 } 50% { opacity: 1 } }
+@keyframes kit-drain { from { transform: scaleX(1) } to { transform: scaleX(0) } }
+@keyframes kit-load { 0% { transform: translateX(-100%) } 100% { transform: translateX(260%) } }
+@keyframes kit-pop { from { opacity: 0; transform: scale(.82) } to { opacity: 1; transform: scale(1) } }
