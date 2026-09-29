@@ -5,11 +5,12 @@ import { hud } from "../../store/hud.js";
 import { layout } from "../../store/layout.js";
 import { t } from "../../locale.js";
 
-// iconScale encaixa cada glifo no disco do core: os glifos de emote ocupam o
-// quadro inteiro, os ícones rpg já são desenhados pequenos dentro do deles.
+// iconScale encaixa cada glifo no disco do core: fome e sede já vêm recortadas
+// no desenho, o emote ocupa o quadro inteiro e os ícones rpg são desenhados
+// pequenos dentro do deles. Todos terminam com ~45% do disco.
 const NEEDS = [
-  { key: "hunger", icon: "need-hunger", iconScale: 0.5 },
-  { key: "thirst", icon: "need-thirst", iconScale: 0.52 },
+  { key: "hunger", icon: "need-hunger", iconScale: 0.46 },
+  { key: "thirst", icon: "need-thirst", iconScale: 0.46 },
   { key: "stress", icon: "need-stress", iconScale: 0.95, invert: true },
   { key: "hygiene", icon: "need-hygiene", iconScale: 0.95 },
   { key: "alcohol", icon: "need-alcohol", iconScale: 0.5, invert: true },

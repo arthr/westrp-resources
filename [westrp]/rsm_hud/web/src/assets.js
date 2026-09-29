@@ -16,8 +16,8 @@ const TEXTURES = {
   "core-horse-stamina": "tex/hud/core_horse_stamina.png",
 
   // needs + status effects
-  "need-hunger": "tex/hud/emote_action_biting_gold_coin_1.png",
-  "need-thirst": "tex/hud/emote_action_drinking_cowboy_1.png",
+  "need-hunger": "tex/hud/blip_supplies_food_glyph.png", // coxa: só o desenho branco, sem o disco do blip
+  "need-thirst": "tex/hud/blip_mg_drinking_glyph.png", // copo: só o desenho branco, sem o disco do blip
   "need-stress": "tex/hud/agitation.png",
   "need-hygiene": "tex/hud/horse_dirty.png",
   "need-alcohol": "tex/hud/emote_dance_drunk_a.png",
