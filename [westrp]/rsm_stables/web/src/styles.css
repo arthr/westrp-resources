@@ -1,0 +1,282 @@
+@import "tailwindcss";
+
+/* Blood & Black, os mesmos tokens do rsm_nuikit. As cores do kit apontam para
+   as variáveis --kit-* abaixo, e o tema publicado no estúdio do rsm_nuikit
+   sobrescreve essas variáveis em tempo real (lib/theme.js). */
+@theme {
+  --font-display: "RDR Lino", "Hapna Slab", Georgia, serif;
+  --font-sans: "Hapna Slab", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --font-title: "Redemption", "RDR Lino", Georgia, serif;
+  --font-cat: "RDR Catalogue", "RDR Lino", Georgia, serif;
+  --color-blood: #CB0101;
+  --color-blood-deep: #A50101;
+  --color-paper: #F5F3EE;
+  --color-panel: #0d0d0d;
+  --color-panel-2: #141414;
+
+  --animate-kit-rise: kit-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-kit-slide: kit-slide 0.2s ease-out both;
+  --animate-kit-dialog: kit-dialog 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes kit-rise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+  @keyframes kit-slide { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
+  @keyframes kit-dialog { from { opacity: 0; transform: translateY(14px) scale(0.98) } to { opacity: 1; transform: none } }
+}
+
+@theme inline {
+  --color-accent: var(--kit-accent);
+  --color-accent-hover: var(--kit-accent-hover);
+  --color-on-accent: var(--kit-on-accent);
+  --color-ink: var(--kit-text);
+  --color-dim: var(--kit-dim);
+  --color-faint: var(--kit-faint);
+}
+
+:root {
+  --bg: #010101;
+  --panel: #0d0d0d;
+  --panel-2: #141414;
+  --red: #CB0101;
+  --red-hover: #A50101;
+  --red-soft: rgba(203, 1, 1, 0.16);
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #F5F3EE;
+  --text-dim: #9A948A;
+  --text-faint: #6b665e;
+
+  /* Padrão Blood & Black; o tema publicado no rsm_nuikit substitui em runtime */
+  --kit-accent: #CB0101;
+  --kit-accent-rgb: 203 1 1;
+  --kit-accent-hover: #A50101;
+  --kit-on-accent: #FFFFFF;
+  --kit-surface-rgb: 13 13 13;
+  --kit-surface-a: 0.93;
+  --kit-text: #F5F3EE;
+  --kit-text-rgb: 245 243 238;
+  --kit-dim: #9A948A;
+  --kit-faint: #6b665e;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  overflow: hidden;
+  background: #000;
+  color: var(--kit-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The backdrop the studio seeds. In game the page stays transparent until a
+   panel opens, so this layer is only painted in the browser or while open. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--rsm-backdrop);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.rsm-ingame body::before { opacity: 0; }
+.rsm-ingame.rsm-open body::before { opacity: 0.55; }
+
+/* Prévia: a cena faz o papel da câmera do estábulo, então aparece mais, e as
+   laterais escurecem atrás dos painéis como no jogo. */
+html:not(.rsm-ingame) body::before { opacity: 0.9; }
+html:not(.rsm-ingame) body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.18) 36%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.18) 64%, rgba(0, 0, 0, 0.68) 100%);
+}
+
+/* No jogo a página é SEMPRE transparente e a cena da prévia nunca pinta: o
+   centro da tela é a câmera mostrando o cavalo. Com o menu aberto, só as
+   laterais recebem um véu leve atrás dos painéis; o meio fica limpo. */
+html.rsm-ingame, html.rsm-ingame body { background: transparent !important; }
+html.rsm-ingame body::before { display: none !important; }
+html.rsm-ingame.rsm-open body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.12) 32%, transparent 46%, transparent 54%, rgba(0, 0, 0, 0.12) 68%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); }
+::-webkit-scrollbar-thumb { background: var(--text-faint); }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--text-faint) rgba(0, 0, 0, 0.25); }
+
+/* ── NUI kit: arte do RDR2 como máscara (igual ao rsm_nuikit) ──────────────
+   Cada superfície é uma textura do jogo usada como máscara 9-slice; a arte
+   fica no ::before, então nunca mascara o texto. O background de cada
+   ::before é o preenchimento que aparece ATRAVÉS da arte. */
+@layer components {
+  .tx-shell, .tx-card, .tx-card-solid, .tx-dialog, .tx-plate, .tx-chip, .tx-help,
+  .tx-toast, .tx-prompt, .tx-frame, .tx-header, .tx-key, .tx-counter {
+    position: relative;
+    isolation: isolate;
+  }
+  .tx-shell::before, .tx-card::before, .tx-card-solid::before, .tx-dialog::before,
+  .tx-plate::before, .tx-chip::before, .tx-help::before, .tx-toast::before,
+  .tx-prompt::before, .tx-frame::before, .tx-header::before, .tx-key::before,
+  .tx-counter::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    transition: background-color .15s ease;
+  }
+
+  .tx-shell::before {
+    background: rgb(var(--kit-surface-rgb) / var(--kit-surface-a));
+    -webkit-mask-box-image: var(--tex-translate-bg-1a) 110 / 70px stretch;
+  }
+  .tx-card::before {
+    background: var(--card, rgb(var(--kit-text-rgb) / 0.045));
+    -webkit-mask-box-image: var(--tex-hud-menu-4a) 64 / 30px stretch;
+  }
+  .tx-card-solid::before {
+    background: rgb(var(--kit-surface-rgb) / 0.97);
+    -webkit-mask-box-image: var(--tex-hud-menu-4a) 64 / 30px stretch;
+  }
+  .tx-dialog::before {
+    background: rgb(var(--kit-surface-rgb) / 0.98);
+    -webkit-mask-box-image: var(--tex-hud-menu-5a) 40 / 22px stretch;
+  }
+  .tx-plate::before {
+    background: var(--plate, rgb(var(--kit-text-rgb) / 0.08));
+    -webkit-mask-box-image: var(--tex-selection-box-bg-1a) 30 / 14px stretch;
+  }
+  .tx-chip::before {
+    background: var(--plate, rgb(var(--kit-text-rgb) / 0.08));
+    -webkit-mask-box-image: var(--tex-selection-box-bg-1d) 16 / 9px stretch;
+  }
+  .tx-help::before {
+    background: var(--plate, rgb(var(--kit-text-rgb) / 0.07));
+    -webkit-mask-box-image: var(--tex-help-text-1c) 24 / 12px stretch;
+  }
+  .tx-toast::before {
+    background: rgb(var(--kit-surface-rgb) / 0.95);
+    -webkit-mask-box-image: var(--tex-toast-notification-1a) 24 / 12px stretch;
+  }
+  .tx-prompt::before {
+    background: rgb(var(--kit-surface-rgb) / 0.82);
+    -webkit-mask-box-image: var(--tex-prompt-bar) 24 / 12px stretch;
+  }
+  .tx-frame::before {
+    background: var(--frame, rgb(var(--kit-text-rgb) / 0.22));
+    -webkit-mask-box-image: var(--tex-crafting-outline) 20 / 12px stretch;
+  }
+  .tx-header::before {
+    background: var(--frame, rgb(var(--kit-text-rgb) / 0.35));
+    -webkit-mask-box-image: var(--tex-menu-header-1a) 34 / 22px stretch;
+  }
+  .tx-key::before {
+    background: var(--frame, var(--kit-text));
+    -webkit-mask-box-image: var(--tex-selection-box-square) 10 / 7px stretch;
+  }
+  .tx-counter::before {
+    background: var(--plate, var(--kit-accent));
+    -webkit-mask-box-image: var(--tex-counter-bg-1a) 12 / 8px stretch;
+  }
+
+  .ico {
+    flex: none;
+    background: var(--ico-fill, currentColor);
+    -webkit-mask: var(--ico) center / contain no-repeat;
+    mask: var(--ico) center / contain no-repeat;
+  }
+
+  .ln-h {
+    height: 4px;
+    background: var(--line-fill, rgb(var(--kit-text-rgb) / 0.22));
+    -webkit-mask: var(--tex-divider-line) center / 100% 100% no-repeat;
+    mask: var(--tex-divider-line) center / 100% 100% no-repeat;
+  }
+  .ln-wide {
+    height: 4px;
+    background: var(--line-fill, rgb(var(--kit-text-rgb) / 0.12));
+    -webkit-mask: var(--tex-list-item-h-line-wide) center / 100% 100% no-repeat;
+    mask: var(--tex-list-item-h-line-wide) center / 100% 100% no-repeat;
+  }
+  .ln-v {
+    width: 4px;
+    background: var(--line-fill, rgb(var(--kit-text-rgb) / 0.16));
+    -webkit-mask: var(--tex-vertical-divider-line) center / 100% 100% no-repeat;
+    mask: var(--tex-vertical-divider-line) center / 100% 100% no-repeat;
+  }
+  .tx-bar {
+    height: 12px;
+    -webkit-mask: var(--tex-menu-bar) center / 100% 100% no-repeat;
+    mask: var(--tex-menu-bar) center / 100% 100% no-repeat;
+  }
+  .tx-stat {
+    aspect-ratio: 13 / 1;
+    -webkit-mask: var(--tex-weapon-stats-bar) center / contain no-repeat;
+    mask: var(--tex-weapon-stats-bar) center / contain no-repeat;
+  }
+
+  .btn { --plate: rgb(var(--kit-text-rgb) / 0.08); color: var(--kit-text); outline: none; }
+  .btn:hover:not(:disabled), .btn:focus-visible, .btn.is-hover { --plate: rgb(var(--kit-accent-rgb) / 0.24); }
+  .btn.is-active { --plate: rgb(var(--kit-accent-rgb) / 0.4); }
+  .btn-primary { --plate: var(--kit-accent); color: var(--kit-on-accent); }
+  .btn-primary:hover:not(:disabled), .btn-primary:focus-visible, .btn-primary.is-hover { --plate: var(--kit-accent-hover); }
+  .btn-ghost { --plate: transparent; color: var(--kit-dim); }
+  .btn-ghost:hover:not(:disabled), .btn-ghost:focus-visible, .btn-ghost.is-hover { --plate: rgb(var(--kit-text-rgb) / 0.07); color: var(--kit-text); }
+  .btn:disabled, .btn.is-disabled { --plate: rgb(var(--kit-text-rgb) / 0.04); color: var(--kit-faint); cursor: not-allowed; }
+
+  .row { --plate: transparent; outline: none; }
+  .row:hover, .row:focus-visible { --plate: rgb(var(--kit-text-rgb) / 0.06); }
+  .row.is-selected { --plate: rgb(var(--kit-accent-rgb) / 0.2); }
+  .row.is-current { --plate: var(--kit-accent); color: var(--kit-on-accent); }
+  .row.is-inactive { color: var(--kit-faint); }
+
+  .field { --plate: rgb(0 0 0 / 0.38); }
+  .field:focus-within { --plate: rgb(var(--kit-accent-rgb) / 0.16); }
+
+  .arrow-btn { color: var(--kit-dim); outline: none; }
+  .arrow-btn:hover:not(:disabled), .arrow-btn:focus-visible { color: var(--kit-accent); }
+  .arrow-btn:disabled { color: var(--kit-faint); cursor: not-allowed; }
+
+  .core-icon {
+    background: linear-gradient(to top, var(--core-on) var(--core-fill), var(--core-off) var(--core-fill));
+    -webkit-mask: var(--ico) center / contain no-repeat;
+    mask: var(--ico) center / contain no-repeat;
+    --core-off: rgb(var(--kit-text-rgb) / 0.18);
+    transition: --core-fill 0.35s ease-out;
+  }
+
+  .kit-heading {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+}
+
+@property --core-fill {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@keyframes kit-pulse { 0%, 100% { opacity: .55 } 50% { opacity: 1 } }
+@keyframes kit-drain { from { transform: scaleX(1) } to { transform: scaleX(0) } }
+@keyframes kit-load { 0% { transform: translateX(-100%) } 100% { transform: translateX(260%) } }
+@keyframes kit-pop { from { opacity: 0; transform: scale(.82) } to { opacity: 1; transform: scale(1) } }
